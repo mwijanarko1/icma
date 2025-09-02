@@ -1,0 +1,917 @@
+{
+    "hadithText": "",
+    "chains": [
+      {
+        "id": "chain-1756741329751-1",
+        "narrators": [
+          {
+            "number": 1,
+            "arabicName": "رَسُولَ اللَّهِ",
+            "englishName": "Messenger of Allah"
+          },
+          {
+            "number": 2,
+            "arabicName": "عُمَرَ بْنَ الْخَطَّابِ",
+            "englishName": "Umar ibn al-Khattab"
+          },
+          {
+            "number": 3,
+            "arabicName": "عَلْقَمَةَ بْنَ وَقَّاصٍ اللَّيْثِيَّ",
+            "englishName": "Alqamah ibn Waqqas al-Laythi"
+          },
+          {
+            "number": 4,
+            "arabicName": "مُحَمَّدُ بْنُ إِبْرَاهِيمَ التَّيْمِيُّ",
+            "englishName": "Muhammad ibn Ibrahim al-Taymi"
+          },
+          {
+            "number": 5,
+            "arabicName": "يَحْيَى بْنُ سَعِيدٍ الْأَنْصَارِيُّ",
+            "englishName": "Yahya ibn Said al-Ansari"
+          },
+          {
+            "number": 6,
+            "arabicName": "سُفْيَانُ",
+            "englishName": "Sufyan"
+          },
+          {
+            "number": 7,
+            "arabicName": "الْحُمَيْدِيُّ عَبْدُ اللَّهِ بْنُ الزُّبَيْرِ",
+            "englishName": "Al-Humaidi Abdullah ibn al-Zubayr"
+          },
+          {
+            "number": 8,
+            "arabicName": "الْإِمَامُ الْبُخَارِيُّ",
+            "englishName": "Imam al-Bukhari"
+          }
+        ],
+        "hadithText": "حَدَّثَنَا الْحُمَيْدِيُّ عَبْدُ اللَّهِ بْنُ الزُّبَيْرِ... (Sahih al-Bukhari 1)",
+        "title": "Bukhari 1",
+        "collapsed": true
+      },
+      {
+        "id": "chain-1756741329751-2",
+        "narrators": [
+          {
+            "number": 1,
+            "arabicName": "رَسُولَ اللَّهِ",
+            "englishName": "Messenger of Allah"
+          },
+          {
+            "number": 2,
+            "arabicName": "عُمَرَ بْنَ الْخَطَّابِ",
+            "englishName": "Umar ibn al-Khattab"
+          },
+          {
+            "number": 3,
+            "arabicName": "عَلْقَمَةَ بْنَ وَقَّاصٍ اللَّيْثِيَّ",
+            "englishName": "Alqamah ibn Waqqas al-Laythi"
+          },
+          {
+            "number": 4,
+            "arabicName": "مُحَمَّدُ بْنُ إِبْرَاهِيمَ التَّيْمِيُّ",
+            "englishName": "Muhammad ibn Ibrahim al-Taymi"
+          },
+          {
+            "number": 5,
+            "arabicName": "يَحْيَى بْنُ سَعِيدٍ الْأَنْصَارِيُّ",
+            "englishName": "Yahya ibn Said al-Ansari"
+          },
+          {
+            "number": 6,
+            "arabicName": "سُفْيَانُ",
+            "englishName": "Sufyan"
+          },
+          {
+            "number": 7,
+            "arabicName": "مُحَمَّدُ بْنُ كَثِيرٍ",
+            "englishName": "Muhammad ibn Kathir"
+          },
+          {
+            "number": 8,
+            "arabicName": "الْإِمَامُ الْبُخَارِيُّ",
+            "englishName": "Imam al-Bukhari"
+          }
+        ],
+        "hadithText": "حَدَّثَنَا مُحَمَّدُ بْنُ كَثِيرٍ... (Sahih al-Bukhari 2529)",
+        "title": "Bukhari 2529",
+        "collapsed": true
+      },
+      {
+        "id": "chain-1756742272756",
+        "narrators": [
+          {
+            "number": 1,
+            "arabicName": "رَسُولَ اللَّهِ",
+            "englishName": "Messenger of Allah"
+          },
+          {
+            "number": 2,
+            "arabicName": "عُمَرَ بْنَ الْخَطَّابِ",
+            "englishName": "Umar ibn al-Khattab"
+          },
+          {
+            "number": 3,
+            "arabicName": "عَلْقَمَةَ بْنَ وَقَّاصٍ اللَّيْثِيَّ",
+            "englishName": "Alqama ibn Waqqas al-Laythi"
+          },
+          {
+            "number": 4,
+            "arabicName": "مُحَمَّدُ بْنُ إِبْرَاهِيمَ التَّيْمِيُّ",
+            "englishName": "Muhammad ibn Ibrahim al-Taymi"
+          },
+          {
+            "number": 5,
+            "arabicName": "يَحْيَى بْنُ سَعِيدٍ الْأَنْصَارِيُّ",
+            "englishName": "Yahya ibn Sa'id"
+          },
+          {
+            "number": 6,
+            "arabicName": "سُفْيَانُ",
+            "englishName": "Sufyan"
+          },
+          {
+            "number": 7,
+            "arabicName": "مُحَمَّدُ بْنُ كَثِيرٍ",
+            "englishName": "Muhammad ibn Kathir"
+          },
+          {
+            "number": 8,
+            "arabicName": "الْإِمَامُ أَبُو دَاوُدَ",
+            "englishName": "Abu Dawud"
+          }
+        ],
+        "hadithText": "حَدَّثَنَا مُحَمَّدُ بْنُ كَثِيرٍ، أَخْبَرَنَا سُفْيَانُ، حَدَّثَنِي يَحْيَى بْنُ سَعِيدٍ، عَنْ مُحَمَّدِ بْنِ إِبْرَاهِيمَ التَّيْمِيِّ، عَنْ عَلْقَمَةَ بْنِ وَقَّاصٍ اللَّيْثِيِّ، قَالَ سَمِعْتُ عُمَرَ بْنَ الْخَطَّابِ، يَقُولُ قَالَ رَسُولُ اللَّهِ صلى الله عليه وسلم ‏ \"‏ إِنَّمَا الأَعْمَالُ بِالنِّيَّاتِ وَإِنَّمَا لِكُلِّ امْرِئٍ مَا نَوَى فَمَنْ كَانَتْ هِجْرَتُهُ إِلَى اللَّهِ وَرَسُولِهِ فَهِجْرَتُهُ إِلَى اللَّهِ وَرَسُولِهِ وَمَنْ كَانَتْ هِجْرَتُهُ لِدُنْيَا يُصِيبُهَا أَوِ امْرَأَةٍ يَتَزَوَّجُهَا فَهِجْرَتُهُ إِلَى مَا هَاجَرَ إِلَيْهِ ‏\"‏ ‏.‏\n\n‘Umar bin Al Khattab reported the Apostle of Allaah(ﷺ) as saying “Actions are to be judged only by intentions and a man will have only what he intended. When one’s emigration is to Allaah and His Apostle, his emigration is to Allaah and His Apostle but his emigration is to a worldly end at which he aims or to a woman whom he marries , his emigration is to that for which he emigrated.\n\nSunan Abi Dawud 2201\nhttps://sunnah.com/abudawud:2201",
+        "title": "Abu Dawud 2201",
+        "collapsed": true
+      },
+      {
+        "id": "chain-1756742059542",
+        "narrators": [
+          {
+            "number": 1,
+            "arabicName": "رَسُولَ اللَّهِ",
+            "englishName": "Messenger of Allah"
+          },
+          {
+            "number": 2,
+            "arabicName": "عُمَرَ بْنَ الْخَطَّابِ",
+            "englishName": "Umar b. al-Khattab"
+          },
+          {
+            "number": 3,
+            "arabicName": "يَحْيَى بْنُ سَعِيدٍ الْأَنْصَارِيُّ",
+            "englishName": "Yahya b. Sa'id"
+          },
+          {
+            "number": 4,
+            "arabicName": "سُفْيَانُ",
+            "englishName": "Sufyan"
+          },
+          {
+            "number": 5,
+            "arabicName": "ابْنُ أَبِي عُمَرَ",
+            "englishName": "Ibn Abi Umar"
+          },
+          {
+            "number": 6,
+            "arabicName": "ابْنُ الْمُبَارَكِ",
+            "englishName": "Ibn al-Mubarak"
+          },
+          {
+            "number": 7,
+            "arabicName": "مُحَمَّدُ بْنُ الْعَلاَءِ الْهَمْدَانِيُّ",
+            "englishName": "Muhammad b. al-'Ala' al-Hamdani"
+          },
+          {
+            "number": 8,
+            "arabicName": "يَزِيدُ بْنُ هَارُونَ",
+            "englishName": "Yazid b. Harun"
+          },
+          {
+            "number": 9,
+            "arabicName": "حَفْصٌ",
+            "englishName": "Hafs"
+          },
+          {
+            "number": 10,
+            "arabicName": "مُحَمَّدُ بْنُ عَبْدِ اللَّهِ بْنِ نُمَيْرٍ",
+            "englishName": "Muhammad b. Abd Allah b. Numair"
+          },
+          {
+            "number": 11,
+            "arabicName": "أَبُو خَالِدٍ الأَحْمَرُ، سُلَيْمَانُ بْنُ حَيَّانَ",
+            "englishName": "Abu Khalid al-Ahmar, Sulaiman b. Hayyan"
+          },
+          {
+            "number": 12,
+            "arabicName": "إِسْحَاقُ بْنُ إِبْرَاهِيمَ",
+            "englishName": "Ishaq b. Ibrahim"
+          },
+          {
+            "number": 13,
+            "arabicName": "عَبْدُ الْوَهَّابِ الثَّقَفِيَّ",
+            "englishName": "Abd al-Wahhab al-Thaqafi"
+          },
+          {
+            "number": 14,
+            "arabicName": "مُحَمَّدُ بْنُ الْمُثَنَّى",
+            "englishName": "Muhammad b. al-Muthanna"
+          },
+          {
+            "number": 15,
+            "arabicName": "حَمَّادُ بْنُ زَيْدٍ",
+            "englishName": "Hammad b. Zaid"
+          },
+          {
+            "number": 16,
+            "arabicName": "أَبُو الرَّبِيعِ الْعَتَكِيُّ",
+            "englishName": "Abu al-Rabi' al-'Ataki"
+          },
+          {
+            "number": 17,
+            "arabicName": "اللَّيْثُ",
+            "englishName": "al-Layth"
+          },
+          {
+            "number": 18,
+            "arabicName": "مُحَمَّدُ بْنُ رُمْحِ بْنِ الْمُهَاجِرِ",
+            "englishName": "Muhammad b. Rumh b. al-Muhajir"
+          },
+          {
+            "number": 19,
+            "arabicName": "الْإِمَامُ مُسْلِمٌ",
+            "englishName": "Imam Muslim"
+          }
+        ],
+        "hadithText": "حَدَّثَنَا مُحَمَّدُ بْنُ رُمْحِ بْنِ الْمُهَاجِرِ، أَخْبَرَنَا اللَّيْثُ، ح وَحَدَّثَنَا أَبُو الرَّبِيعِ الْعَتَكِيُّ، حَدَّثَنَا حَمَّادُ بْنُ زَيْدٍ، ح وَحَدَّثَنَا مُحَمَّدُ بْنُ الْمُثَنَّى، حَدَّثَنَا عَبْدُ الْوَهَّابِ يَعْنِي الثَّقَفِيَّ، ح وَحَدَّثَنَا إِسْحَاقُ بْنُ إِبْرَاهِيمَ، أَخْبَرَنَا أَبُو خَالِدٍ الأَحْمَرُ، سُلَيْمَانُ بْنُ حَيَّانَ ح وَحَدَّثَنَا مُحَمَّدُ بْنُ عَبْدِ، اللَّهِ بْنِ نُمَيْرٍ حَدَّثَنَا حَفْصٌ، - يَعْنِي ابْنَ غِيَاثٍ - وَيَزِيدُ بْنُ هَارُونَ ح وَحَدَّثَنَا مُحَمَّدُ بْنُ، الْعَلاَءِ الْهَمْدَانِيُّ حَدَّثَنَا ابْنُ الْمُبَارَكِ، ح وَحَدَّثَنَا ابْنُ أَبِي عُمَرَ، حَدَّثَنَا سُفْيَانُ، كُلُّهُمْ عَنْ يَحْيَى، بْنِ سَعِيدٍ بِإِسْنَادِ مَالِكٍ وَمَعْنَى حَدِيثِهِ وَفِي حَدِيثِ سُفْيَانَ سَمِعْتُ عُمَرَ بْنَ الْخَطَّابِ عَلَى الْمِنْبَرِ يُخْبِرُ عَنِ النَّبِيِّ صلى الله عليه وسلم ‏.‏\n\nIt has been narrated through a different chain of transmitters on the authority of Sufyan who said that he heard 'Umar b. al-Khattab relate (this tradition) from the Prophet (ﷺ) while he was delivering a sermon from the pulpit.\n\nSahih Muslim 1907b\nhttps://sunnah.com/muslim:1907b",
+        "title": "Muslim 1907b",
+        "collapsed": true
+      },
+      {
+        "id": "chain-1756743216793",
+        "narrators": [
+          {
+            "number": 1,
+            "arabicName": "رَسُولَ اللَّهِ",
+            "englishName": "Messenger of Allah"
+          },
+          {
+            "number": 2,
+            "arabicName": "عُمَرَ بْنَ الْخَطَّابِ",
+            "englishName": "Umar ibn al-Khattab"
+          },
+          {
+            "number": 3,
+            "arabicName": "عَلْقَمَةَ بْنَ وَقَّاصٍ اللَّيْثِيَّ",
+            "englishName": "Alqama ibn Waqqas al-Laythi"
+          },
+          {
+            "number": 4,
+            "arabicName": "مُحَمَّدُ بْنُ إِبْرَاهِيمَ التَّيْمِيُّ",
+            "englishName": "Muhammad ibn Ibrahim"
+          },
+          {
+            "number": 5,
+            "arabicName": "يَحْيَى بْنُ سَعِيدٍ الْأَنْصَارِيُّ",
+            "englishName": "Yahya ibn Sa'id"
+          },
+          {
+            "number": 6,
+            "arabicName": "عَبْدُ الْوَهَّابِ الثَّقَفِيَّ",
+            "englishName": "Abdul-Wahhab al-Thaqafi"
+          },
+          {
+            "number": 7,
+            "arabicName": "مُحَمَّدُ بْنُ الْمُثَنَّى",
+            "englishName": "Muhammad ibn al-Muthanna"
+          },
+          {
+            "number": 8,
+            "arabicName": "الإمام ترمذي",
+            "englishName": "Tirmidhi"
+          }
+        ],
+        "hadithText": "حَدَّثَنَا مُحَمَّدُ بْنُ الْمُثَنَّى، حَدَّثَنَا عَبْدُ الْوَهَّابِ الثَّقَفِيُّ، عَنْ يَحْيَى بْنِ سَعِيدٍ، عَنْ مُحَمَّدِ بْنِ إِبْرَاهِيمَ، عَنْ عَلْقَمَةَ بْنِ وَقَّاصٍ اللَّيْثِيِّ، عَنْ عُمَرَ بْنِ الْخَطَّابِ، قَالَ قَالَ رَسُولُ اللَّهِ صلى الله عليه وسلم ‏ \"‏ إِنَّمَا الأَعْمَالُ بِالنِّيَّةِ وَإِنَّمَا لاِمْرِئٍ مَا نَوَى فَمَنْ كَانَتْ هِجْرَتُهُ إِلَى اللَّهِ وَإِلَى رَسُولِهِ فَهِجْرَتُهُ إِلَى اللَّهِ وَرَسُولِهِ وَمَنْ كَانَتْ هِجْرَتُهُ إِلَى دُنْيَا يُصِيبُهَا أَوِ امْرَأَةٍ يَتَزَوَّجُهَا فَهِجْرَتُهُ إِلَى مَا هَاجَرَ إِلَيْهِ ‏\"‏",
+        "title": "Tirmidhi 1647",
+        "collapsed": true
+      },
+      {
+        "id": "chain-1756741329751-3",
+        "narrators": [
+          {
+            "number": 1,
+            "arabicName": "رَسُولَ اللَّهِ",
+            "englishName": "Messenger of Allah"
+          },
+          {
+            "number": 2,
+            "arabicName": "عُمَرَ بْنَ الْخَطَّابِ",
+            "englishName": "Umar ibn al-Khattab"
+          },
+          {
+            "number": 3,
+            "arabicName": "عَلْقَمَةَ بْنَ وَقَّاصٍ اللَّيْثِيَّ",
+            "englishName": "Alqamah ibn Waqqas al-Laythi"
+          },
+          {
+            "number": 4,
+            "arabicName": "مُحَمَّدُ بْنُ إِبْرَاهِيمَ التَّيْمِيُّ",
+            "englishName": "Muhammad ibn Ibrahim al-Taymi"
+          },
+          {
+            "number": 5,
+            "arabicName": "يَحْيَى بْنُ سَعِيدٍ الْأَنْصَارِيُّ",
+            "englishName": "Yahya ibn Said al-Ansari"
+          },
+          {
+            "number": 6,
+            "arabicName": "مَالِكٌ",
+            "englishName": "Malik"
+          },
+          {
+            "number": 7,
+            "arabicName": "عَبْدُ اللَّهِ بْنُ مَسْلَمَةَ",
+            "englishName": "Abdullah ibn Maslamah"
+          },
+          {
+            "number": 8,
+            "arabicName": "الْإِمَامُ الْبُخَارِيُّ",
+            "englishName": "Imam al-Bukhari"
+          }
+        ],
+        "hadithText": "حَدَّثَنَا عَبْدُ اللَّهِ بْنُ مَسْلَمَةَ... (Sahih al-Bukhari 54)",
+        "title": "Bukhari 54",
+        "collapsed": true
+      },
+      {
+        "id": "chain-1756743682827",
+        "narrators": [
+          {
+            "number": 1,
+            "arabicName": "رَسُولَ اللَّهِ",
+            "englishName": "Messenger of Allah"
+          },
+          {
+            "number": 2,
+            "arabicName": "عُمَرَ بْنَ الْخَطَّابِ",
+            "englishName": "Umar ibn al-Khattab"
+          },
+          {
+            "number": 3,
+            "arabicName": "عَلْقَمَةَ بْنَ وَقَّاصٍ اللَّيْثِيَّ",
+            "englishName": "Alqama ibn Waqqas"
+          },
+          {
+            "number": 4,
+            "arabicName": "مُحَمَّدُ بْنُ إِبْرَاهِيمَ التَّيْمِيُّ",
+            "englishName": "Muhammad ibn Ibrahim"
+          },
+          {
+            "number": 5,
+            "arabicName": "يَحْيَى بْنُ سَعِيدٍ الْأَنْصَارِيُّ",
+            "englishName": "Yahya ibn Sa'eed"
+          },
+          {
+            "number": 6,
+            "arabicName": "عَبْدُ اللَّهِ بْنُ الْمُبَارَكِ",
+            "englishName": "Abdullah ibn al-Mubarak"
+          },
+          {
+            "number": 7,
+            "arabicName": "سُلَيْمَانُ بْنُ مَنْصُورٍ",
+            "englishName": "Sulaiman ibn Mansur"
+          },
+          {
+            "number": 8,
+            "arabicName": "مَالِكٌ",
+            "englishName": "Malik"
+          },
+          {
+            "number": 9,
+            "arabicName": "ابْنِ الْقَاسِمِ",
+            "englishName": "Ibn al-Qasim"
+          },
+          {
+            "number": 10,
+            "arabicName": "الْحَارِثُ بْنُ مِسْكِينٍ",
+            "englishName": "Al-Harith ibn Miskeen"
+          },
+          {
+            "number": 11,
+            "arabicName": "حَمَّادٍ",
+            "englishName": "Hammad"
+          },
+          {
+            "number": 12,
+            "arabicName": "يَحْيَى بْنُ حَبِيبِ بْنِ عَرَبِيٍّ",
+            "englishName": "Yahya ibn Habib ibn Arabi"
+          },
+          {
+            "number": 13,
+            "arabicName": "الإمام النسائي",
+            "englishName": "Nasai"
+          }
+        ],
+        "hadithText": "أَخْبَرَنَا يَحْيَى بْنُ حَبِيبِ بْنِ عَرَبِيٍّ، عَنْ حَمَّادٍ، وَالْحَارِثُ بْنُ مِسْكِينٍ، قِرَاءَةً عَلَيْهِ وَأَنَا أَسْمَعُ، عَنِ ابْنِ الْقَاسِمِ، حَدَّثَنِي مَالِكٌ، ح وَأَخْبَرَنَا سُلَيْمَانُ بْنُ مَنْصُورٍ، قَالَ أَنْبَأَنَا عَبْدُ اللَّهِ بْنُ الْمُبَارَكِ، - وَاللَّفْظُ لَهُ - عَنْ يَحْيَى بْنِ سَعِيدٍ، عَنْ مُحَمَّدِ بْنِ إِبْرَاهِيمَ، عَنْ عَلْقَمَةَ بْنِ وَقَّاصٍ، عَنْ عُمَرَ بْنِ الْخَطَّابِ، - رضى الله عنه - قَالَ قَالَ رَسُولُ اللَّهِ صلى الله عليه وسلم ‏ \"‏ إِنَّمَا الأَعْمَالُ بِالنِّيَّةِ وَإِنَّمَا لاِمْرِئٍ مَا نَوَى فَمَنْ كَانَتْ هِجْرَتُهُ إِلَى اللَّهِ وَإِلَى رَسُولِهِ فَهِجْرَتُهُ إِلَى اللَّهِ وَإِلَى رَسُولِهِ وَمَنْ كَانَتْ هِجْرَتُهُ إِلَى دُنْيَا يُصِيبُهَا أَوِ امْرَأَةٍ يَنْكِحُهَا فَهِجْرَتُهُ إِلَى مَا هَاجَرَ إِلَيْهِ ‏\"‏ ‏.",
+        "title": "Nasai 75",
+        "collapsed": true
+      },
+      {
+        "id": "chain-1756743910814",
+        "narrators": [
+          {
+            "number": 1,
+            "arabicName": "رَسُولَ اللَّهِ",
+            "englishName": "Messenger of Allah"
+          },
+          {
+            "number": 2,
+            "arabicName": "عُمَرَ بْنَ الْخَطَّابِ",
+            "englishName": "Umar ibn al-Khattab"
+          },
+          {
+            "number": 3,
+            "arabicName": "عَلْقَمَةَ بْنَ وَقَّاصٍ اللَّيْثِيَّ",
+            "englishName": "Alqama bin Waqqas"
+          },
+          {
+            "number": 4,
+            "arabicName": "مُحَمَّدُ بْنُ إِبْرَاهِيمَ التَّيْمِيُّ",
+            "englishName": "Muhammad bin Ibrahim"
+          },
+          {
+            "number": 5,
+            "arabicName": "يَحْيَى بْنُ سَعِيدٍ الْأَنْصَارِيُّ",
+            "englishName": "Yahya bin Saeed"
+          },
+          {
+            "number": 6,
+            "arabicName": "مَالِكٌ",
+            "englishName": "Malik"
+          },
+          {
+            "number": 7,
+            "arabicName": "ابْنِ الْقَاسِمِ",
+            "englishName": "Ibn al-Qasim"
+          },
+          {
+            "number": 8,
+            "arabicName": "عَبْدُ اللَّهِ بْنُ مَسْلَمَةَ",
+            "englishName": "Abdullah bin Maslama"
+          },
+          {
+            "number": 9,
+            "arabicName": "عَمْرُو بْنُ مَنْصُورٍ",
+            "englishName": "Amr bin Mansur"
+          },
+          {
+            "number": 10,
+            "arabicName": "الإمام النسائي",
+            "englishName": "Nasai"
+          }
+        ],
+        "hadithText": "أَخْبَرَنَا عَمْرُو بْنُ مَنْصُورٍ، قَالَ حَدَّثَنَا عَبْدُ اللَّهِ بْنُ مَسْلَمَةَ، قَالَ حَدَّثَنَا مَالِكٌ، وَالْحَارِثُ بْنُ مِسْكِينٍ، قِرَاءَةً عَلَيْهِ وَأَنَا أَسْمَعُ، عَنِ ابْنِ الْقَاسِمِ، قَالَ أَخْبَرَنِي مَالِكٌ، عَنْ يَحْيَى بْنِ سَعِيدٍ، عَنْ مُحَمَّدِ بْنِ إِبْرَاهِيمَ، عَنْ عَلْقَمَةَ بْنِ وَقَّاصٍ، عَنْ عُمَرَ بْنِ الْخَطَّابِ، رضى الله عنه - وَفِي حَدِيثِ الْحَارِثِ أَنَّهُ سَمِعَ عُمَرَ يَقُولُ - قَالَ رَسُولُ اللَّهِ صلى الله عليه وسلم ‏ \"‏ إِنَّمَا الأَعْمَالُ بِالنِّيَّةِ وَإِنَّمَا لاِمْرِئٍ مَا نَوَى فَمَنْ كَانَتْ هِجْرَتُهُ إِلَى اللَّهِ وَرَسُولِهِ فَهِجْرَتُهُ إِلَى اللَّهِ وَرَسُولِهِ وَمَنْ كَانَتْ هِجْرَتُهُ لِدُنْيَا يُصِيبُهَا أَوِ امْرَأَةٍ يَتَزَوَّجُهَا فَهِجْرَتُهُ إِلَى مَا هَاجَرَ إِلَيْهِ ‏\"‏ ‏.",
+        "title": "Nasai 3437",
+        "collapsed": true
+      },
+      {
+        "id": "chain-1756741757662",
+        "narrators": [
+          {
+            "number": 1,
+            "arabicName": "رَسُولَ اللَّهِ",
+            "englishName": "Messenger of Allah"
+          },
+          {
+            "number": 2,
+            "arabicName": "عُمَرَ بْنَ الْخَطَّابِ",
+            "englishName": "Umar bin Al-Khattab"
+          },
+          {
+            "number": 3,
+            "arabicName": "عَلْقَمَةَ بْنَ وَقَّاصٍ اللَّيْثِيَّ",
+            "englishName": "Alqama bin Waqqas"
+          },
+          {
+            "number": 4,
+            "arabicName": "مُحَمَّدُ بْنُ إِبْرَاهِيمَ التَّيْمِيُّ",
+            "englishName": "Muhammad bin Ibrahim bin Al-Harith"
+          },
+          {
+            "number": 5,
+            "arabicName": "يَحْيَى بْنُ سَعِيدٍ الْأَنْصَارِيُّ",
+            "englishName": "Yahya bin Said"
+          },
+          {
+            "number": 6,
+            "arabicName": "مَالِكٌ",
+            "englishName": "Malik"
+          },
+          {
+            "number": 7,
+            "arabicName": "يَحْيَى بْنُ قَزَعَةَ",
+            "englishName": "Yahya bin Qaza'a"
+          },
+          {
+            "number": 8,
+            "arabicName": "الْإِمَامُ الْبُخَارِيُّ",
+            "englishName": "Imam Bukhari"
+          }
+        ],
+        "hadithText": "حَدَّثَنَا يَحْيَى بْنُ قَزَعَةَ، حَدَّثَنَا مَالِكٌ، عَنْ يَحْيَى بْنِ سَعِيدٍ، عَنْ مُحَمَّدِ بْنِ إِبْرَاهِيمَ بْنِ الْحَارِثِ، عَنْ عَلْقَمَةَ بْنِ وَقَّاصٍ، عَنْ عُمَرَ بْنِ الْخَطَّابِ ـ رضى الله عنه ـ قَالَ قَالَ النَّبِيُّ صلى الله عليه وسلم ‏ \"‏ الْعَمَلُ بِالنِّيَّةِ، وَإِنَّمَا لاِمْرِئٍ مَا نَوَى، فَمَنْ كَانَتْ هِجْرَتُهُ إِلَى اللَّهِ وَرَسُولِهِ فَهِجْرَتُهُ إِلَى اللَّهِ وَرَسُولِهِ صلى الله عليه وسلم وَمَنْ كَانَتْ هِجْرَتُهُ إِلَى دُنْيَا يُصِيبُهَا أَوِ امْرَأَةٍ يَنْكِحُهَا، فَهِجْرَتُهُ إِلَى مَا هَاجَرَ إِلَيْهِ ‏\"‏‏.‏\n\nNarrated `Umar bin Al-Khattab: The Prophet (ﷺ) said, \"The rewards (of deeds) are according to the intention, and everybody will get the reward for what he has intended. So whoever emigrated for Allah's and His Apostle's sake, his emigration was for Allah and His Apostle; and whoever emigrated for worldly benefits, or to marry a woman, then his emigration was for the thing for what he emigrated for.\" (1)\n\nSahih al-Bukhari 5070\nhttps://sunnah.com/bukhari:5070",
+        "title": "Bukhari 5070",
+        "collapsed": true
+      },
+      {
+        "id": "chain-1756741957054",
+        "narrators": [
+          {
+            "number": 1,
+            "arabicName": "رَسُولَ اللَّهِ",
+            "englishName": "Messenger of Allah"
+          },
+          {
+            "number": 2,
+            "arabicName": "عُمَرَ بْنَ الْخَطَّابِ",
+            "englishName": "Umar b. al-Khattab"
+          },
+          {
+            "number": 3,
+            "arabicName": "عَلْقَمَةَ بْنَ وَقَّاصٍ اللَّيْثِيَّ",
+            "englishName": "Alqama b. Waqqas"
+          },
+          {
+            "number": 4,
+            "arabicName": "مُحَمَّدُ بْنُ إِبْرَاهِيمَ التَّيْمِيُّ",
+            "englishName": "Muhammad b. Ibrahim"
+          },
+          {
+            "number": 5,
+            "arabicName": "يَحْيَى بْنُ سَعِيدٍ الْأَنْصَارِيُّ",
+            "englishName": "Yahya b. Sa'id"
+          },
+          {
+            "number": 6,
+            "arabicName": "مَالِكٌ",
+            "englishName": "Malik"
+          },
+          {
+            "number": 7,
+            "arabicName": "عَبْدُ اللَّهِ بْنُ مَسْلَمَةَ",
+            "englishName": "Abdullah b. Maslama b. Qa'nab"
+          },
+          {
+            "number": 8,
+            "arabicName": "الْإِمَامُ مُسْلِمٌ",
+            "englishName": "Imam Muslim"
+          }
+        ],
+        "hadithText": "حَدَّثَنَا عَبْدُ اللَّهِ بْنُ مَسْلَمَةَ بْنِ قَعْنَبٍ، حَدَّثَنَا مَالِكٌ، عَنْ يَحْيَى بْنِ سَعِيدٍ، عَنْ مُحَمَّدِ، بْنِ إِبْرَاهِيمَ عَنْ عَلْقَمَةَ بْنِ وَقَّاصٍ، عَنْ عُمَرَ بْنِ الْخَطَّابِ، قَالَ قَالَ رَسُولُ اللَّهِ صلى الله عليه وسلم ‏ \"‏ إِنَّمَا الأَعْمَالُ بِالنِّيَّةِ وَإِنَّمَا لاِمْرِئٍ مَا نَوَى فَمَنْ كَانَتْ هِجْرَتُهُ إِلَى اللَّهِ وَرَسُولِهِ فَهِجْرَتُهُ إِلَى اللَّهِ وَرَسُولِهِ وَمَنْ كَانَتْ هِجْرَتُهُ لِدُنْيَا يُصِيبُهَا أَوِ امْرَأَةٍ يَتَزَوَّجُهَا فَهِجْرَتُهُ إِلَى مَا هَاجَرَ إِلَيْهِ ‏\"‏ ‏.‏\n\nIt has been narrated on the authority of Umar b. al-Khattab that the Messenger of Allah (ﷺ) said: (The value of) an action depends on the intention behind it. A man will be rewarded only for what he intended. The emigration of one who emigrates for the sake of Allah and His Messenger (ﷺ) is for the sake of Allah and His Messenger (ﷺ) ; and the emigration of one who emigrates for gaining a worldly advantage or for marrying a woman is for what he has emigrated.\n\nSahih Muslim 1907a\nhttps://sunnah.com/muslim:1907a",
+        "title": "Muslim 1907a",
+        "collapsed": false
+      },
+      {
+        "id": "chain-1756741378238",
+        "narrators": [
+          {
+            "number": 1,
+            "arabicName": "رَسُولَ اللَّهِ",
+            "englishName": "Messenger of Allah"
+          },
+          {
+            "number": 2,
+            "arabicName": "عُمَرَ بْنَ الْخَطَّابِ",
+            "englishName": "Umar"
+          },
+          {
+            "number": 3,
+            "arabicName": "عَلْقَمَةَ بْنَ وَقَّاصٍ اللَّيْثِيَّ",
+            "englishName": "Alqama bin Waqqas"
+          },
+          {
+            "number": 4,
+            "arabicName": "مُحَمَّدُ بْنُ إِبْرَاهِيمَ التَّيْمِيُّ",
+            "englishName": "Muhammad bin Ibrahim"
+          },
+          {
+            "number": 5,
+            "arabicName": "يَحْيَى بْنُ سَعِيدٍ الْأَنْصَارِيُّ",
+            "englishName": "Yahya"
+          },
+          {
+            "number": 6,
+            "arabicName": "حَمَّادٌ",
+            "englishName": "Hammad"
+          },
+          {
+            "number": 7,
+            "arabicName": "مُسَدَّدٌ",
+            "englishName": "Musaddad"
+          },
+          {
+            "number": 8,
+            "arabicName": "الْإِمَامُ الْبُخَارِيُّ",
+            "englishName": "Bukhari"
+          }
+        ],
+        "hadithText": "حَدَّثَنَا مُسَدَّدٌ، حَدَّثَنَا حَمَّادٌ ـ هُوَ ابْنُ زَيْدٍ ـ عَنْ يَحْيَى، عَنْ مُحَمَّدِ بْنِ إِبْرَاهِيمَ، عَنْ عَلْقَمَةَ بْنِ وَقَّاصٍ، قَالَ سَمِعْتُ عُمَرَ ـ رضى الله عنه ـ قَالَ سَمِعْتُ النَّبِيَّ صلى الله عليه وسلم يَقُولُ ‏ \"‏ الأَعْمَالُ بِالنِّيَّةِ، فَمَنْ كَانَتْ هِجْرَتُهُ إِلَى دُنْيَا يُصِيبُهَا أَوِ امْرَأَةٍ يَتَزَوَّجُهَا، فَهِجْرَتُهُ إِلَى مَا هَاجَرَ إِلَيْهِ، وَمَنْ كَانَتْ هِجْرَتُهُ إِلَى اللَّهِ وَرَسُولِهِ، فَهِجْرَتُهُ إِلَى اللَّهِ وَرَسُولِهِ صلى الله عليه وسلم ‏\"‏‏.‏\n\nNarrated `Umar: I heard the Prophet (ﷺ) saying, \"The reward of deeds depends on the intentions, so whoever emigrated for the worldly benefits or to marry a woman, his emigration was for that for which he emigrated, but whoever emigrated for the Sake of Allah and His Apostle, his emigration is for Allah and His Apostle.\"\n\nSahih al-Bukhari 3898\nhttps://sunnah.com/bukhari:3898",
+        "title": "Bukhari 3898",
+        "collapsed": true
+      },
+      {
+        "id": "chain-1756741512811",
+        "narrators": [
+          {
+            "number": 1,
+            "arabicName": "رَسُولَ اللَّهِ",
+            "englishName": "Messenger of Allah"
+          },
+          {
+            "number": 2,
+            "arabicName": "عُمَرَ بْنَ الْخَطَّابِ",
+            "englishName": "Umar bin Al-Khattab"
+          },
+          {
+            "number": 3,
+            "arabicName": "عَلْقَمَةَ بْنَ وَقَّاصٍ اللَّيْثِيَّ",
+            "englishName": "Alqama bin Waqqas"
+          },
+          {
+            "number": 4,
+            "arabicName": "مُحَمَّدُ بْنُ إِبْرَاهِيمَ التَّيْمِيُّ",
+            "englishName": "Muhammad bin Ibrahim"
+          },
+          {
+            "number": 5,
+            "arabicName": "يَحْيَى بْنُ سَعِيدٍ الْأَنْصَارِيُّ",
+            "englishName": "Yahya bin Sa'id"
+          },
+          {
+            "number": 6,
+            "arabicName": "حَمَّادٌ",
+            "englishName": "Hammad bin Zaid"
+          },
+          {
+            "number": 7,
+            "arabicName": "أَبُو النُّعْمَانِ",
+            "englishName": "Abu An-Nu'man"
+          },
+          {
+            "number": 8,
+            "arabicName": "الْإِمَامُ الْبُخَارِيُّ",
+            "englishName": "Imam al-Bukhari"
+          }
+        ],
+        "hadithText": "حَدَّثَنَا أَبُو النُّعْمَانِ، حَدَّثَنَا حَمَّادُ بْنُ زَيْدٍ، عَنْ يَحْيَى بْنِ سَعِيدٍ، عَنْ مُحَمَّدِ بْنِ إِبْرَاهِيمَ، عَنْ عَلْقَمَةَ بْنِ وَقَّاصٍ، قَالَ سَمِعْتُ عُمَرَ بْنَ الْخَطَّابِ ـ رضى الله عنه ـ يَخْطُبُ قَالَ سَمِعْتُ النَّبِيَّ صلى الله عليه وسلم يَقُولُ ‏ \"‏ يَا أَيُّهَا النَّاسُ إِنَّمَا الأَعْمَالُ بِالنِّيَّةِ وَإِنَّمَا لاِمْرِئٍ مَا نَوَى، فَمَنْ كَانَتْ هِجْرَتُهُ إِلَى اللَّهِ وَرَسُولِهِ، فَهِجْرَتُهُ إِلَى اللَّهِ وَرَسُولِهِ، وَمَنْ هَاجَرَ إِلَى دُنْيَا يُصِيبُهَا أَوِ امْرَأَةٍ يَتَزَوَّجُهَا، فَهِجْرَتُهُ إِلَى مَا هَاجَرَ إِلَيْهِ ‏\"‏‏.‏\n\nNarrated `Umar bin Al-Khattab: The Prophet (ﷺ) said, 'O people! The reward of deeds depends upon the intentions, and every person will get the reward according to what he has intended. So, whoever emigrated for Allah and His Apostle, then his emigration was for Allah and His Apostle, and whoever emigrated to take worldly benefit or for a woman to marry, then his emigration was for what he emigrated for.\"\n\nSahih al-Bukhari 6953\nhttps://sunnah.com/bukhari:6953",
+        "title": "Bukhari 6953",
+        "collapsed": true
+      },
+      {
+        "id": "chain-1756741675108",
+        "narrators": [
+          {
+            "number": 1,
+            "arabicName": "رَسُولَ اللَّهِ",
+            "englishName": "Messenger of Allah"
+          },
+          {
+            "number": 2,
+            "arabicName": "عُمَرَ بْنَ الْخَطَّابِ",
+            "englishName": "Umar bin Al-Khattab"
+          },
+          {
+            "number": 3,
+            "arabicName": "عَلْقَمَةَ بْنَ وَقَّاصٍ اللَّيْثِيَّ",
+            "englishName": "Alqama bin Waqqas al-Laythi"
+          },
+          {
+            "number": 4,
+            "arabicName": "مُحَمَّدُ بْنُ إِبْرَاهِيمَ التَّيْمِيُّ",
+            "englishName": "Muhammad bin Ibrahim"
+          },
+          {
+            "number": 5,
+            "arabicName": "يَحْيَى بْنُ سَعِيدٍ الْأَنْصَارِيُّ",
+            "englishName": "Yahya bin Sa'id"
+          },
+          {
+            "number": 6,
+            "arabicName": "عَبْدُ الْوَهَّابِ",
+            "englishName": "Abdul-Wahhab"
+          },
+          {
+            "number": 7,
+            "arabicName": "قُتَيْبَةُ بْنُ سَعِيدٍ",
+            "englishName": "Qutaiba bin Sa'id"
+          },
+          {
+            "number": 8,
+            "arabicName": "الْإِمَامُ الْبُخَارِيُّ",
+            "englishName": "Bukhari"
+          }
+        ],
+        "hadithText": "حَدَّثَنَا قُتَيْبَةُ بْنُ سَعِيدٍ، حَدَّثَنَا عَبْدُ الْوَهَّابِ، قَالَ سَمِعْتُ يَحْيَى بْنَ سَعِيدٍ، يَقُولُ أَخْبَرَنِي مُحَمَّدُ بْنُ إِبْرَاهِيمَ، أَنَّهُ سَمِعَ عَلْقَمَةَ بْنَ وَقَّاصٍ اللَّيْثِيَّ، يَقُولُ سَمِعْتُ عُمَرَ بْنَ الْخَطَّابِ ـ رضى الله عنه ـ يَقُولُ سَمِعْتُ رَسُولَ اللَّهِ صلى الله عليه وسلم يَقُولُ ‏ \"‏ إِنَّمَا الأَعْمَالُ بِالنِّيَّةِ، وَإِنَّمَا لاِمْرِئٍ مَا نَوَى، فَمَنْ كَانَتْ هِجْرَتُهُ إِلَى اللَّهِ وَرَسُولِهِ فَهِجْرَتُهُ إِلَى اللَّهِ وَرَسُولِهِ، وَمَنْ كَانَتْ هِجْرَتُهُ إِلَى دُنْيَا يُصِيبُهَا أَوِ امْرَأَةٍ يَتَزَوَّجُهَا، فَهِجْرَتُهُ إِلَى مَا هَاجَرَ إِلَيْهِ ‏\"‏‏.‏\n\nNarrated `Umar bin Al-Khattab: I heard Allah's Messenger (ﷺ) saying, \"The (reward of) deeds, depend upon the intentions and every person will get the reward according to what he has intended. So whoever emigrated for the sake of Allah and His Apostle, then his emigration will be considered to be for Allah and His Apostle, and whoever emigrated for the sake of worldly gain or for a woman to marry, then his emigration will be considered to be for what he emigrated for.\"\n\nSahih al-Bukhari 6689\nhttps://sunnah.com/bukhari:6689",
+        "title": "Bukhari 6689",
+        "collapsed": true
+      },
+      {
+        "id": "chain-1756742533431",
+        "narrators": [
+          {
+            "number": 1,
+            "arabicName": "رَسُولَ اللَّهِ",
+            "englishName": "Messenger of Allah"
+          },
+          {
+            "number": 2,
+            "arabicName": "عُمَرَ بْنَ الْخَطَّابِ",
+            "englishName": "Umar bin Khattab"
+          },
+          {
+            "number": 3,
+            "arabicName": "عَلْقَمَةَ بْنَ وَقَّاصٍ اللَّيْثِيَّ",
+            "englishName": "Alqamah bin Waqqas"
+          },
+          {
+            "number": 4,
+            "arabicName": "مُحَمَّدُ بْنُ إِبْرَاهِيمَ التَّيْمِيُّ",
+            "englishName": "Muhammad bin Ibrahim at-Taimi"
+          },
+          {
+            "number": 5,
+            "arabicName": "يَحْيَى بْنُ سَعِيدٍ الْأَنْصَارِيُّ",
+            "englishName": "Yahya bin Sa'eed"
+          },
+          {
+            "number": 6,
+            "arabicName": "اللَّيْثُ",
+            "englishName": "Al-Layth bin Sa'd"
+          },
+          {
+            "number": 7,
+            "arabicName": "مُحَمَّدُ بْنُ رُمْحِ بْنِ الْمُهَاجِرِ",
+            "englishName": "Muhammad bin Rumh"
+          },
+          {
+            "number": 8,
+            "arabicName": "يَزِيدُ بْنُ هَارُونَ",
+            "englishName": "Yazid bin Harun"
+          },
+          {
+            "number": 9,
+            "arabicName": "أَبُو بَكْرِ بْنُ أَبِي شَيْبَةَ",
+            "englishName": "Abu Bakr bin Abi Shaybah"
+          },
+          {
+            "number": 10,
+            "arabicName": "الإمام ابن ماجه",
+            "englishName": "Ibn Majah"
+          }
+        ],
+        "hadithText": "حَدَّثَنَا أَبُو بَكْرِ بْنُ أَبِي شَيْبَةَ، حَدَّثَنَا يَزِيدُ بْنُ هَارُونَ، ح وَحَدَّثَنَا مُحَمَّدُ بْنُ رُمْحٍ، أَنْبَأَنَا اللَّيْثُ بْنُ سَعْدٍ، قَالاَ أَنْبَأَنَا يَحْيَى بْنُ سَعِيدٍ، أَنَّ مُحَمَّدَ بْنَ إِبْرَاهِيمَ التَّيْمِيَّ، أَخْبَرَهُ أَنَّهُ، سَمِعَ عَلْقَمَةَ بْنَ وَقَّاصٍ، أَنَّهُ سَمِعَ عُمَرَ بْنَ الْخَطَّابِ، وَهُوَ يَخْطُبُ النَّاسَ فَقَالَ سَمِعْتُ رَسُولَ اللَّهِ ـ صلى الله عليه وسلم ـ يَقُولُ ‏: ‏ ‏ \"‏ إِنَّمَا الأَعْمَالُ بِالنِّيَّاتِ وَلِكُلِّ امْرِئٍ مَا نَوَى فَمَنْ كَانَتْ هِجْرَتُهُ إِلَى اللَّهِ وَإِلَى رَسُولِهِ فَهِجْرَتُهُ إِلَى اللَّهِ وَإِلَى رَسُولِهِ وَمَنْ كَانَتْ هِجْرَتُهُ لِدُنْيَا يُصِيبُهَا أَوِ امْرَأَةٍ يَتَزَوَّجُهَا، فَهِجْرَتُهُ إِلَى مَا هَاجَرَ إِلَيْهِ ‏\"‏ ‏.‏\n\n‘Alqamah bin Waqqas (said) that he heard ‘Umar bin Khattab, when he was addressing the people, saying: “I heard the Messenger of Allah (ﷺ) say: ‘Actions are but by the intention and every man will have but that which he intended. So he whose emigration was for Allah and His Messenger, his emigration was for Allah and His Messenger. But he whose emigration was for some worldly benefit or to take some woman in marriage, his emigration was for that which he migrated.”\n\nSunan Ibn Majah 4227\nhttps://sunnah.com/ibnmajah:4227",
+        "title": "Ibn Majah 4227",
+        "collapsed": true
+      },
+      {
+        "id": "chain-1756743441631",
+        "narrators": [
+          {
+            "number": 1,
+            "arabicName": "رَسُولَ اللَّهِ",
+            "englishName": "Messenger of Allah"
+          },
+          {
+            "number": 2,
+            "arabicName": "عُمَرَ بْنَ الْخَطَّابِ",
+            "englishName": "Umar"
+          },
+          {
+            "number": 3,
+            "arabicName": "عَلْقَمَةَ بْنَ وَقَّاصٍ اللَّيْثِيَّ",
+            "englishName": "Alqama bin Waqqas"
+          },
+          {
+            "number": 4,
+            "arabicName": "مُحَمَّدُ بْنُ إِبْرَاهِيمَ التَّيْمِيُّ",
+            "englishName": "Muhammad bin Ibrahim at-Taymi"
+          },
+          {
+            "number": 5,
+            "arabicName": "يَحْيَى بْنُ سَعِيدٍ الْأَنْصَارِيُّ",
+            "englishName": "Yahya"
+          },
+          {
+            "number": 6,
+            "arabicName": "سُفْيَانُ",
+            "englishName": "Sufyan"
+          },
+          {
+            "number": 7,
+            "arabicName": "الإمام أحمد",
+            "englishName": "Imam Ahmad"
+          }
+        ],
+        "hadithText": "حَدَّثَنَا سُفْيَانُ، عَنْ يَحْيَى، عَنْ مُحَمَّدِ بْنِ إِبْرَاهِيمَ التَّيْمِيِّ، عَنْ عَلْقَمَةَ بْنِ وَقَّاصٍ، قَالَ سَمِعْتُ عُمَرَ، رَضِيَ اللَّهُ عَنْهُ يَقُولُ سَمِعْتُ رَسُولَ اللَّهِ صَلَّى اللَّهُ عَلَيْهِ وَسَلَّمَ يَقُولُ إِنَّمَا الْأَعْمَالُ بِالنِّيَّةِ وَلِكُلِّ امْرِئٍ مَا نَوَى فَمَنْ كَانَتْ هِجْرَتُهُ إِلَى اللَّهِ عَزَّ وَجَلَّ فَهِجْرَتُهُ إِلَى مَا هَاجَرَ إِلَيْهِ وَمَنْ كَانَتْ هِجْرَتُهُ لِدُنْيَا يُصِيبُهَا أَوْ امْرَأَةٍ يَنْكِحُهَا فَهِجْرَتُهُ إِلَى مَا هَاجَرَ إِلَيْهِ‏.‏",
+        "title": "Ahmad 168",
+        "collapsed": true
+      },
+      {
+        "id": "chain-1756743562612",
+        "narrators": [
+          {
+            "number": 1,
+            "arabicName": "رَسُولَ اللَّهِ",
+            "englishName": "Messenger of Allah"
+          },
+          {
+            "number": 2,
+            "arabicName": "عُمَرَ بْنَ الْخَطَّابِ",
+            "englishName": "Umar ibn al-Khattab"
+          },
+          {
+            "number": 3,
+            "arabicName": "عَلْقَمَةَ بْنَ وَقَّاصٍ اللَّيْثِيَّ",
+            "englishName": "Alqama ibn Waqqas al-Laythi"
+          },
+          {
+            "number": 4,
+            "arabicName": "مُحَمَّدُ بْنُ إِبْرَاهِيمَ التَّيْمِيُّ",
+            "englishName": "Muhammad ibn Ibrahim"
+          },
+          {
+            "number": 5,
+            "arabicName": "يَحْيَى بْنُ سَعِيدٍ الْأَنْصَارِيُّ",
+            "englishName": "Yahya ibn Sa'id"
+          },
+          {
+            "number": 6,
+            "arabicName": "يَزِيدُ",
+            "englishName": "Yazid"
+          },
+          {
+            "number": 7,
+            "arabicName": "الإمام أحمد",
+            "englishName": "Imam Ahmad"
+          }
+        ],
+        "hadithText": "حَدَّثَنَا يَزِيدُ، أَنْبَأَنَا يَحْيَى بْنُ سَعِيدٍ، أَنَّ مُحَمَّدَ بْنَ إِبْرَاهِيمَ، أَخْبَرَهُ أَنَّهُ، سَمِعَ عَلْقَمَةَ بْنَ وَقَّاصٍ اللَّيْثِيَّ، يَقُولُ إِنَّهُ سَمِعَ عُمَرَ بْنَ الْخَطَّابِ، رَضِيَ اللَّهُ عَنْهُ وَهُوَ يَخْطُبُ النَّاسَ وَهُوَ يَقُولُ سَمِعْتُ رَسُولَ اللَّهِ صَلَّى اللَّهُ عَلَيْهِ وَسَلَّمَ يَقُولُ إِنَّمَا الْعَمَلُ بِالنِّيَّةِ وَإِنَّمَا لِامْرِئٍ مَا نَوَى فَمَنْ كَانَتْ هِجْرَتُهُ إِلَى اللَّهِ وَإِلَى رَسُولِهِ فَهِجْرَتُهُ إِلَى اللَّهِ وَإِلَى رَسُولِهِ وَمَنْ كَانَتْ هِجْرَتُهُ لِدُنْيَا يُصِيبُهَا أَوْ امْرَأَةٍ يَتَزَوَّجُهَا فَهِجْرَتُهُ إِلَى مَا هَاجَرَ إِلَيْهِ‏.‏",
+        "title": "Ahmad 300",
+        "collapsed": true
+      },
+      {
+        "id": "chain-1756744228667",
+        "narrators": [
+          {
+            "number": 1,
+            "arabicName": "رَسُولَ اللَّهِ",
+            "englishName": "Messenger of Allah"
+          },
+          {
+            "number": 2,
+            "arabicName": "عُمَرَ بْنَ الْخَطَّابِ",
+            "englishName": "Umar ibn al-Khattab"
+          },
+          {
+            "number": 3,
+            "arabicName": "عَلْقَمَةَ بْنَ وَقَّاصٍ اللَّيْثِيَّ",
+            "englishName": "Alqama bin Waqqas"
+          },
+          {
+            "number": 4,
+            "arabicName": "مُحَمَّدُ بْنُ إِبْرَاهِيمَ التَّيْمِيُّ",
+            "englishName": "Muhammad bin Ibrahim"
+          },
+          {
+            "number": 5,
+            "arabicName": "يَحْيَى بْنُ سَعِيدٍ الْأَنْصَارِيُّ",
+            "englishName": "Yahya bin Saeed"
+          },
+          {
+            "number": 6,
+            "arabicName": "سُلَيْمَانُ بْنُ حَيَّانَ",
+            "englishName": "Sulaiman bin Hayyan"
+          },
+          {
+            "number": 7,
+            "arabicName": "إِسْحَاقُ بْنُ إِبْرَاهِيمَ",
+            "englishName": "Ishaq bin Ibrahim"
+          },
+          {
+            "number": 8,
+            "arabicName": "الإمام النسائي",
+            "englishName": "Nasai"
+          }
+        ],
+        "hadithText": "أَخْبَرَنَا إِسْحَاقُ بْنُ إِبْرَاهِيمَ، قَالَ أَنْبَأَنَا سُلَيْمَانُ بْنُ حَيَّانَ، قَالَ حَدَّثَنَا يَحْيَى بْنُ سَعِيدٍ، عَنْ مُحَمَّدِ بْنِ إِبْرَاهِيمَ، عَنْ عَلْقَمَةَ بْنِ وَقَّاصٍ، عَنْ عُمَرَ بْنِ الْخَطَّابِ، عَنِ النَّبِيِّ صلى الله عليه وسلم قَالَ ‏ \"‏ إِنَّمَا الأَعْمَالُ بِالنِّيَّةِ وَإِنَّمَا لاِمْرِئٍ مَا نَوَى فَمَنْ كَانَتْ هِجْرَتُهُ إِلَى اللَّهِ وَرَسُولِهِ فَهِجْرَتُهُ إِلَى اللَّهِ وَرَسُولِهِ وَمَنْ كَانَتْ هِجْرَتُهُ لِدُنْيَا يُصِيبُهَا أَوِ امْرَأَةٍ يَتَزَوَّجُهَا فَهِجْرَتُهُ إِلَى مَا هَاجَرَ إِلَيْهِ ‏\"‏ ‏.‏",
+        "title": "Nasai 3794",
+        "collapsed": true
+      }
+    ],
+    "activeTab": "llm",
+    "selectedChainIndex": 0,
+    "showVisualization": true,
+    "exportedAt": "2025-09-01T18:23:24.011Z",
+    "version": "1.0"
+  }
+  
