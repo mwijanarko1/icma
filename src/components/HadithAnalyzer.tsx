@@ -36,10 +36,77 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import Link from 'next/link';
 
+// Reputation grading system
+export const REPUTATION_GRADES = {
+  // High Degrees of Reliability (Strong Narrators - Hadith Accepted)
+  'Thiqah Thabt': { weight: 10, category: 'high', meaning: 'Absolutely trustworthy and extremely precise/firm' },
+  'Thiqah': { weight: 9, category: 'high', meaning: 'Trustworthy' },
+  'Saduq': { weight: 8, category: 'high', meaning: 'Truthful' },
+  'Saduq Yahim': { weight: 7, category: 'high', meaning: 'Truthful, but makes occasional errors/mistakes' },
+  
+  // Intermediate Degrees (Hadith Often Accepted, but with Caveats)
+  'Maqbūl': { weight: 6, category: 'intermediate', meaning: 'Acceptable' },
+  'La Ba\'sa Bihi': { weight: 5, category: 'intermediate', meaning: 'There is no harm in him (acceptable)' },
+  
+  // Lower Degrees of Reliability (Weak Narrators - Hadith Often Rejected or Weakened)
+  'Saduq Sayyi\' al-Hifz': { weight: 4, category: 'low', meaning: 'Truthful, but with poor memory' },
+  'Majhul al-Ain': { weight: 3, category: 'low', meaning: 'Unknown person' },
+  'Majhul al-Hal': { weight: 2, category: 'low', meaning: 'Unknown status' },
+  'Da\'if': { weight: 1, category: 'low', meaning: 'Weak' },
+  'Matruk': { weight: 0, category: 'low', meaning: 'Abandoned' },
+  'Muttaham bi al-Kidhb': { weight: 0, category: 'low', meaning: 'Accused of lying' },
+  'Kadhdhab': { weight: 0, category: 'low', meaning: 'Liar / Fabricator' }
+} as const;
+
+export type ReputationGrade = keyof typeof REPUTATION_GRADES;
+
+// Function to calculate narrator grade based on reputation tags
+export const calculateNarratorGrade = (reputation: ReputationGrade[]): number => {
+  if (reputation.length === 0) return 0;
+  
+  // Calculate weighted average
+  const totalWeight = reputation.reduce((sum, grade) => sum + REPUTATION_GRADES[grade].weight, 0);
+  const averageWeight = totalWeight / reputation.length;
+  
+  // Apply penalty for multiple conflicting grades (high and low together)
+  const hasHigh = reputation.some(grade => REPUTATION_GRADES[grade].category === 'high');
+  const hasLow = reputation.some(grade => REPUTATION_GRADES[grade].category === 'low');
+  const hasIntermediate = reputation.some(grade => REPUTATION_GRADES[grade].category === 'intermediate');
+  
+  let penalty = 0;
+  if (hasHigh && hasLow) {
+    penalty = 2; // Strong penalty for conflicting high and low grades
+  } else if ((hasHigh || hasLow) && hasIntermediate) {
+    penalty = 1; // Moderate penalty for mixed categories
+  }
+  
+  return Math.max(0, Math.round((averageWeight - penalty) * 10) / 10);
+};
+
+// Function to get grade description
+export const getGradeDescription = (grade: number): string => {
+  if (grade >= 8) return 'Excellent';
+  if (grade >= 6) return 'Good';
+  if (grade >= 4) return 'Fair';
+  if (grade >= 2) return 'Poor';
+  return 'Very Poor';
+};
+
+// Function to get grade color class
+export const getGradeColorClass = (grade: number): string => {
+  if (grade >= 8) return 'text-green-600 dark:text-green-400';
+  if (grade >= 6) return 'text-blue-600 dark:text-blue-400';
+  if (grade >= 4) return 'text-yellow-600 dark:text-yellow-400';
+  if (grade >= 2) return 'text-orange-600 dark:text-orange-400';
+  return 'text-red-600 dark:text-red-400';
+};
+
 interface Narrator {
   number: number;
   arabicName: string;
   englishName: string;
+  reputation?: ReputationGrade[];
+  calculatedGrade?: number;
 }
 
 interface LibraryChain {
@@ -238,12 +305,16 @@ interface DraggableChainProps {
   activeNarrator: Narrator | null;
   showAddNarrator: boolean;
   setShowAddNarrator: React.Dispatch<React.SetStateAction<boolean>>;
-  newNarrator: { arabicName: string; englishName: string };
-  setNewNarrator: React.Dispatch<React.SetStateAction<{ arabicName: string; englishName: string }>>;
+  newNarrator: { arabicName: string; englishName: string; reputation: ReputationGrade[]; calculatedGrade: number };
+  setNewNarrator: React.Dispatch<React.SetStateAction<{ arabicName: string; englishName: string; reputation: ReputationGrade[]; calculatedGrade: number }>>;
   handleAddNarrator: () => void;
   handleCancelAddNarrator: () => void;
   handleSaveEdit: () => void;
   handleCancelEdit: () => void;
+  isDarkMode: boolean;
+  chains: Chain[];
+  setChains: React.Dispatch<React.SetStateAction<Chain[]>>;
+  selectedChainIndex: number;
 }
 
 function DraggableChain({
@@ -268,7 +339,11 @@ function DraggableChain({
   handleAddNarrator,
   handleCancelAddNarrator,
   handleSaveEdit,
-  handleCancelEdit
+  handleCancelEdit,
+  isDarkMode,
+  chains,
+  setChains,
+  selectedChainIndex
 }: DraggableChainProps) {
   const {
     attributes,
@@ -442,6 +517,8 @@ function DraggableChain({
                         <th className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-700 dark:text-gray-300">Number</th>
                         <th className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-right font-medium text-gray-700 dark:text-gray-300">Arabic Name</th>
                         <th className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-700 dark:text-gray-300">English Name</th>
+                        <th className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center font-medium text-gray-700 dark:text-gray-300">Reputation</th>
+                        <th className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center font-medium text-gray-700 dark:text-gray-300">Calculated Grade</th>
                         <th className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center font-medium text-gray-700 dark:text-gray-300">Actions</th>
                       </tr>
                     </thead>
@@ -457,7 +534,18 @@ function DraggableChain({
                             index={narratorIndex}
                             isEditing={true}
                             onUpdateNarrator={handleUpdateNarrator}
+                            onUpdateReputation={(index, reputation) => {
+                              setEditFormData(prev => ({
+                                ...prev,
+                                narrators: prev.narrators.map((n, i) =>
+                                  i === index
+                                    ? { ...n, reputation, calculatedGrade: calculateNarratorGrade(reputation) }
+                                    : n
+                                )
+                              }));
+                            }}
                             onRemoveNarrator={handleRemoveNarrator}
+                            isDarkMode={isDarkMode}
                           />
                         ))}
                       </tbody>
@@ -551,6 +639,21 @@ function DraggableChain({
                           />
                         </div>
                       </div>
+                      
+                      <div className="mt-3">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                          Reputation
+                        </label>
+                        <ReputationSelector
+                          selectedReputations={newNarrator.reputation}
+                          onReputationChange={(reputation) => setNewNarrator(prev => ({ 
+                            ...prev, 
+                            reputation, 
+                            calculatedGrade: calculateNarratorGrade(reputation) 
+                          }))}
+                          isDarkMode={isDarkMode}
+                        />
+                      </div>
 
                       <div className="flex gap-2">
                         <button
@@ -590,6 +693,8 @@ function DraggableChain({
                 <th className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-700 dark:text-gray-300">Number</th>
                 <th className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-right font-medium text-gray-700 dark:text-gray-300">Narrator Name</th>
                 <th className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-700 dark:text-gray-300">English Name</th>
+                <th className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center font-medium text-gray-700 dark:text-gray-300">Reputation</th>
+                <th className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center font-medium text-gray-700 dark:text-gray-300">Calculated Grade</th>
               </tr>
             </thead>
             <tbody>
@@ -600,7 +705,23 @@ function DraggableChain({
                 index={narratorIndex}
                 isEditing={false}
                 onUpdateNarrator={() => {}} // Not used in view mode
+                onUpdateReputation={(index, reputation) => {
+                  const updatedChains = chains.map((chain, chainIndex) =>
+                    chainIndex === selectedChainIndex
+                      ? {
+                          ...chain,
+                          narrators: chain.narrators.map((n, i) =>
+                            i === index
+                              ? { ...n, reputation, calculatedGrade: calculateNarratorGrade(reputation) }
+                              : n
+                          )
+                        }
+                      : chain
+                  );
+                  setChains(updatedChains);
+                }}
                 onRemoveNarrator={undefined} // Not shown in view mode
+                isDarkMode={isDarkMode}
               />
             ))}
             </tbody>
@@ -614,13 +735,118 @@ function DraggableChain({
   );
 }
 
+// Reputation Selector Component
+interface ReputationSelectorProps {
+  selectedReputations: ReputationGrade[];
+  onReputationChange: (reputations: ReputationGrade[]) => void;
+  isDarkMode: boolean;
+}
+
+function ReputationSelector({ selectedReputations, onReputationChange, isDarkMode }: ReputationSelectorProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const toggleReputation = (grade: ReputationGrade) => {
+    if (selectedReputations.includes(grade)) {
+      onReputationChange(selectedReputations.filter(r => r !== grade));
+    } else {
+      onReputationChange([...selectedReputations, grade]);
+    }
+  };
+
+  const getCategoryColor = (category: string) => {
+    switch (category) {
+      case 'high': return 'text-green-600 dark:text-green-400';
+      case 'intermediate': return 'text-yellow-600 dark:text-yellow-400';
+      case 'low': return 'text-red-600 dark:text-red-400';
+      default: return 'text-gray-600 dark:text-gray-400';
+    }
+  };
+
+  const groupedGrades = Object.entries(REPUTATION_GRADES).reduce((acc, [grade, data]) => {
+    if (!acc[data.category]) acc[data.category] = [];
+    acc[data.category].push({ grade: grade as ReputationGrade, ...data });
+    return acc;
+  }, {} as Record<string, Array<{ grade: ReputationGrade; weight: number; category: string; meaning: string }>>);
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className={`px-3 py-1 text-sm rounded-md border ${
+          isDarkMode 
+            ? 'bg-gray-700 border-gray-600 text-white hover:bg-gray-600' 
+            : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+        } focus:outline-none focus:ring-2 focus:ring-blue-500`}
+      >
+        {selectedReputations.length === 0 ? 'Select Reputation' : `${selectedReputations.length} selected`}
+        <span className="ml-1">▼</span>
+      </button>
+
+      {isOpen && (
+        <div className={`absolute top-full left-0 mt-1 w-80 max-h-96 overflow-y-auto z-50 rounded-md shadow-lg border ${
+          isDarkMode ? 'bg-gray-800 border-gray-600' : 'bg-white border-gray-300'
+        }`}>
+          {Object.entries(groupedGrades).map(([category, grades]) => (
+            <div key={category} className="p-2">
+              <div className={`text-xs font-semibold uppercase tracking-wide mb-2 ${
+                isDarkMode ? 'text-gray-400' : 'text-gray-500'
+              }`}>
+                {category === 'high' ? 'High Reliability' : 
+                 category === 'intermediate' ? 'Intermediate' : 'Low Reliability'}
+              </div>
+              {grades.map(({ grade, meaning }) => (
+                <label
+                  key={grade}
+                  className={`flex items-start space-x-2 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer rounded ${
+                    isDarkMode ? 'text-gray-200' : 'text-gray-800'
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedReputations.includes(grade)}
+                    onChange={() => toggleReputation(grade)}
+                    className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                  />
+                  <div className="flex-1">
+                    <div className={`font-medium ${getCategoryColor(REPUTATION_GRADES[grade].category)}`}>
+                      {grade}
+                    </div>
+                    <div className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                      {meaning}
+                    </div>
+                  </div>
+                </label>
+              ))}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // Draggable Narrator Row Component
 interface DraggableNarratorRowProps {
   narrator: Narrator;
   index: number;
   isEditing: boolean;
   onUpdateNarrator: (index: number, field: 'arabicName' | 'englishName', value: string) => void;
+  onUpdateReputation: (index: number, reputation: ReputationGrade[]) => void;
   onRemoveNarrator?: (index: number) => void;
+  isDarkMode: boolean;
 }
 
 function DraggableNarratorRow({
@@ -628,7 +854,9 @@ function DraggableNarratorRow({
   index,
   isEditing,
   onUpdateNarrator,
-  onRemoveNarrator
+  onUpdateReputation,
+  onRemoveNarrator,
+  isDarkMode
 }: DraggableNarratorRowProps) {
   const {
     attributes,
@@ -711,6 +939,55 @@ function DraggableNarratorRow({
           <span className="text-gray-900 dark:text-white">{narrator.englishName}</span>
         )}
       </td>
+      <td className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center">
+        {narrator.arabicName === "رَسُولَ اللَّهِ" ? (
+          <div className="text-gray-500 dark:text-gray-400 text-sm italic">
+            N/A
+          </div>
+        ) : (
+          <>
+            <ReputationSelector
+              selectedReputations={narrator.reputation || []}
+              onReputationChange={(reputation) => onUpdateReputation(index, reputation)}
+              isDarkMode={isDarkMode}
+            />
+            {(narrator.reputation || []).length > 0 && (
+              <div className="flex flex-wrap gap-1 justify-center mt-2">
+                {(narrator.reputation || []).map((grade) => (
+                  <span
+                    key={grade}
+                    className={`px-2 py-1 text-xs rounded ${
+                      REPUTATION_GRADES[grade].category === 'high'
+                        ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                        : REPUTATION_GRADES[grade].category === 'intermediate'
+                        ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+                        : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                    }`}
+                  >
+                    {grade}
+                  </span>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+      </td>
+      <td className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center">
+        {narrator.arabicName === "رَسُولَ اللَّهِ" ? (
+          <div className="text-gray-500 dark:text-gray-400 text-sm italic">
+            N/A
+          </div>
+        ) : (
+          <>
+            <div className={`font-semibold ${getGradeColorClass(narrator.calculatedGrade || 0)}`}>
+              {(narrator.calculatedGrade || 0).toFixed(1)}
+            </div>
+            <div className="text-xs text-gray-600 dark:text-gray-400">
+              {getGradeDescription(narrator.calculatedGrade || 0)}
+            </div>
+          </>
+        )}
+      </td>
       {isEditing && onRemoveNarrator && (
         <td className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center">
           <button
@@ -744,7 +1021,9 @@ export default function HadithAnalyzer() {
   const [showAddNarrator, setShowAddNarrator] = useState(false);
   const [newNarrator, setNewNarrator] = useState({
     arabicName: '',
-    englishName: ''
+    englishName: '',
+    reputation: [] as ReputationGrade[],
+    calculatedGrade: 0
   });
   const [apiKey, setApiKey] = useState('');
   const [showApiKeyModal, setShowApiKeyModal] = useState(false);
@@ -854,7 +1133,7 @@ export default function HadithAnalyzer() {
     setEditingChainId(null);
     setEditFormData({ title: '', narrators: [] });
     setShowAddNarrator(false);
-    setNewNarrator({ arabicName: '', englishName: '' });
+    setNewNarrator({ arabicName: '', englishName: '', reputation: [], calculatedGrade: 0 });
     setShowApiKeyModal(false);
     setActiveTab('llm');
     setSelectedChainIndex(0);
@@ -1142,8 +1421,23 @@ export default function HadithAnalyzer() {
     const strokeColor = isDarkMode ? "#9ca3af" : "#9ca3af";
     const textColor = isDarkMode ? "#ffffff" : "#111827";
 
+    // Define grade-based colors
+    const getGradeColor = (grade: number) => {
+      if (grade >= 8) return isDarkMode ? "#10b981" : "#059669"; // Green for excellent
+      if (grade >= 6) return isDarkMode ? "#3b82f6" : "#2563eb"; // Blue for good
+      if (grade >= 4) return isDarkMode ? "#f59e0b" : "#d97706"; // Yellow for fair
+      if (grade >= 2) return isDarkMode ? "#f97316" : "#ea580c"; // Orange for poor
+      return isDarkMode ? "#ef4444" : "#dc2626"; // Red for very poor
+    };
+
     let mermaidCode = `flowchart TD
     classDef narratorClass fill:${bgColor},stroke:${strokeColor},stroke-width:2px,color:${textColor}
+    classDef excellentClass fill:${getGradeColor(8)},stroke:${getGradeColor(8)},stroke-width:2px,color:${textColor}
+    classDef goodClass fill:${getGradeColor(6)},stroke:${getGradeColor(6)},stroke-width:2px,color:${textColor}
+    classDef fairClass fill:${getGradeColor(4)},stroke:${getGradeColor(4)},stroke-width:2px,color:${textColor}
+    classDef poorClass fill:${getGradeColor(2)},stroke:${getGradeColor(2)},stroke-width:2px,color:${textColor}
+    classDef veryPoorClass fill:${getGradeColor(0)},stroke:${getGradeColor(0)},stroke-width:2px,color:${textColor}
+    classDef messengerClass fill:${isDarkMode ? "#6b7280" : "#9ca3af"},stroke:${isDarkMode ? "#6b7280" : "#9ca3af"},stroke-width:2px,color:${textColor}
     classDef connectorClass fill:#f3e5f5,stroke:#4a148c,stroke-width:2px
 
 `;
@@ -1235,10 +1529,28 @@ export default function HadithAnalyzer() {
       }
     });
 
-    // Add styling
+    // Add styling based on calculated grade
     sortedNarrators.forEach(([key]) => {
-      const { nodeId } = narratorMap.get(key)!;
-      mermaidCode += `    class ${nodeId} narratorClass\n`;
+      const { nodeId, narrator } = narratorMap.get(key)!;
+      const grade = narrator.calculatedGrade;
+      
+      // Special handling for Messenger of Allah
+      if (narrator.arabicName === "رَسُولَ اللَّهِ") {
+        mermaidCode += `    class ${nodeId} messengerClass\n`;
+      } else if (grade === undefined || grade === null) {
+        // Use default narrator class for ungraded narrators
+        mermaidCode += `    class ${nodeId} narratorClass\n`;
+      } else if (grade >= 8) {
+        mermaidCode += `    class ${nodeId} excellentClass\n`;
+      } else if (grade >= 6) {
+        mermaidCode += `    class ${nodeId} goodClass\n`;
+      } else if (grade >= 4) {
+        mermaidCode += `    class ${nodeId} fairClass\n`;
+      } else if (grade >= 2) {
+        mermaidCode += `    class ${nodeId} poorClass\n`;
+      } else {
+        mermaidCode += `    class ${nodeId} veryPoorClass\n`;
+      }
     });
 
     return mermaidCode;
@@ -1279,7 +1591,7 @@ export default function HadithAnalyzer() {
     setEditingChainId(null);
     setEditFormData({ title: '', narrators: [] });
     setShowAddNarrator(false);
-    setNewNarrator({ arabicName: '', englishName: '' });
+    setNewNarrator({ arabicName: '', englishName: '', reputation: [], calculatedGrade: 0 });
   };
 
   const handleSaveEdit = () => {
@@ -1306,7 +1618,7 @@ export default function HadithAnalyzer() {
     setEditingChainId(null);
     setEditFormData({ title: '', narrators: [] });
     setShowAddNarrator(false);
-    setNewNarrator({ arabicName: '', englishName: '' });
+    setNewNarrator({ arabicName: '', englishName: '', reputation: [], calculatedGrade: 0 });
   };
 
   const handleUpdateNarrator = (index: number, field: 'arabicName' | 'englishName', value: string) => {
@@ -1340,18 +1652,20 @@ export default function HadithAnalyzer() {
         {
           number: prev.narrators.length + 1,
           arabicName: newNarrator.arabicName.trim(),
-          englishName: newNarrator.englishName.trim()
+          englishName: newNarrator.englishName.trim(),
+          reputation: newNarrator.reputation,
+          calculatedGrade: newNarrator.calculatedGrade
         }
       ]
     }));
 
     // Reset form
-    setNewNarrator({ arabicName: '', englishName: '' });
+    setNewNarrator({ arabicName: '', englishName: '', reputation: [], calculatedGrade: 0 });
     setShowAddNarrator(false);
   };
 
   const handleCancelAddNarrator = () => {
-    setNewNarrator({ arabicName: '', englishName: '' });
+    setNewNarrator({ arabicName: '', englishName: '', reputation: [], calculatedGrade: 0 });
     setShowAddNarrator(false);
   };
 
@@ -1819,7 +2133,7 @@ export default function HadithAnalyzer() {
               setEditingChainId(null);
               setEditFormData({ title: '', narrators: [] });
               setShowAddNarrator(false);
-              setNewNarrator({ arabicName: '', englishName: '' });
+              setNewNarrator({ arabicName: '', englishName: '', reputation: [], calculatedGrade: 0 });
               setApiKey('');
               setShowApiKeyModal(false);
               setActiveTab('llm');
@@ -1943,7 +2257,7 @@ export default function HadithAnalyzer() {
 
                 // Chain 1: Sahih al-Bukhari 1
                 const chain1Narrators: Narrator[] = [
-                  { number: 1, arabicName: "رَسُولَ اللَّهِ", englishName: "Messenger of Allah" },
+                  { number: 1, arabicName: "رَسُولَ اللَّهِ", englishName: "Messenger of Allah", reputation: ['Thiqah Thabt'], calculatedGrade: 10.0 },
                   { number: 2, arabicName: "عُمَرَ بْنَ الْخَطَّابِ", englishName: "Umar ibn al-Khattab" },
                   { number: 3, arabicName: "عَلْقَمَةَ بْنَ وَقَّاصٍ اللَّيْثِيَّ", englishName: "Alqamah ibn Waqqas al-Laythi" },
                   { number: 4, arabicName: "مُحَمَّدُ بْنُ إِبْرَاهِيمَ التَّيْمِيُّ", englishName: "Muhammad ibn Ibrahim al-Taymi" },
@@ -1955,7 +2269,7 @@ export default function HadithAnalyzer() {
 
                 // Chain 2: Sahih al-Bukhari 2529
                 const chain2Narrators: Narrator[] = [
-                  { number: 1, arabicName: "رَسُولَ اللَّهِ", englishName: "Messenger of Allah" },
+                  { number: 1, arabicName: "رَسُولَ اللَّهِ", englishName: "Messenger of Allah", reputation: ['Thiqah Thabt'], calculatedGrade: 10.0 },
                   { number: 2, arabicName: "عُمَرَ بْنَ الْخَطَّابِ", englishName: "Umar ibn al-Khattab" },
                   { number: 3, arabicName: "عَلْقَمَةَ بْنَ وَقَّاصٍ اللَّيْثِيَّ", englishName: "Alqamah ibn Waqqas al-Laythi" },
                   { number: 4, arabicName: "مُحَمَّدُ بْنُ إِبْرَاهِيمَ التَّيْمِيُّ", englishName: "Muhammad ibn Ibrahim al-Taymi" },
@@ -1967,7 +2281,7 @@ export default function HadithAnalyzer() {
 
                 // Chain 3: Sahih al-Bukhari 54
                 const chain3Narrators: Narrator[] = [
-                  { number: 1, arabicName: "رَسُولَ اللَّهِ", englishName: "Messenger of Allah" },
+                  { number: 1, arabicName: "رَسُولَ اللَّهِ", englishName: "Messenger of Allah", reputation: ['Thiqah Thabt'], calculatedGrade: 10.0 },
                   { number: 2, arabicName: "عُمَرَ بْنَ الْخَطَّابِ", englishName: "Umar ibn al-Khattab" },
                   { number: 3, arabicName: "عَلْقَمَةَ بْنَ وَقَّاصٍ اللَّيْثِيَّ", englishName: "Alqamah ibn Waqqas al-Laythi" },
                   { number: 4, arabicName: "مُحَمَّدُ بْنُ إِبْرَاهِيمَ التَّيْمِيُّ", englishName: "Muhammad ibn Ibrahim al-Taymi" },
@@ -2268,6 +2582,21 @@ export default function HadithAnalyzer() {
                         />
                       </div>
                     </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Reputation
+                      </label>
+                      <ReputationSelector
+                        selectedReputations={newNarrator.reputation}
+                        onReputationChange={(reputation) => setNewNarrator(prev => ({ 
+                          ...prev, 
+                          reputation, 
+                          calculatedGrade: calculateNarratorGrade(reputation) 
+                        }))}
+                        isDarkMode={isDarkMode}
+                      />
+                    </div>
                     <div className="flex gap-2">
                       <button
                         onClick={() => {
@@ -2279,7 +2608,9 @@ export default function HadithAnalyzer() {
                                 narrators: [{
                                   number: 1,
                                   arabicName: newNarrator.arabicName.trim(),
-                                  englishName: newNarrator.englishName.trim()
+                                  englishName: newNarrator.englishName.trim(),
+                                  reputation: newNarrator.reputation,
+                                  calculatedGrade: newNarrator.calculatedGrade
                                 }],
                                 hadithText: hadithText.trim() || 'Manual Chain',
                                 title: hadithText.trim() || `Chain 1`,
@@ -2299,7 +2630,9 @@ export default function HadithAnalyzer() {
                                         {
                                           number: chain.narrators.length + 1,
                                           arabicName: newNarrator.arabicName.trim(),
-                                          englishName: newNarrator.englishName.trim()
+                                          englishName: newNarrator.englishName.trim(),
+                                          reputation: newNarrator.reputation,
+                                          calculatedGrade: newNarrator.calculatedGrade
                                         }
                                       ]
                                     }
@@ -2308,7 +2641,7 @@ export default function HadithAnalyzer() {
                               setChains(updatedChains);
                             }
 
-                            setNewNarrator({ arabicName: '', englishName: '' });
+                            setNewNarrator({ arabicName: '', englishName: '', reputation: [], calculatedGrade: 0 });
                             setShowAddNarrator(false);
                           }
                         }}
@@ -2319,7 +2652,7 @@ export default function HadithAnalyzer() {
                       </button>
                       <button
                         onClick={() => {
-                          setNewNarrator({ arabicName: '', englishName: '' });
+                          setNewNarrator({ arabicName: '', englishName: '', reputation: [], calculatedGrade: 0 });
                           setShowAddNarrator(false);
                         }}
                         className="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 transition-colors"
@@ -2355,6 +2688,8 @@ export default function HadithAnalyzer() {
                         <th className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-700 dark:text-gray-300">#</th>
                         <th className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-right font-medium text-gray-700 dark:text-gray-300">Arabic Name</th>
                         <th className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-700 dark:text-gray-300">English Name</th>
+                        <th className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center font-medium text-gray-700 dark:text-gray-300">Reputation</th>
+                        <th className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center font-medium text-gray-700 dark:text-gray-300">Calculated Grade</th>
                         <th className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center font-medium text-gray-700 dark:text-gray-300">Actions</th>
                       </tr>
                     </thead>
@@ -2369,6 +2704,73 @@ export default function HadithAnalyzer() {
                           </td>
                           <td className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-gray-900 dark:text-white">
                             {narrator.englishName}
+                          </td>
+                          <td className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center">
+                            {narrator.arabicName === "رَسُولَ اللَّهِ" ? (
+                              <div className="text-gray-500 dark:text-gray-400 text-sm italic">
+                                N/A
+                              </div>
+                            ) : (
+                              <>
+                                <ReputationSelector
+                                  selectedReputations={narrator.reputation || []}
+                                  onReputationChange={(reputation) => {
+                                    const updatedChains = chains.map((chain, chainIndex) =>
+                                      chainIndex === selectedChainIndex
+                                        ? {
+                                            ...chain,
+                                            narrators: chain.narrators.map((n, i) =>
+                                              i === index
+                                                ? {
+                                                    ...n,
+                                                    reputation,
+                                                    calculatedGrade: calculateNarratorGrade(reputation)
+                                                  }
+                                                : n
+                                            )
+                                          }
+                                        : chain
+                                    );
+                                    setChains(updatedChains);
+                                  }}
+                                  isDarkMode={isDarkMode}
+                                />
+                                {(narrator.reputation || []).length > 0 && (
+                                  <div className="flex flex-wrap gap-1 justify-center mt-2">
+                                    {(narrator.reputation || []).map((grade) => (
+                                      <span
+                                        key={grade}
+                                        className={`px-2 py-1 text-xs rounded ${
+                                          REPUTATION_GRADES[grade].category === 'high'
+                                            ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                                            : REPUTATION_GRADES[grade].category === 'intermediate'
+                                            ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+                                            : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                                        }`}
+                                      >
+                                        {grade}
+                                      </span>
+                                    ))}
+                                  </div>
+                                )}
+                              </>
+                            )}
+                          </td>
+                          <td className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center">
+                            {narrator.arabicName === "رَسُولَ اللَّهِ" ? (
+                              <div className="text-gray-500 dark:text-gray-400 text-sm italic">
+                                N/A
+                              </div>
+                            ) : (
+                              <>
+                                <div className={`font-semibold ${getGradeColorClass(narrator.calculatedGrade || 0)}`}>
+                                  {(narrator.calculatedGrade || 0).toFixed(1)}
+                                </div>
+                                <div className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                                  {getGradeDescription(narrator.calculatedGrade || 0)}
+                                </div>
+                              </>
+                            )}
                           </td>
                           <td className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center">
                             <button
@@ -2483,6 +2885,10 @@ export default function HadithAnalyzer() {
                       handleCancelAddNarrator={handleCancelAddNarrator}
                       handleSaveEdit={handleSaveEdit}
                       handleCancelEdit={handleCancelEdit}
+                      isDarkMode={isDarkMode}
+                      chains={chains}
+                      setChains={setChains}
+                      selectedChainIndex={selectedChainIndex}
                     />
                   ))}
                 </div>
