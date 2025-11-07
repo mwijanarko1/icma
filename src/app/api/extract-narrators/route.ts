@@ -17,30 +17,41 @@ class GeminiService {
     this.ai = new GoogleGenAI({ apiKey });
   }
 
-  async extractNarratorsFromHadith(hadithText: string): Promise<Narrator[]> {
-    const prompt = `You are an expert in Islamic Hadith and Arabic textual analysis. Your task is to extract the complete chain of narrators (sanad) from a given Hadith text, identify the speaker of the Hadith, and the Hadith compiler. Then, present this information in a structured table.
+  async extractNarratorsFromHadith(hadithText: string): Promise<{ narrators: Narrator[]; chainText: string; matn: string }> {
+    const prompt = `You are an expert in Islamic Hadith and Arabic textual analysis. Your task is to:
+1. Extract the complete chain of narrators (sanad) from a given Hadith text
+2. Separate the chain text (sanad) from the matn (hadith text content)
+3. Identify the speaker of the Hadith and the Hadith compiler
 
 **Input:**
 You will receive a complete Hadith text, which includes the Arabic chain of narration, the Hadith text (matn), its English translation, and compiler information.
 
 **Output:**
-Your output must be a JSON array of narrator objects with this exact format:
-[
-  {
-    "number": 1,
-    "arabicName": "رَسُولَ اللَّهِ",
-    "englishName": "Messenger of Allah"
-  },
-  {
-    "number": 2,
-    "arabicName": "أَبُو بَكْرٍ الصِّدِّيقُ",
-    "englishName": "Abu Bakr as-Siddiq"
-  }
-]
+Your output must be a JSON object with this exact format:
+{
+  "narrators": [
+    {
+      "number": 1,
+      "arabicName": "رَسُولَ اللَّهِ",
+      "englishName": "Messenger of Allah"
+    },
+    {
+      "number": 2,
+      "arabicName": "أَبُو بَكْرٍ الصِّدِّيقُ",
+      "englishName": "Abu Bakr as-Siddiq"
+    }
+  ],
+  "chainText": "حَدَّثَنَا الْحُمَيْدِيُّ عَبْدُ اللَّهِ بْنُ الزُّبَيْرِ...",
+  "matn": "إِنَّمَا الأَعْمَالُ بِالنِّيَّاتِ..."
+}
 
-**Instructions for Extraction and Table Generation:**
+**Instructions:**
 
-1.  **Identify the Speaker**: The ultimate source of the Hadith is \`رَسُولَ اللَّهِ\` (the Messenger of Allah). This individual is always the speaker of the Hadith and should be the first entry in your response.
+1.  **Separate Chain (Sanad) and Matn**:
+    *   The **chainText (sanad)** is the transmission chain that lists all the narrators from the compiler back to the Prophet. It typically starts with words like \`حَدَّثَنَا\`, \`أَخْبَرَنَا\`, \`حَدَّثَنِي\`, etc., and includes all the narrator names and transmission phrases.
+    *   The **matn** is the actual content/text of the Hadith - the words spoken by the Prophet. It usually comes after the chain and contains the substantive message or teaching.
+    *   Extract the complete chain text (sanad) as a single string, preserving all Arabic text from the beginning of the chain until the matn begins.
+    *   Extract the complete matn as a single string, including all the actual Hadith content.
 
 2.  **Extract Narrator Chain (Sanad)**:
     *   Focus on the Arabic portion of the text that describes the transmission chain, from the earliest narrator to the Companion who heard the Hadith.
@@ -48,17 +59,19 @@ Your output must be a JSON array of narrator objects with this exact format:
     *   Extract the full name associated with each instance of these keywords. Names usually follow these keywords or are the object of the verb \`سَمِعَ\`/\`سَمِعْتُ\`.
     *   **Filter out extraneous phrases**: Exclude honorifics or prayers such as \`رَضِيَ اللَّهُ عَنْهُ\` or \`صَلَّى اللَّهُ عَلَيْهِ وَسَلَّمَ\` from the narrator names.
 
-3.  **Identify the Hadith Compiler**: From the provided text (often near the "Sahih al-Bukhari 1" type of reference), identify the compiler. For "Sahih al-Bukhari", the compiler is \`الْإِمَامُ الْبُخَارِيُّ\`.
+3.  **Identify the Speaker**: The ultimate source of the Hadith is \`رَسُولَ اللَّهِ\` (the Messenger of Allah). This individual is always the speaker of the Hadith and should be the first entry in the narrators array.
 
-4.  **Order the JSON Entries**: The JSON array entries must be ordered as follows:
+4.  **Identify the Hadith Compiler**: From the provided text (often near the "Sahih al-Bukhari 1" type of reference), identify the compiler. For "Sahih al-Bukhari", the compiler is \`الْإِمَامُ الْبُخَارِيُّ\`.
+
+5.  **Order the Narrator Entries**: The narrators array entries must be ordered as follows:
     *   1. \`رَسُولَ اللَّهِ\` (Speaker)
     *   2. The Companion who directly heard the Hadith from the Prophet.
     *   3. The subsequent narrators in the chain, ordered chronologically from the Companion down to the final narrator who transmitted the Hadith to the compiler.
     *   4. The Hadith Compiler.
 
-5.  **Translate Names to English**: Provide a widely accepted English transliteration or translation for each Arabic narrator name.
+6.  **Translate Names to English**: Provide a widely accepted English transliteration or translation for each Arabic narrator name.
 
-6.  **Format the Output**: Return ONLY the JSON array, no additional text, explanations, or conversational elements.
+7.  **Format the Output**: Return ONLY the JSON object, no additional text, explanations, or conversational elements. Ensure the chainText and matn are complete and properly separated.
 
 Hadith text:
 ${hadithText}`;
@@ -69,7 +82,7 @@ ${hadithText}`;
         contents: prompt,
         config: {
           temperature: 0.1,
-          maxOutputTokens: 2000,
+          maxOutputTokens: 4000, // Increased to accommodate chainText and matn
         },
       });
 
@@ -80,15 +93,30 @@ ${hadithText}`;
 
       // Parse the JSON response robustly (strip code fences if present)
       const text = stripCodeFences(raw);
-      const narrators = parseNarratorsJson(text) as Narrator[];
+      const parsed = parseNarratorsJson(text) as { narrators: Narrator[]; chainText: string; matn: string };
 
       // Validate the response structure
-      if (!Array.isArray(narrators)) {
-        throw new Error("Invalid response format: expected array");
+      if (!parsed || typeof parsed !== 'object') {
+        throw new Error("Invalid response format: expected object");
+      }
+
+      // Check if it's the old format (just an array) and convert
+      if (Array.isArray(parsed)) {
+        // Backward compatibility: old format returns just narrators array
+        return {
+          narrators: parsed as Narrator[],
+          chainText: '',
+          matn: ''
+        };
+      }
+
+      // Validate narrators array
+      if (!Array.isArray(parsed.narrators)) {
+        throw new Error("Invalid response format: narrators must be an array");
       }
 
       // Validate each narrator object
-      for (const narrator of narrators) {
+      for (const narrator of parsed.narrators) {
         if (
           typeof narrator.number !== "number" ||
           typeof narrator.arabicName !== "string" ||
@@ -98,7 +126,19 @@ ${hadithText}`;
         }
       }
 
-      return narrators;
+      // Validate chainText and matn
+      if (typeof parsed.chainText !== "string") {
+        parsed.chainText = '';
+      }
+      if (typeof parsed.matn !== "string") {
+        parsed.matn = '';
+      }
+
+      return {
+        narrators: parsed.narrators,
+        chainText: parsed.chainText || '',
+        matn: parsed.matn || ''
+      };
     } catch (error) {
       console.error("Error extracting narrators with Gemini:", error);
       throw new Error(`Failed to extract narrators: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -117,14 +157,28 @@ function parseNarratorsJson(text: string): unknown {
   try {
     return JSON.parse(text);
   } catch {
-    // Try to extract first JSON array substring
-    const start = text.indexOf("[");
-    const end = text.lastIndexOf("]");
-    if (start !== -1 && end !== -1 && end > start) {
-      const slice = text.substring(start, end + 1);
+    // Try to extract first JSON object or array substring
+    // Look for object first (starts with {)
+    const objectStart = text.indexOf("{");
+    const objectEnd = text.lastIndexOf("}");
+    if (objectStart !== -1 && objectEnd !== -1 && objectEnd > objectStart) {
+      const slice = text.substring(objectStart, objectEnd + 1);
+      try {
+        return JSON.parse(slice);
+      } catch {
+        // Continue to try array
+      }
+    }
+    
+    // Try to extract JSON array substring
+    const arrayStart = text.indexOf("[");
+    const arrayEnd = text.lastIndexOf("]");
+    if (arrayStart !== -1 && arrayEnd !== -1 && arrayEnd > arrayStart) {
+      const slice = text.substring(arrayStart, arrayEnd + 1);
       return JSON.parse(slice);
     }
-    throw new Error("Response was not valid JSON array");
+    
+    throw new Error("Response was not valid JSON");
   }
 }
 
@@ -147,9 +201,10 @@ export async function POST(request: NextRequest) {
     }
 
     const geminiService = new GeminiService(apiKey);
-    const narrators = await geminiService.extractNarratorsFromHadith(hadithText);
+    const { narrators, chainText, matn } = await geminiService.extractNarratorsFromHadith(hadithText);
 
-    return NextResponse.json({ narrators });
+    // Return narrators without automatic matching - matching will be done via the match modal
+    return NextResponse.json({ narrators, chainText, matn });
   } catch (error) {
     console.error('API Error:', error);
     return NextResponse.json(

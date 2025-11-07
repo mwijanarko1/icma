@@ -13,6 +13,8 @@ const CACHE_KEYS = {
 };
 import { useTheme } from "@/contexts/ThemeContext";
 import mermaid from 'mermaid';
+import { extractReputationGrades } from '@/data/grade-extractor';
+import type { Narrator as NarratorType } from '@/data/types';
 import {
   DndContext,
   closestCorners,
@@ -39,19 +41,20 @@ import Link from 'next/link';
 // Reputation grading system
 export const REPUTATION_GRADES = {
   // High Degrees of Reliability (Strong Narrators - Hadith Accepted)
+  'Companion': { weight: 10, category: 'high', meaning: 'Companion of the Prophet' },
   'Thiqah Thabt': { weight: 10, category: 'high', meaning: 'Absolutely trustworthy and extremely precise/firm' },
   'Thiqah': { weight: 9, category: 'high', meaning: 'Trustworthy' },
   'Saduq': { weight: 8, category: 'high', meaning: 'Truthful' },
   'Saduq Yahim': { weight: 7, category: 'high', meaning: 'Truthful, but makes occasional errors/mistakes' },
   
   // Intermediate Degrees (Hadith Often Accepted, but with Caveats)
-  'Maqbūl': { weight: 6, category: 'intermediate', meaning: 'Acceptable' },
-  'La Ba\'sa Bihi': { weight: 5, category: 'intermediate', meaning: 'There is no harm in him (acceptable)' },
+  'Maqbūl': { weight: 7, category: 'intermediate', meaning: 'Acceptable' },
+  'La Ba\'sa Bihi': { weight: 7, category: 'intermediate', meaning: 'There is no harm in him (acceptable)' },
   
   // Lower Degrees of Reliability (Weak Narrators - Hadith Often Rejected or Weakened)
   'Saduq Sayyi\' al-Hifz': { weight: 4, category: 'low', meaning: 'Truthful, but with poor memory' },
-  'Majhul al-Ain': { weight: 3, category: 'low', meaning: 'Unknown person' },
-  'Majhul al-Hal': { weight: 2, category: 'low', meaning: 'Unknown status' },
+  'Majhul al-Ain': { weight: 0, category: 'low', meaning: 'Unknown person' },
+  'Majhul al-Hal': { weight: 0, category: 'low', meaning: 'Unknown status' },
   'Da\'if': { weight: 1, category: 'low', meaning: 'Weak' },
   'Matruk': { weight: 0, category: 'low', meaning: 'Abandoned' },
   'Muttaham bi al-Kidhb': { weight: 0, category: 'low', meaning: 'Accused of lying' },
@@ -61,17 +64,36 @@ export const REPUTATION_GRADES = {
 export type ReputationGrade = keyof typeof REPUTATION_GRADES;
 
 // Function to calculate narrator grade based on reputation tags
+// Now weights grades by frequency - if multiple people call someone "Thiqah", it's weighted more heavily
 export const calculateNarratorGrade = (reputation: ReputationGrade[]): number => {
   if (reputation.length === 0) return 0;
   
-  // Calculate weighted average
-  const totalWeight = reputation.reduce((sum, grade) => sum + REPUTATION_GRADES[grade].weight, 0);
-  const averageWeight = totalWeight / reputation.length;
+  // Count frequency of each grade
+  const gradeCounts = new Map<ReputationGrade, number>();
+  for (const grade of reputation) {
+    gradeCounts.set(grade, (gradeCounts.get(grade) || 0) + 1);
+  }
+  
+  // Calculate frequency-weighted average
+  // Each grade's weight is multiplied by how many times it appears
+  let totalWeightedSum = 0;
+  let totalCount = 0;
+  
+  for (const [grade, count] of gradeCounts.entries()) {
+    const gradeWeight = REPUTATION_GRADES[grade].weight;
+    // Weight is multiplied by frequency (count)
+    totalWeightedSum += gradeWeight * count;
+    totalCount += count;
+  }
+  
+  const averageWeight = totalWeightedSum / totalCount;
   
   // Apply penalty for multiple conflicting grades (high and low together)
-  const hasHigh = reputation.some(grade => REPUTATION_GRADES[grade].category === 'high');
-  const hasLow = reputation.some(grade => REPUTATION_GRADES[grade].category === 'low');
-  const hasIntermediate = reputation.some(grade => REPUTATION_GRADES[grade].category === 'intermediate');
+  // Check if we have grades from different categories
+  const uniqueGrades = Array.from(gradeCounts.keys());
+  const hasHigh = uniqueGrades.some(grade => REPUTATION_GRADES[grade].category === 'high');
+  const hasLow = uniqueGrades.some(grade => REPUTATION_GRADES[grade].category === 'low');
+  const hasIntermediate = uniqueGrades.some(grade => REPUTATION_GRADES[grade].category === 'intermediate');
   
   let penalty = 0;
   if (hasHigh && hasLow) {
@@ -101,12 +123,43 @@ export const getGradeColorClass = (grade: number): string => {
   return 'text-red-600 dark:text-red-400';
 };
 
+// Function to calculate chain grade based on narrator grades
+export const calculateChainGrade = (narrators: Narrator[]): number | null => {
+  if (narrators.length === 0) return null;
+  
+  const grades = narrators
+    .map(n => n.calculatedGrade)
+    .filter((grade): grade is number => grade !== undefined && grade !== null);
+  
+  // Only calculate if more than 50% of narrators have grades
+  const gradedPercentage = (grades.length / narrators.length) * 100;
+  if (gradedPercentage <= 50) return null;
+  
+  if (grades.length === 0) return null;
+  
+  const sum = grades.reduce((acc, grade) => acc + grade, 0);
+  return Math.round((sum / grades.length) * 10) / 10;
+};
+
 interface Narrator {
   number: number;
   arabicName: string;
   englishName: string;
   reputation?: ReputationGrade[];
   calculatedGrade?: number;
+  matched?: boolean;
+  narratorId?: string;
+  confidence?: number;
+  matchedName?: string;
+  databaseNarrator?: {
+    id: string;
+    primaryArabicName: string;
+    primaryEnglishName: string;
+    ibnHajarRank?: string;
+    dhahabiRank?: string;
+    taqribCategory?: string;
+    scholarlyOpinionsCount?: number;
+  };
 }
 
 interface LibraryChain {
@@ -121,7 +174,8 @@ interface LibraryChain {
 interface Chain {
   id: string;
   narrators: Narrator[];
-  hadithText: string;
+  chainText: string; // Sanad (chain of narrators)
+  matn: string; // Matn (hadith text content)
   title?: string;
   collapsed?: boolean;
 }
@@ -294,14 +348,19 @@ interface DraggableChainProps {
   onToggleCollapse: (chainId: string) => void;
   onEdit: (chainId: string) => void;
   onRemove: (chainId: string) => void;
+  onMatchNarrators: (chainId: string) => void;
   editingChainId: string | null;
-  editFormData: { title: string; narrators: Narrator[] };
-  setEditFormData: React.Dispatch<React.SetStateAction<{ title: string; narrators: Narrator[] }>>;
+  editFormData: { title: string; narrators: Narrator[]; chainText: string; matn: string };
+  setEditFormData: React.Dispatch<React.SetStateAction<{ title: string; narrators: Narrator[]; chainText: string; matn: string }>>;
   sensors: ReturnType<typeof useSensors>;
   handleDragStart: (event: DragStartEvent) => void;
   handleDragEnd: (event: DragEndEvent) => void;
   handleUpdateNarrator: (index: number, field: 'arabicName' | 'englishName', value: string) => void;
   handleRemoveNarrator: (narratorIndex: number) => void;
+  handleViewNarratorDetails: (narratorId: string) => void;
+  handleUnmatchNarratorEdit: (narratorIndex: number) => void;
+  handleUnmatchNarratorView: (narratorIndex: number) => void;
+  handleOpenNarratorSearch: (narratorIndex: number, chainId: string, inEditMode: boolean) => void;
   activeNarrator: Narrator | null;
   showAddNarrator: boolean;
   setShowAddNarrator: React.Dispatch<React.SetStateAction<boolean>>;
@@ -323,6 +382,7 @@ function DraggableChain({
   onToggleCollapse,
   onEdit,
   onRemove,
+  onMatchNarrators,
   editingChainId,
   editFormData,
   setEditFormData,
@@ -331,6 +391,10 @@ function DraggableChain({
   handleDragEnd,
   handleUpdateNarrator,
   handleRemoveNarrator,
+  handleViewNarratorDetails,
+  handleUnmatchNarratorEdit,
+  handleUnmatchNarratorView,
+  handleOpenNarratorSearch,
   activeNarrator,
   showAddNarrator,
   setShowAddNarrator,
@@ -443,6 +507,19 @@ function DraggableChain({
           <button
             onClick={(e) => {
               e.stopPropagation();
+              onMatchNarrators(chain.id);
+            }}
+            className="text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300 text-sm font-medium px-3 py-1 rounded-md hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors flex items-center gap-1"
+            title="Match narrators to database and auto-assign grades"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+            Match
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
               onRemove(chain.id);
             }}
             className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 text-sm font-medium px-3 py-1 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
@@ -496,11 +573,21 @@ function DraggableChain({
                 />
           </div>
 
-          {/* Hadith Text Preview */}
-              <div className="p-3 bg-gray-50 dark:bg-gray-900 rounded-md">
-                <p className="text-sm text-gray-600 dark:text-gray-400 truncate" dir="rtl">
-                  {chain.hadithText}
-                </p>
+          {/* Chain Text (Sanad) Input - Above Narrator Table */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Chain (Sanad)
+                </label>
+                <textarea
+                  value={editFormData.chainText}
+                  onChange={(e) => setEditFormData(prev => ({ ...prev, chainText: e.target.value }))}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-y min-h-[80px]"
+                  placeholder="Enter chain text (sanad)..."
+                  dir={/[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/.test(editFormData.chainText) ? 'rtl' : 'ltr'}
+                  style={{
+                    textAlign: /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/.test(editFormData.chainText) ? 'right' : 'left'
+                  }}
+                />
               </div>
 
               {/* Narrators Edit Table */}
@@ -529,7 +616,7 @@ function DraggableChain({
                       <tbody style={{ transition: 'none' }}>
                         {editFormData.narrators.map((narrator, narratorIndex) => (
                           <DraggableNarratorRow
-                            key={`narrator-${narrator.number}`}
+                            key={`edit-narrator-${narratorIndex}-${narrator.number}`}
                             narrator={narrator}
                             index={narratorIndex}
                             isEditing={true}
@@ -545,6 +632,9 @@ function DraggableChain({
                               }));
                             }}
                             onRemoveNarrator={handleRemoveNarrator}
+                            onViewNarratorDetails={handleViewNarratorDetails}
+                            onUnmatchNarrator={handleUnmatchNarratorEdit}
+                            onSearchNarrator={(index) => handleOpenNarratorSearch(index, chain.id, true)}
                             isDarkMode={isDarkMode}
                           />
                         ))}
@@ -594,6 +684,67 @@ function DraggableChain({
                     💡 Drag the handle (≡) to reorder narrators • Use Tab to navigate, Space/Enter to grab/release
                   </div>
                 )}
+
+                {/* Chain Grade Display */}
+                {(() => {
+                  const chainGrade = calculateChainGrade(editFormData.narrators);
+                  
+                  return (
+                    <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                            <svg className="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                          </div>
+                          <div>
+                            <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">Chain Grade</h4>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">Average of all narrator grades</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          {chainGrade !== null ? (
+                            <>
+                              <div className={`text-2xl font-bold ${getGradeColorClass(chainGrade)}`}>
+                                {chainGrade.toFixed(1)}
+                              </div>
+                              <div className={`text-xs font-medium ${getGradeColorClass(chainGrade)}`}>
+                                {getGradeDescription(chainGrade)}
+                              </div>
+                            </>
+                          ) : (
+                            <>
+                              <div className="text-2xl font-bold text-gray-400 dark:text-gray-500">
+                                --
+                              </div>
+                              <div className="text-xs font-medium text-gray-400 dark:text-gray-500">
+                                Insufficient data
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* Matn (Hadith Text) Input - Below Chain Grade */}
+                <div className="mt-4">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Matn (Hadith Text)
+                  </label>
+                  <textarea
+                    value={editFormData.matn}
+                    onChange={(e) => setEditFormData(prev => ({ ...prev, matn: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-y min-h-[80px]"
+                    placeholder="Enter matn (hadith text)..."
+                    dir={/[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/.test(editFormData.matn) ? 'rtl' : 'ltr'}
+                    style={{
+                      textAlign: /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/.test(editFormData.matn) ? 'right' : 'left'
+                    }}
+                  />
+                </div>
 
                 {/* Add Narrator Section */}
                 <div className="mt-4 border-t border-gray-200 dark:border-gray-700 pt-4">
@@ -678,12 +829,23 @@ function DraggableChain({
           ) : (
             /* View Mode */
             <div className="space-y-4">
-              {/* Hadith Text Preview */}
-              <div className="p-3 bg-gray-50 dark:bg-gray-900 rounded-md">
-          <p className="text-sm text-gray-600 dark:text-gray-400 truncate" dir="rtl">
-            {chain.hadithText}
-          </p>
-        </div>
+              {/* Chain Text (Sanad) - Above Narrator Table */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Chain (Sanad)
+                </label>
+                <div className="p-3 bg-gray-50 dark:bg-gray-900 rounded-md border border-gray-200 dark:border-gray-700">
+                  <p 
+                    className="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-wrap break-words" 
+                    dir={/[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/.test(chain.chainText) ? 'rtl' : 'ltr'}
+                    style={{
+                      textAlign: /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/.test(chain.chainText) ? 'right' : 'left'
+                    }}
+                  >
+                    {chain.chainText || <span className="text-gray-400 dark:text-gray-500 italic">No chain text</span>}
+                  </p>
+                </div>
+              </div>
 
         {/* Narrators Table */}
         <div className="overflow-x-auto">
@@ -700,7 +862,7 @@ function DraggableChain({
             <tbody>
                 {chain.narrators.map((narrator, narratorIndex) => (
               <DraggableNarratorRow
-                key={narrator.number}
+                key={`chain-${selectedChainIndex}-narrator-${narratorIndex}-${narrator.number}`}
                 narrator={narrator}
                 index={narratorIndex}
                 isEditing={false}
@@ -721,11 +883,76 @@ function DraggableChain({
                   setChains(updatedChains);
                 }}
                 onRemoveNarrator={undefined} // Not shown in view mode
+                onViewNarratorDetails={handleViewNarratorDetails}
+                onUnmatchNarrator={handleUnmatchNarratorView}
+                onSearchNarrator={(index) => handleOpenNarratorSearch(index, chain.id, false)}
                 isDarkMode={isDarkMode}
               />
             ))}
             </tbody>
           </table>
+        </div>
+
+        {/* Chain Grade Display */}
+        {(() => {
+          const chainGrade = calculateChainGrade(chain.narrators);
+          
+          return (
+            <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                    <svg className="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">Chain Grade</h4>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Average of all narrator grades</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  {chainGrade !== null ? (
+                    <>
+                      <div className={`text-2xl font-bold ${getGradeColorClass(chainGrade)}`}>
+                        {chainGrade.toFixed(1)}
+                      </div>
+                      <div className={`text-xs font-medium ${getGradeColorClass(chainGrade)}`}>
+                        {getGradeDescription(chainGrade)}
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="text-2xl font-bold text-gray-400 dark:text-gray-500">
+                        --
+                      </div>
+                      <div className="text-xs font-medium text-gray-400 dark:text-gray-500">
+                        Insufficient data
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* Matn (Hadith Text) - Below Chain Grade */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Matn (Hadith Text)
+          </label>
+          <div className="p-3 bg-gray-50 dark:bg-gray-900 rounded-md border border-gray-200 dark:border-gray-700">
+            <p 
+              className="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-wrap break-words" 
+              dir={/[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/.test(chain.matn) ? 'rtl' : 'ltr'}
+              style={{
+                textAlign: /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/.test(chain.matn) ? 'right' : 'left'
+              }}
+            >
+              {chain.matn || <span className="text-gray-400 dark:text-gray-500 italic">No matn text</span>}
+            </p>
+          </div>
         </div>
       </div>
           )}
@@ -807,9 +1034,9 @@ function ReputationSelector({ selectedReputations, onReputationChange, isDarkMod
                 {category === 'high' ? 'High Reliability' : 
                  category === 'intermediate' ? 'Intermediate' : 'Low Reliability'}
               </div>
-              {grades.map(({ grade, meaning }) => (
+              {grades.map(({ grade, meaning }, gradeIdx) => (
                 <label
-                  key={grade}
+                  key={`${category}-${grade}-${gradeIdx}`}
                   className={`flex items-start space-x-2 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer rounded ${
                     isDarkMode ? 'text-gray-200' : 'text-gray-800'
                   }`}
@@ -846,6 +1073,9 @@ interface DraggableNarratorRowProps {
   onUpdateNarrator: (index: number, field: 'arabicName' | 'englishName', value: string) => void;
   onUpdateReputation: (index: number, reputation: ReputationGrade[]) => void;
   onRemoveNarrator?: (index: number) => void;
+  onViewNarratorDetails?: (narratorId: string) => void;
+  onUnmatchNarrator?: (index: number) => void;
+  onSearchNarrator?: (narratorIndex: number) => void;
   isDarkMode: boolean;
 }
 
@@ -856,8 +1086,12 @@ function DraggableNarratorRow({
   onUpdateNarrator,
   onUpdateReputation,
   onRemoveNarrator,
+  onViewNarratorDetails,
+  onUnmatchNarrator,
+  onSearchNarrator,
   isDarkMode
 }: DraggableNarratorRowProps) {
+  const [showGradeFormulaTooltip, setShowGradeFormulaTooltip] = useState(false);
   const {
     attributes,
     listeners,
@@ -924,7 +1158,72 @@ function DraggableNarratorRow({
             dir="rtl"
           />
         ) : (
-          <span className="text-gray-900 dark:text-white text-right block" dir="rtl">{narrator.arabicName}</span>
+          <div className="flex flex-col gap-1.5">
+            {/* Narrator name - always aligned */}
+            <div className="text-right" dir="rtl">
+              {narrator.matched && narrator.narratorId && onViewNarratorDetails ? (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onViewNarratorDetails(narrator.narratorId!);
+                  }}
+                  className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 underline hover:no-underline transition-all cursor-pointer text-right"
+                  title={`Click to view database entry (${(narrator.confidence || 0) * 100}% confidence)`}
+                >
+                  {narrator.arabicName}
+                </button>
+              ) : (
+                <span className="text-gray-900 dark:text-white text-right">{narrator.arabicName}</span>
+              )}
+            </div>
+            {/* Action buttons - below the name */}
+            {(onSearchNarrator || narrator.matched) && narrator.arabicName !== "رَسُولَ اللَّهِ" && (
+              <div className="flex items-center justify-end gap-1.5 flex-wrap">
+                {onSearchNarrator && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onSearchNarrator(index);
+                    }}
+                    className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 hover:bg-blue-200 dark:bg-blue-900 dark:text-blue-200 dark:hover:bg-blue-800 transition-colors"
+                    title="Search and match narrator from database"
+                  >
+                    <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    Search
+                  </button>
+                )}
+                {narrator.matched && (
+                  <div className="inline-flex items-center gap-1">
+                    <span
+                      className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                      title={`Matched to database (${(narrator.confidence || 0) * 100}% confidence)`}
+                    >
+                      <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      Matched
+                    </span>
+                    {onUnmatchNarrator && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onUnmatchNarrator(index);
+                        }}
+                        className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800 hover:bg-red-200 dark:bg-red-900 dark:text-red-200 dark:hover:bg-red-800 transition-colors"
+                        title="Unmatch from database"
+                      >
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         )}
       </td>
       <td className="border border-gray-300 dark:border-gray-600 px-4 py-2">
@@ -946,6 +1245,11 @@ function DraggableNarratorRow({
           </div>
         ) : (
           <>
+            {narrator.matched && narrator.reputation && narrator.reputation.length > 0 && (
+              <div className="mb-2 text-xs text-green-600 dark:text-green-400 font-medium">
+                ✓ Auto-assigned from database
+              </div>
+            )}
             <ReputationSelector
               selectedReputations={narrator.reputation || []}
               onReputationChange={(reputation) => onUpdateReputation(index, reputation)}
@@ -953,9 +1257,9 @@ function DraggableNarratorRow({
             />
             {(narrator.reputation || []).length > 0 && (
               <div className="flex flex-wrap gap-1 justify-center mt-2">
-                {(narrator.reputation || []).map((grade) => (
+                {(narrator.reputation || []).map((grade, gradeIdx) => (
                   <span
-                    key={grade}
+                    key={`narrator-${narrator.number}-grade-${gradeIdx}-${grade}`}
                     className={`px-2 py-1 text-xs rounded ${
                       REPUTATION_GRADES[grade].category === 'high'
                         ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
@@ -978,14 +1282,51 @@ function DraggableNarratorRow({
             N/A
           </div>
         ) : (
-          <>
-            <div className={`font-semibold ${getGradeColorClass(narrator.calculatedGrade || 0)}`}>
-              {(narrator.calculatedGrade || 0).toFixed(1)}
+          <div className="flex flex-col items-center gap-1">
+            <div className="flex items-center gap-1">
+              <div className={`font-semibold ${getGradeColorClass(narrator.calculatedGrade || 0)}`}>
+                {(narrator.calculatedGrade || 0).toFixed(1)}
+              </div>
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowGradeFormulaTooltip(!showGradeFormulaTooltip);
+                  }}
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                  aria-label="Grade calculation formula info"
+                >
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </button>
+                <div className={`absolute right-0 bottom-full mb-2 w-80 p-3 bg-gray-900 dark:bg-gray-800 text-white text-xs rounded-lg shadow-lg transition-all duration-200 z-50 ${showGradeFormulaTooltip ? 'opacity-100 visible' : 'opacity-0 invisible'}`}>
+                  <div className="space-y-2">
+                    <p className="font-semibold mb-2">Grade Calculation Formula</p>
+                    <div className="space-y-1 text-gray-300">
+                      <p>1. Count frequency of each grade (how many times it appears)</p>
+                      <p className="ml-2 text-gray-400">Each statement/opinion that mentions a grade counts</p>
+                      <p className="mt-2">2. Calculate frequency-weighted average</p>
+                      <p className="ml-2 text-gray-400">Average = Sum of (weight × frequency) ÷ Total count</p>
+                      <p className="ml-2 text-gray-400">Example: 5×&quot;Thiqah&quot; + 1×&quot;Saduq&quot; = (9×5 + 8×1) ÷ 6 = 8.83</p>
+                      <p className="mt-2">3. Apply penalties for conflicting grades:</p>
+                      <p className="ml-2 text-gray-400">• High + Low grades together: -2 points</p>
+                      <p className="ml-2 text-gray-400">• Mixed categories with Intermediate: -1 point</p>
+                      <p className="mt-2">4. Final grade = max(0, round((Average - Penalty) × 10) ÷ 10)</p>
+                    </div>
+                    <div className="pt-2 border-t border-gray-700">
+                      <p className="text-gray-400 text-xs">Grade range: 0.0 (Very Poor) to 10.0 (Excellent)</p>
+                    </div>
+                  </div>
+                  <div className="absolute right-4 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900 dark:border-t-gray-800"></div>
+                </div>
+              </div>
             </div>
             <div className="text-xs text-gray-600 dark:text-gray-400">
               {getGradeDescription(narrator.calculatedGrade || 0)}
             </div>
-          </>
+          </div>
         )}
       </td>
       {isEditing && onRemoveNarrator && (
@@ -1016,7 +1357,9 @@ export default function HadithAnalyzer() {
   const [editFormData, setEditFormData] = useState<{
     title: string;
     narrators: Narrator[];
-  }>({ title: '', narrators: [] });
+    chainText: string;
+    matn: string;
+  }>({ title: '', narrators: [], chainText: '', matn: '' });
   const [activeNarrator, setActiveNarrator] = useState<Narrator | null>(null);
   const [showAddNarrator, setShowAddNarrator] = useState(false);
   const [newNarrator, setNewNarrator] = useState({
@@ -1027,13 +1370,55 @@ export default function HadithAnalyzer() {
   });
   const [apiKey, setApiKey] = useState('');
   const [showApiKeyModal, setShowApiKeyModal] = useState(false);
-  const [activeTab, setActiveTab] = useState<'llm' | 'manual'>('llm');
+  const [activeTab, setActiveTab] = useState<'llm' | 'manual' | 'narrators'>('llm');
   const [selectedChainIndex, setSelectedChainIndex] = useState<number>(0);
   const [activeChainId, setActiveChainId] = useState<string | null>(null);
   const [showImportModal, setShowImportModal] = useState(false);
   const [importMode, setImportMode] = useState<'library' | 'computer' | null>(null);
   const [libraryChains, setLibraryChains] = useState<LibraryChain[]>([]);
   const [isLoadingLibrary, setIsLoadingLibrary] = useState(false);
+  const [showNarratorModal, setShowNarratorModal] = useState(false);
+  const [selectedNarratorDetails, setSelectedNarratorDetails] = useState<NarratorType | null>(null);
+  const [isLoadingNarratorDetails, setIsLoadingNarratorDetails] = useState(false);
+  const [showMatchConfirmationModal, setShowMatchConfirmationModal] = useState(false);
+  const [pendingMatches, setPendingMatches] = useState<Array<{
+    chainId: string;
+    narratorNumber: number;
+    narratorArabicName: string;
+    narratorEnglishName: string;
+    match: {
+      narratorId: string;
+      confidence: number;
+      matchedName: string;
+      suggestedGrades?: ReputationGrade[];
+      databaseNarrator: NarratorType;
+    };
+  }>>([]);
+  const [currentMatchIndex, setCurrentMatchIndex] = useState(0);
+  const [acceptedMatchesCount, setAcceptedMatchesCount] = useState(0);
+
+  // Narrator search state
+  const [narratorSearchQuery, setNarratorSearchQuery] = useState('');
+  const [narratorSearchResults, setNarratorSearchResults] = useState<NarratorType[]>([]);
+  const [isSearchingNarrators, setIsSearchingNarrators] = useState(false);
+  const [selectedNarratorData, setSelectedNarratorData] = useState<NarratorType | null>(null);
+  const [isLoadingNarratorData, setIsLoadingNarratorData] = useState(false);
+  const [showNarratorDetailsModal, setShowNarratorDetailsModal] = useState(false);
+  const [narratorSearchOffset, setNarratorSearchOffset] = useState(0);
+  const [showGradeFormulaTooltip1, setShowGradeFormulaTooltip1] = useState(false);
+  
+  // Narrator search modal state
+  const [showNarratorSearchModal, setShowNarratorSearchModal] = useState(false);
+  const [searchingNarratorIndex, setSearchingNarratorIndex] = useState<number | null>(null);
+  const [searchingChainId, setSearchingChainId] = useState<string | null>(null);
+  const [searchingInEditMode, setSearchingInEditMode] = useState(false);
+  const [narratorSearchModalQuery, setNarratorSearchModalQuery] = useState('');
+  const [narratorSearchModalResults, setNarratorSearchModalResults] = useState<NarratorType[]>([]);
+  const [isSearchingModal, setIsSearchingModal] = useState(false);
+  const [narratorSearchModalOffset, setNarratorSearchModalOffset] = useState(0);
+  const [narratorSearchModalTotal, setNarratorSearchModalTotal] = useState(0);
+  const [showGradeFormulaTooltip2, setShowGradeFormulaTooltip2] = useState(false);
+  const [narratorSearchTotal, setNarratorSearchTotal] = useState(0);
 
   const { isDarkMode } = useTheme();
   const graphRef = useRef<HTMLDivElement>(null);
@@ -1131,7 +1516,7 @@ export default function HadithAnalyzer() {
     setChains([]);
     setShowVisualization(false);
     setEditingChainId(null);
-    setEditFormData({ title: '', narrators: [] });
+    setEditFormData({ title: '', narrators: [], chainText: '', matn: '' });
     setShowAddNarrator(false);
     setNewNarrator({ arabicName: '', englishName: '', reputation: [], calculatedGrade: 0 });
     setShowApiKeyModal(false);
@@ -1206,8 +1591,8 @@ export default function HadithAnalyzer() {
 
       // Load cached active tab
       const cachedActiveTab = localStorage.getItem(CACHE_KEYS.ACTIVE_TAB);
-      if (cachedActiveTab && (cachedActiveTab === 'llm' || cachedActiveTab === 'manual')) {
-        setActiveTab(cachedActiveTab);
+      if (cachedActiveTab && (cachedActiveTab === 'llm' || cachedActiveTab === 'manual' || cachedActiveTab === 'narrators')) {
+        setActiveTab(cachedActiveTab as 'llm' | 'manual' | 'narrators');
       }
 
       // Load cached selected chain index
@@ -1301,6 +1686,73 @@ export default function HadithAnalyzer() {
     }
   };
 
+  // Search narrators function
+  const searchNarrators = useCallback(async (query: string, offset: number = 0) => {
+    if (!query.trim()) {
+      setNarratorSearchResults([]);
+      setNarratorSearchTotal(0);
+      return;
+    }
+
+    setIsSearchingNarrators(true);
+    try {
+      const response = await fetch(`/api/narrators?query=${encodeURIComponent(query)}&limit=50&offset=${offset}`);
+      const data = await response.json();
+
+      if (data.success) {
+        setNarratorSearchResults(data.narrators);
+        setNarratorSearchTotal(data.total || 0);
+        setNarratorSearchOffset(offset);
+      } else {
+        console.error('Failed to search narrators:', data.error);
+        alert('Failed to search narrators. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error searching narrators:', error);
+      alert('Failed to search narrators. Please try again.');
+    } finally {
+      setIsSearchingNarrators(false);
+    }
+  }, []);
+
+  // Fetch narrator details
+  const fetchNarratorDetails = useCallback(async (narratorId: string) => {
+    setIsLoadingNarratorData(true);
+    try {
+      const response = await fetch(`/api/narrators/${encodeURIComponent(narratorId)}`);
+      const data = await response.json();
+
+      if (data.success) {
+        setSelectedNarratorData(data.narrator);
+        setShowNarratorDetailsModal(true);
+      } else {
+        console.error('Failed to fetch narrator:', data.error);
+        alert('Failed to load narrator details. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error fetching narrator:', error);
+      alert('Failed to load narrator details. Please try again.');
+    } finally {
+      setIsLoadingNarratorData(false);
+    }
+  }, []);
+
+  // Debounced search with minimum character requirement
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      const trimmedQuery = narratorSearchQuery.trim();
+      if (trimmedQuery.length >= 2) {
+        searchNarrators(trimmedQuery, 0);
+      } else {
+        setNarratorSearchResults([]);
+        setNarratorSearchTotal(0);
+        setNarratorSearchOffset(0);
+      }
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [narratorSearchQuery, searchNarrators]);
+
   const loadChainFromLibrary = async (chainPath: string) => {
     try {
       const response = await fetch('/api/chains', {
@@ -1319,8 +1771,26 @@ export default function HadithAnalyzer() {
         );
 
         if (confirmed) {
+          // Migrate old chains that have hadithText to new format with chainText and matn
+          const migratedChains = (data.data.chains || []).map((chain: { hadithText?: string; chainText?: string; matn?: string; [key: string]: unknown }) => {
+            if ('hadithText' in chain && !('chainText' in chain)) {
+              // Old format: migrate hadithText to chainText, leave matn empty
+              return {
+                ...chain,
+                chainText: chain.hadithText || '',
+                matn: ''
+              };
+            }
+            // New format or already migrated
+            return {
+              ...chain,
+              chainText: chain.chainText || '',
+              matn: chain.matn || ''
+            };
+          });
+          
           setHadithText(data.data.hadithText || '');
-          setChains(data.data.chains);
+          setChains(migratedChains);
           setActiveTab(data.data.activeTab || 'llm');
           setSelectedChainIndex(data.data.selectedChainIndex || 0);
           setShowVisualization(data.data.showVisualization || false);
@@ -1335,7 +1805,7 @@ export default function HadithAnalyzer() {
     }
   };
 
-  const extractNarrators = async (text: string): Promise<Narrator[]> => {
+  const extractNarrators = async (text: string): Promise<{ narrators: Narrator[]; chainText: string; matn: string }> => {
     if (!apiKey) {
       throw new Error('Please add your Google Gemini API key in settings to use this feature.');
     }
@@ -1358,7 +1828,21 @@ export default function HadithAnalyzer() {
       }
 
       const data = await response.json();
-      return data.narrators;
+      
+      // Process narrators: ensure reputation grades are converted to calculatedGrade
+      const narrators = (data.narrators || []).map((narrator: Narrator) => {
+        // If reputation is set but calculatedGrade is not, calculate it
+        if (narrator.reputation && narrator.reputation.length > 0 && !narrator.calculatedGrade) {
+          narrator.calculatedGrade = calculateNarratorGrade(narrator.reputation);
+        }
+        return narrator;
+      });
+      
+      return {
+        narrators,
+        chainText: data.chainText || '',
+        matn: data.matn || ''
+      };
     } catch (error) {
       console.error('Error extracting narrators:', error);
       throw error;
@@ -1576,20 +2060,323 @@ export default function HadithAnalyzer() {
     });
   };
 
+  const handleViewNarratorDetails = async (narratorId: string) => {
+    setIsLoadingNarratorDetails(true);
+    try {
+      const response = await fetch(`/api/narrators/${encodeURIComponent(narratorId)}`);
+      if (response.ok) {
+        const data = await response.json();
+        setSelectedNarratorDetails(data.narrator);
+        setShowNarratorModal(true);
+      } else {
+        alert('Failed to load narrator details');
+      }
+    } catch (error) {
+      console.error('Error fetching narrator details:', error);
+      alert('Error loading narrator details');
+    } finally {
+      setIsLoadingNarratorDetails(false);
+    }
+  };
+
+  const applyMatch = (matchData: {
+    chainId: string;
+    narratorNumber: number;
+    match: {
+      narratorId: string;
+      confidence: number;
+      matchedName: string;
+      suggestedGrades?: ReputationGrade[];
+      databaseNarrator: NarratorType;
+    };
+  }) => {
+    setChains(prevChains => {
+      const updatedChains = prevChains.map(c => {
+        if (c.id === matchData.chainId) {
+          const updatedNarrators = c.narrators.map(narrator => {
+            if (narrator.number === matchData.narratorNumber) {
+              const reputation = matchData.match.suggestedGrades || narrator.reputation || [];
+              return {
+                ...narrator,
+                matched: true,
+                narratorId: matchData.match.narratorId,
+                confidence: matchData.match.confidence,
+                matchedName: matchData.match.matchedName,
+                reputation,
+                calculatedGrade: reputation.length > 0
+                  ? calculateNarratorGrade(reputation)
+                  : narrator.calculatedGrade || 0,
+                databaseNarrator: matchData.match.databaseNarrator,
+              };
+            }
+            return narrator;
+          });
+
+          return {
+            ...c,
+            narrators: updatedNarrators,
+          };
+        }
+        return c;
+      });
+
+      // Update visualization
+      const graphCode = generateMermaidCode(updatedChains);
+      setMermaidCode(graphCode);
+
+      return updatedChains;
+    });
+  };
+
+  const handleMatchNarrators = async (chainId: string, chainOverride?: Chain) => {
+    // Use provided chain or find it from state
+    const chain = chainOverride || chains.find(c => c.id === chainId);
+    if (!chain || chain.narrators.length === 0) {
+      alert('No narrators in this chain to match.');
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      // Call the match-narrators API
+      const response = await fetch('/api/match-narrators', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          narrators: chain.narrators.map(n => ({
+            number: n.number,
+            arabicName: n.arabicName,
+            englishName: n.englishName,
+          })),
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to match narrators');
+      }
+
+      const data = await response.json();
+
+      // Collect matches that need user confirmation
+      const matchesToConfirm: typeof pendingMatches = [];
+      for (const match of data.matches || []) {
+        if (match.matched) {
+          const narrator = chain.narrators.find(n => n.number === match.number);
+          if (narrator) {
+            matchesToConfirm.push({
+              chainId,
+              narratorNumber: narrator.number,
+              narratorArabicName: narrator.arabicName,
+              narratorEnglishName: narrator.englishName,
+              match: {
+                narratorId: match.narratorId,
+                confidence: match.confidence,
+                matchedName: match.matchedName,
+                suggestedGrades: match.suggestedGrades,
+                databaseNarrator: match.databaseNarrator,
+              },
+            });
+          }
+        }
+      }
+
+      if (matchesToConfirm.length > 0) {
+        // Show confirmation modal
+        setPendingMatches(matchesToConfirm);
+        setCurrentMatchIndex(0);
+        setAcceptedMatchesCount(0);
+        setShowMatchConfirmationModal(true);
+      } else {
+        alert('No narrators were matched to the database.');
+      }
+    } catch (error) {
+      console.error('Error matching narrators:', error);
+      setError(error instanceof Error ? error.message : 'Failed to match narrators');
+      alert(`Error matching narrators: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleAcceptMatch = () => {
+    if (pendingMatches.length === 0) return;
+
+    const currentMatch = pendingMatches[currentMatchIndex];
+    applyMatch(currentMatch);
+    setAcceptedMatchesCount(prev => prev + 1);
+
+    // Move to next match or close modal
+    if (currentMatchIndex < pendingMatches.length - 1) {
+      setCurrentMatchIndex(currentMatchIndex + 1);
+    } else {
+      // All matches processed
+      const totalAccepted = acceptedMatchesCount + 1;
+      setShowMatchConfirmationModal(false);
+      setPendingMatches([]);
+      setCurrentMatchIndex(0);
+      setAcceptedMatchesCount(0);
+      if (totalAccepted > 0) {
+        alert(`✅ Successfully matched ${totalAccepted} narrator(s) to the database!`);
+      }
+    }
+  };
+
+  const handleRejectMatch = () => {
+    if (pendingMatches.length === 0) return;
+
+    // Move to next match or close modal
+    if (currentMatchIndex < pendingMatches.length - 1) {
+      setCurrentMatchIndex(currentMatchIndex + 1);
+    } else {
+      // All matches processed
+      const totalAccepted = acceptedMatchesCount;
+      setShowMatchConfirmationModal(false);
+      setPendingMatches([]);
+      setCurrentMatchIndex(0);
+      setAcceptedMatchesCount(0);
+      if (totalAccepted > 0) {
+        alert(`✅ Matched ${totalAccepted} narrator(s) to the database.`);
+      }
+    }
+  };
+
+  const handleAcceptAllMatches = () => {
+    pendingMatches.forEach(match => {
+      applyMatch(match);
+    });
+    const totalAccepted = pendingMatches.length;
+    setShowMatchConfirmationModal(false);
+    setPendingMatches([]);
+    setCurrentMatchIndex(0);
+    setAcceptedMatchesCount(0);
+    alert(`✅ Successfully matched ${totalAccepted} narrator(s) to the database!`);
+  };
+
+  const handleRejectAllMatches = () => {
+    setShowMatchConfirmationModal(false);
+    setPendingMatches([]);
+    setCurrentMatchIndex(0);
+    setAcceptedMatchesCount(0);
+    alert('No narrators were matched.');
+  };
+
+  const handleMatchAllNarrators = async () => {
+    if (chains.length === 0) {
+      alert('No chains to match narrators for.');
+      return;
+    }
+
+    const chainsWithNarrators = chains.filter(c => c.narrators.length > 0);
+    if (chainsWithNarrators.length === 0) {
+      alert('No chains have narrators to match.');
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      const allMatchesToConfirm: typeof pendingMatches = [];
+      const errors: string[] = [];
+
+      // Process all chains sequentially to collect matches
+      for (const chain of chainsWithNarrators) {
+        try {
+          const response = await fetch('/api/match-narrators', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              narrators: chain.narrators.map(n => ({
+                number: n.number,
+                arabicName: n.arabicName,
+                englishName: n.englishName,
+              })),
+            }),
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Failed to match narrators');
+          }
+
+          const data = await response.json();
+
+          // Collect matches that need user confirmation
+          for (const match of data.matches || []) {
+            if (match.matched) {
+              const narrator = chain.narrators.find(n => n.number === match.number);
+              if (narrator) {
+                allMatchesToConfirm.push({
+                  chainId: chain.id,
+                  narratorNumber: narrator.number,
+                  narratorArabicName: narrator.arabicName,
+                  narratorEnglishName: narrator.englishName,
+                  match: {
+                    narratorId: match.narratorId,
+                    confidence: match.confidence,
+                    matchedName: match.matchedName,
+                    suggestedGrades: match.suggestedGrades,
+                    databaseNarrator: match.databaseNarrator,
+                  },
+                });
+              }
+            }
+          }
+        } catch (error) {
+          const errorMsg = `Error matching chain "${chain.title || chain.id}": ${error instanceof Error ? error.message : 'Unknown error'}`;
+          errors.push(errorMsg);
+          console.error(errorMsg, error);
+        }
+      }
+
+      if (allMatchesToConfirm.length > 0) {
+        // Show confirmation modal
+        setPendingMatches(allMatchesToConfirm);
+        setCurrentMatchIndex(0);
+        setAcceptedMatchesCount(0);
+        setShowMatchConfirmationModal(true);
+        if (errors.length > 0) {
+          console.warn('Some chains had errors:', errors);
+        }
+      } else {
+        if (errors.length > 0) {
+          alert(`No narrators were matched.\n\nErrors encountered:\n${errors.join('\n')}`);
+        } else {
+          alert('No narrators were matched to the database.');
+        }
+      }
+    } catch (error) {
+      console.error('Error matching all narrators:', error);
+      setError(error instanceof Error ? error.message : 'Failed to match narrators');
+      alert(`Error matching narrators: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleEditChain = (chainId: string) => {
     const chain = chains.find(c => c.id === chainId);
     if (chain) {
       setEditingChainId(chainId);
       setEditFormData({
         title: chain.title || `Chain ${chains.findIndex(c => c.id === chainId) + 1}`,
-        narrators: [...chain.narrators]
+        narrators: [...chain.narrators],
+        chainText: chain.chainText || '',
+        matn: chain.matn || ''
       });
     }
   };
 
   const handleCancelEdit = () => {
     setEditingChainId(null);
-    setEditFormData({ title: '', narrators: [] });
+    setEditFormData({ title: '', narrators: [], chainText: '', matn: '' });
     setShowAddNarrator(false);
     setNewNarrator({ arabicName: '', englishName: '', reputation: [], calculatedGrade: 0 });
   };
@@ -1603,7 +2390,9 @@ export default function HadithAnalyzer() {
           ? {
               ...chain,
               title: editFormData.title,
-              narrators: editFormData.narrators
+              narrators: editFormData.narrators,
+              chainText: editFormData.chainText,
+              matn: editFormData.matn
             }
           : chain
       );
@@ -1616,7 +2405,7 @@ export default function HadithAnalyzer() {
     });
 
     setEditingChainId(null);
-    setEditFormData({ title: '', narrators: [] });
+    setEditFormData({ title: '', narrators: [], chainText: '', matn: '' });
     setShowAddNarrator(false);
     setNewNarrator({ arabicName: '', englishName: '', reputation: [], calculatedGrade: 0 });
   };
@@ -1673,7 +2462,8 @@ export default function HadithAnalyzer() {
     const newChain: Chain = {
       id: `chain-${Date.now()}`,
       narrators: [],
-      hadithText: `Chain ${chains.length + 1}`,
+      chainText: '',
+      matn: '',
       title: `Chain ${chains.length + 1}`,
       collapsed: false
     };
@@ -1705,6 +2495,241 @@ export default function HadithAnalyzer() {
         }))
     }));
   };
+
+  const handleUnmatchNarratorEdit = (narratorIndex: number) => {
+    const narrator = editFormData.narrators[narratorIndex];
+    if (!narrator) return;
+
+    const confirmed = window.confirm(
+      `Are you sure you want to unmatch "${narrator.arabicName}" (${narrator.englishName}) from the database?\n\nThis will remove the database match, reputation, and all associated information.`
+    );
+
+    if (!confirmed) return;
+
+    setEditFormData(prev => ({
+      ...prev,
+      narrators: prev.narrators.map((narrator, i) =>
+        i === narratorIndex
+          ? {
+              ...narrator,
+              matched: false,
+              narratorId: undefined,
+              confidence: undefined,
+              matchedName: undefined,
+              databaseNarrator: undefined,
+              reputation: undefined,
+              calculatedGrade: undefined
+            }
+          : narrator
+      )
+    }));
+  };
+
+  const handleUnmatchNarratorView = (narratorIndex: number) => {
+    const chain = chains[selectedChainIndex];
+    if (!chain) return;
+
+    const narrator = chain.narrators[narratorIndex];
+    if (!narrator) return;
+
+    const confirmed = window.confirm(
+      `Are you sure you want to unmatch "${narrator.arabicName}" (${narrator.englishName}) from the database?\n\nThis will remove the database match, reputation, and all associated information.`
+    );
+
+    if (!confirmed) return;
+
+    const updatedChains = chains.map((chain, chainIndex) =>
+      chainIndex === selectedChainIndex
+        ? {
+            ...chain,
+            narrators: chain.narrators.map((narrator, i) =>
+              i === narratorIndex
+                ? {
+                    ...narrator,
+                    matched: false,
+                    narratorId: undefined,
+                    confidence: undefined,
+                    matchedName: undefined,
+                    databaseNarrator: undefined,
+                    reputation: undefined,
+                    calculatedGrade: undefined
+                  }
+                : narrator
+            )
+          }
+        : chain
+    );
+    setChains(updatedChains);
+    
+    // Update visualization if needed
+    const graphCode = generateMermaidCode(updatedChains);
+    setMermaidCode(graphCode);
+  };
+
+  // Handler to open narrator search modal
+  const handleOpenNarratorSearch = (narratorIndex: number, chainId: string, inEditMode: boolean) => {
+    // Get the narrator's name to search for first
+    let narratorName = '';
+    if (inEditMode) {
+      const narrator = editFormData.narrators[narratorIndex];
+      if (narrator) {
+        // Try Arabic name first, fallback to English
+        narratorName = narrator.arabicName.trim() || narrator.englishName.trim();
+      }
+    } else {
+      const chain = chains.find(c => c.id === chainId);
+      if (chain && chain.narrators[narratorIndex]) {
+        const narrator = chain.narrators[narratorIndex];
+        narratorName = narrator.arabicName.trim() || narrator.englishName.trim();
+      }
+    }
+    
+    // Set all state at once to avoid multiple re-renders
+    setSearchingNarratorIndex(narratorIndex);
+    setSearchingChainId(chainId);
+    setSearchingInEditMode(inEditMode);
+    setNarratorSearchModalQuery(narratorName);
+    setNarratorSearchModalResults([]);
+    setNarratorSearchModalOffset(0);
+    setNarratorSearchModalTotal(0);
+    setShowNarratorSearchModal(true);
+    // The useEffect will handle the search automatically
+  };
+
+  // Handler to search narrators in modal
+  const handleSearchNarratorsModal = useCallback(async (query: string, offset: number = 0) => {
+    if (!query.trim()) {
+      setNarratorSearchModalResults([]);
+      setNarratorSearchModalTotal(0);
+      return;
+    }
+
+    try {
+      setIsSearchingModal(true);
+      const response = await fetch(`/api/narrators?query=${encodeURIComponent(query)}&limit=20&offset=${offset}`);
+      if (!response.ok) throw new Error('Failed to search narrators');
+      
+      const data = await response.json();
+      if (data.success) {
+        setNarratorSearchModalResults(prev => offset === 0 ? data.narrators : [...prev, ...data.narrators]);
+        setNarratorSearchModalTotal(data.total || 0);
+        setNarratorSearchModalOffset(offset);
+      }
+    } catch (error) {
+      console.error('Error searching narrators:', error);
+      setError(error instanceof Error ? error.message : 'Failed to search narrators');
+    } finally {
+      setIsSearchingModal(false);
+    }
+  }, []);
+
+  // Handler to match narrator from search
+  const handleMatchNarratorFromSearch = async (selectedNarrator: NarratorType) => {
+    if (searchingNarratorIndex === null || !searchingChainId) return;
+
+    try {
+      // Get narrator details with grades
+      const narratorResponse = await fetch(`/api/narrators/${selectedNarrator.id}`);
+      if (!narratorResponse.ok) throw new Error('Failed to fetch narrator details');
+      
+      const narratorData = await narratorResponse.json();
+      if (!narratorData.success) throw new Error('Failed to fetch narrator details');
+
+      const narratorDetails = narratorData.narrator;
+      const grades = extractReputationGrades(narratorDetails);
+
+      if (searchingInEditMode) {
+        // Update in edit mode
+        setEditFormData(prev => ({
+          ...prev,
+          narrators: prev.narrators.map((n, i) =>
+            i === searchingNarratorIndex
+              ? {
+                  ...n,
+                  matched: true,
+                  narratorId: selectedNarrator.id,
+                  confidence: 1.0,
+                  matchedName: selectedNarrator.primaryArabicName,
+                  reputation: grades,
+                  calculatedGrade: grades.length > 0 ? calculateNarratorGrade(grades) : n.calculatedGrade || 0,
+                  databaseNarrator: {
+                    id: selectedNarrator.id,
+                    primaryArabicName: selectedNarrator.primaryArabicName,
+                    primaryEnglishName: selectedNarrator.primaryEnglishName,
+                    ibnHajarRank: narratorDetails.ibnHajarRank,
+                    dhahabiRank: narratorDetails.dhahabiRank,
+                    taqribCategory: narratorDetails.taqribCategory,
+                    scholarlyOpinionsCount: narratorDetails.scholarlyOpinions?.length || 0,
+                  },
+                }
+              : n
+          )
+        }));
+      } else {
+        // Update in view mode
+        setChains(prevChains => {
+          return prevChains.map(chain => {
+            if (chain.id === searchingChainId) {
+              const updatedNarrators = chain.narrators.map((n, i) =>
+                i === searchingNarratorIndex
+                  ? {
+                      ...n,
+                      matched: true,
+                      narratorId: selectedNarrator.id,
+                      confidence: 1.0,
+                      matchedName: selectedNarrator.primaryArabicName,
+                      reputation: grades,
+                      calculatedGrade: grades.length > 0 ? calculateNarratorGrade(grades) : n.calculatedGrade || 0,
+                      databaseNarrator: {
+                        id: selectedNarrator.id,
+                        primaryArabicName: selectedNarrator.primaryArabicName,
+                        primaryEnglishName: selectedNarrator.primaryEnglishName,
+                        ibnHajarRank: narratorDetails.ibnHajarRank,
+                        dhahabiRank: narratorDetails.dhahabiRank,
+                        taqribCategory: narratorDetails.taqribCategory,
+                        scholarlyOpinionsCount: narratorDetails.scholarlyOpinions?.length || 0,
+                      },
+                    }
+                  : n
+              );
+              return { ...chain, narrators: updatedNarrators };
+            }
+            return chain;
+          });
+        });
+      }
+
+      // Update visualization
+      const updatedChains = searchingInEditMode
+        ? chains.map(c => c.id === searchingChainId ? { ...c, narrators: editFormData.narrators } : c)
+        : chains;
+      if (updatedChains.length > 0) {
+        const graphCode = generateMermaidCode(updatedChains);
+        setMermaidCode(graphCode);
+      }
+
+      setShowNarratorSearchModal(false);
+      setSearchingNarratorIndex(null);
+      setSearchingChainId(null);
+    } catch (error) {
+      console.error('Error matching narrator:', error);
+      setError(error instanceof Error ? error.message : 'Failed to match narrator');
+    }
+  };
+
+  // Search narrators when query changes in modal
+  useEffect(() => {
+    if (showNarratorSearchModal && narratorSearchModalQuery.trim()) {
+      // Use a shorter debounce for initial search, longer for subsequent changes
+      const timeoutId = setTimeout(() => {
+        handleSearchNarratorsModal(narratorSearchModalQuery, 0);
+      }, 100); // Shorter debounce for better UX
+      return () => clearTimeout(timeoutId);
+    } else if (showNarratorSearchModal && !narratorSearchModalQuery.trim()) {
+      setNarratorSearchModalResults([]);
+      setNarratorSearchModalTotal(0);
+    }
+  }, [narratorSearchModalQuery, showNarratorSearchModal, handleSearchNarratorsModal]);
 
   // Update mermaid code when chains change
   useEffect(() => {
@@ -2114,6 +3139,469 @@ export default function HadithAnalyzer() {
         {/* API Key Modal */}
         <ApiKeyModal />
 
+        {/* Narrator Details Modal */}
+        {showNarratorModal && selectedNarratorDetails && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={() => setShowNarratorModal(false)}>
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
+              {/* Modal Header */}
+              <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white" dir="rtl">
+                  {selectedNarratorDetails.primaryArabicName}
+                </h3>
+                <button
+                  onClick={() => setShowNarratorModal(false)}
+                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Modal Content - Scrollable */}
+              <div className="p-6 overflow-y-auto flex-1">
+                {isLoadingNarratorDetails ? (
+                  <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                    <p className="mt-4 text-gray-600 dark:text-gray-400">Loading narrator details...</p>
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    {/* Basic Information */}
+                    <div>
+                      <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">Basic Information</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {selectedNarratorDetails.primaryEnglishName && (
+                          <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+                            <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1.5">English Name</label>
+                            <p className="text-sm text-gray-900 dark:text-white font-medium">{selectedNarratorDetails.primaryEnglishName}</p>
+                          </div>
+                        )}
+                        {selectedNarratorDetails.title && (
+                          <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+                            <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1.5">Title</label>
+                            <p className="text-base text-gray-900 dark:text-white font-medium" dir="rtl" lang="ar">{selectedNarratorDetails.title}</p>
+                          </div>
+                        )}
+                        {selectedNarratorDetails.kunya && (
+                          <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+                            <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1.5">Kunya</label>
+                            <p className="text-base text-gray-900 dark:text-white font-medium" dir="rtl" lang="ar">{selectedNarratorDetails.kunya}</p>
+                          </div>
+                        )}
+                        {selectedNarratorDetails.lineage && (
+                          <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+                            <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1.5">Lineage</label>
+                            <p className="text-base text-gray-900 dark:text-white font-medium" dir="rtl" lang="ar">{selectedNarratorDetails.lineage}</p>
+                          </div>
+                        )}
+                        {selectedNarratorDetails.deathYearAH && (
+                          <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+                            <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1.5">Death Year (AH)</label>
+                            <p className="text-sm text-gray-900 dark:text-white font-medium">
+                              {selectedNarratorDetails.deathYearAH}
+                              {selectedNarratorDetails.deathYearAHAlternative && ` or ${selectedNarratorDetails.deathYearAHAlternative}`}
+                            </p>
+                          </div>
+                        )}
+                        {selectedNarratorDetails.deathYearCE && (
+                          <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+                            <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1.5">Death Year (CE)</label>
+                            <p className="text-sm text-gray-900 dark:text-white font-medium">{selectedNarratorDetails.deathYearCE}</p>
+                          </div>
+                        )}
+                        {selectedNarratorDetails.placeOfResidence && (
+                          <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+                            <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1.5">Place of Residence</label>
+                            <p className="text-base text-gray-900 dark:text-white font-medium" dir="rtl" lang="ar">{selectedNarratorDetails.placeOfResidence}</p>
+                          </div>
+                        )}
+                        {selectedNarratorDetails.placeOfDeath && (
+                          <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+                            <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1.5">Place of Death</label>
+                            <p className="text-base text-gray-900 dark:text-white font-medium" dir="rtl" lang="ar">{selectedNarratorDetails.placeOfDeath}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Scholarly Ranks */}
+                    {(selectedNarratorDetails.ibnHajarRank || selectedNarratorDetails.dhahabiRank || selectedNarratorDetails.taqribCategory) && (
+                      <div>
+                        <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">Scholarly Ranks</h4>
+                        <div className="space-y-3">
+                          {selectedNarratorDetails.ibnHajarRank && (
+                            <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+                              <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1.5">Ibn Hajar Rank</label>
+                              <p className="text-base text-gray-900 dark:text-white font-medium" dir="rtl" lang="ar">{selectedNarratorDetails.ibnHajarRank}</p>
+                            </div>
+                          )}
+                          {selectedNarratorDetails.dhahabiRank && (
+                            <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+                              <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1.5">Dhahabi Rank</label>
+                              <p className="text-base text-gray-900 dark:text-white font-medium" dir="rtl" lang="ar">{selectedNarratorDetails.dhahabiRank}</p>
+                            </div>
+                          )}
+                          {selectedNarratorDetails.taqribCategory && (
+                            <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+                              <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1.5">Taqrib Category</label>
+                              <p className="text-base text-gray-900 dark:text-white font-medium" dir="rtl" lang="ar">{selectedNarratorDetails.taqribCategory}</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Scholarly Opinions */}
+                    {selectedNarratorDetails.scholarlyOpinions && selectedNarratorDetails.scholarlyOpinions.length > 0 && (
+                      <div>
+                        <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">
+                          Scholarly Opinions ({selectedNarratorDetails.scholarlyOpinions.length})
+                        </h4>
+                        <div className="space-y-3 max-h-64 overflow-y-auto">
+                          {[...selectedNarratorDetails.scholarlyOpinions].sort((a, b) => {
+                            const getPriority = (type: string) => {
+                              if (type === 'jarh') return 0;
+                              if (type === 'ta\'dil') return 1;
+                              return 2;
+                            };
+                            return getPriority(a.opinionType || '') - getPriority(b.opinionType || '');
+                          }).map((opinion, idx: number) => (
+                            <div key={`opinion-${opinion.id || idx}-${opinion.scholarName}-${idx}`} className="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                              <div className="flex items-start justify-between mb-3">
+                                <h5 className="text-base font-semibold text-gray-900 dark:text-white" dir="rtl" lang="ar">
+                                  {opinion.scholarName}
+                                </h5>
+                                <span className={`text-xs px-2.5 py-1 rounded-full font-medium flex-shrink-0 ml-3 ${
+                                  opinion.opinionType === 'ta\'dil' 
+                                    ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                                    : opinion.opinionType === 'jarh'
+                                    ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                                    : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
+                                }`}>
+                                  {opinion.opinionType === 'ta\'dil' ? 'Praise' : opinion.opinionType === 'jarh' ? 'Criticism' : 'Neutral'}
+                                </span>
+                              </div>
+                              <p className="text-base text-gray-700 dark:text-gray-300 mb-2 leading-relaxed" dir="rtl" lang="ar">
+                                {opinion.opinionText}
+                              </p>
+                              {opinion.sourceReference && (
+                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 pt-2 border-t border-gray-200 dark:border-gray-700" dir="rtl" lang="ar">
+                                  <span className="font-medium">Source:</span> {opinion.sourceReference}
+                                </p>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Grading Section */}
+                    {(() => {
+                      // Extract grades from scholarly opinions and other sources
+                      const extractedGrades = extractReputationGrades(selectedNarratorDetails as NarratorType);
+                      const calculatedGrade = extractedGrades.length > 0 ? calculateNarratorGrade(extractedGrades) : null;
+                      
+                      return (
+                        <div>
+                          <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">
+                            Grading
+                          </h4>
+                          <div className="space-y-4">
+                            {/* Reputation Grades */}
+                            {extractedGrades.length > 0 ? (
+                              <div>
+                                <label className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2 block">
+                                  Reputation Grades ({extractedGrades.length})
+                                </label>
+                                <div className="flex flex-wrap gap-2">
+                                  {extractedGrades.map((grade: ReputationGrade, idx: number) => {
+                                    const gradeInfo = REPUTATION_GRADES[grade];
+                                    const categoryColor = gradeInfo?.category === 'high' 
+                                      ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200'
+                                      : gradeInfo?.category === 'low'
+                                      ? 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200'
+                                      : 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200';
+                                    
+                                    return (
+                                      <span key={`extracted-grade-${grade}-${idx}`} className={`px-3 py-1 ${categoryColor} rounded-lg text-sm`}>
+                                        {grade}
+                                      </span>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            ) : (
+                              <div>
+                                <label className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2 block">
+                                  Reputation Grades
+                                </label>
+                                <p className="text-sm text-gray-500 dark:text-gray-400">No reputation grades could be extracted from available sources</p>
+                              </div>
+                            )}
+                            
+                            {/* Calculated Grade */}
+                            {calculatedGrade !== null ? (
+                              <div>
+                                <div className="flex items-center gap-2 mb-2">
+                                  <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                                    Calculated Grade
+                                  </label>
+                                  <div className="relative">
+                                    <button
+                                      type="button"
+                                      onClick={() => setShowGradeFormulaTooltip1(!showGradeFormulaTooltip1)}
+                                      className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                                      aria-label="Grade calculation formula info"
+                                    >
+                                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                      </svg>
+                                    </button>
+                                    <div className={`absolute left-0 bottom-full mb-2 w-80 p-3 bg-gray-900 dark:bg-gray-800 text-white text-xs rounded-lg shadow-lg transition-all duration-200 z-50 ${showGradeFormulaTooltip1 ? 'opacity-100 visible' : 'opacity-0 invisible'}`}>
+                                      <div className="space-y-2">
+                                        <p className="font-semibold mb-2">Grade Calculation Formula</p>
+                                        <div className="space-y-1 text-gray-300">
+                                          <p>1. Count frequency of each grade (how many times it appears)</p>
+                                          <p className="ml-2 text-gray-400">Each statement/opinion that mentions a grade counts</p>
+                                          <p className="mt-2">2. Calculate frequency-weighted average</p>
+                                          <p className="ml-2 text-gray-400">Average = Sum of (weight × frequency) ÷ Total count</p>
+                                          <p className="ml-2 text-gray-400">Example: 5×&quot;Thiqah&quot; + 1×&quot;Saduq&quot; = (9×5 + 8×1) ÷ 6 = 8.83</p>
+                                          <p className="mt-2">3. Apply penalties for conflicting grades:</p>
+                                          <p className="ml-2 text-gray-400">• High + Low grades together: -2 points</p>
+                                          <p className="ml-2 text-gray-400">• Mixed categories with Intermediate: -1 point</p>
+                                          <p className="mt-2">4. Final grade = max(0, round((Average - Penalty) × 10) ÷ 10)</p>
+                                        </div>
+                                        <div className="pt-2 border-t border-gray-700">
+                                          <p className="text-gray-400 text-xs">Grade range: 0.0 (Very Poor) to 10.0 (Excellent)</p>
+                                        </div>
+                                      </div>
+                                      <div className="absolute left-4 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900 dark:border-t-gray-800"></div>
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                  <div className={`text-2xl font-bold ${getGradeColorClass(calculatedGrade)}`}>
+                                    {calculatedGrade.toFixed(1)}
+                                  </div>
+                                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                                    {getGradeDescription(calculatedGrade)}
+                                  </div>
+                                </div>
+                              </div>
+                            ) : (
+                              <div>
+                                <label className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2 block">
+                                  Calculated Grade
+                                </label>
+                                <p className="text-sm text-gray-500 dark:text-gray-400">No grade calculated</p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })()}
+
+                    {/* Relationships */}
+                    {selectedNarratorDetails.relationships && selectedNarratorDetails.relationships.length > 0 && (
+                      <div>
+                        <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">
+                          Relationships ({selectedNarratorDetails.relationships.length})
+                        </h4>
+                        <div className="space-y-3">
+                          {selectedNarratorDetails.relationships.map((rel, idx: number) => (
+                            <div key={`relationship-${rel.relatedNarratorId || idx}-${rel.relationshipType}-${idx}`} className="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg p-3">
+                              <p className="text-sm text-gray-900 dark:text-white">
+                                <span className="font-semibold capitalize text-gray-700 dark:text-gray-300">{rel.relationshipType}</span>
+                                {rel.relationshipDescription && (
+                                  <span className="text-gray-600 dark:text-gray-400 ml-2">: {rel.relationshipDescription}</span>
+                                )}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Notes */}
+                    {selectedNarratorDetails.notes && (
+                      <div>
+                        <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">Notes</h4>
+                        <div className="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                          <p className="text-base text-gray-700 dark:text-gray-300 leading-relaxed" dir="rtl" lang="ar">
+                            {selectedNarratorDetails.notes}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Modal Footer */}
+              <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200 dark:border-gray-700">
+                <button
+                  onClick={() => setShowNarratorModal(false)}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Match Confirmation Modal */}
+        {showMatchConfirmationModal && pendingMatches.length > 0 && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={() => setShowMatchConfirmationModal(false)}>
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
+              {/* Modal Header */}
+              <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  Confirm Narrator Match
+                </h3>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-500 dark:text-gray-400">
+                    {currentMatchIndex + 1} of {pendingMatches.length}
+                  </span>
+                  <button
+                    onClick={() => setShowMatchConfirmationModal(false)}
+                    className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              {/* Modal Content */}
+              <div className="p-6 overflow-y-auto flex-1">
+                {(() => {
+                  const currentMatch = pendingMatches[currentMatchIndex];
+                  if (!currentMatch) return null;
+
+                  const dbNarrator = currentMatch.match.databaseNarrator;
+                  const confidencePercent = Math.round((currentMatch.match.confidence || 0) * 100);
+
+                  return (
+                    <div className="space-y-6">
+                      <div>
+                        <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Extracted Narrator:</p>
+                        <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                          <p className="text-lg font-semibold text-gray-900 dark:text-white text-right" dir="rtl">
+                            {currentMatch.narratorArabicName}
+                          </p>
+                          {currentMatch.narratorEnglishName && (
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                              {currentMatch.narratorEnglishName}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-center">
+                        <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                        </svg>
+                      </div>
+
+                      <div>
+                        <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Database Match:</p>
+                        <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
+                          <div className="flex items-start justify-between mb-2">
+                            <p className="text-lg font-semibold text-gray-900 dark:text-white text-right flex-1" dir="rtl">
+                              {currentMatch.match.matchedName || dbNarrator.primaryArabicName}
+                            </p>
+                            <span className={`ml-2 px-2 py-1 rounded text-xs font-medium ${
+                              confidencePercent >= 80 
+                                ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                                : confidencePercent >= 60
+                                ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+                                : 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200'
+                            }`}>
+                              {confidencePercent}% confidence
+                            </span>
+                          </div>
+                          {dbNarrator.primaryEnglishName && (
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                              {dbNarrator.primaryEnglishName}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      {dbNarrator && (
+                        <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+                          <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Database Information:</p>
+                          <div className="space-y-2 text-sm">
+                            {dbNarrator.ibnHajarRank && (
+                              <div className="flex justify-between">
+                                <span className="text-gray-500 dark:text-gray-400">Ibn Hajar Rank:</span>
+                                <span className="text-gray-900 dark:text-white text-right" dir="rtl">{dbNarrator.ibnHajarRank}</span>
+                              </div>
+                            )}
+                            {dbNarrator.dhahabiRank && (
+                              <div className="flex justify-between">
+                                <span className="text-gray-500 dark:text-gray-400">Dhahabi Rank:</span>
+                                <span className="text-gray-900 dark:text-white text-right" dir="rtl">{dbNarrator.dhahabiRank}</span>
+                              </div>
+                            )}
+                            {dbNarrator.taqribCategory && (
+                              <div className="flex justify-between">
+                                <span className="text-gray-500 dark:text-gray-400">Taqrib Category:</span>
+                                <span className="text-gray-900 dark:text-white text-right" dir="rtl">{dbNarrator.taqribCategory}</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3">
+                        <p className="text-sm text-yellow-800 dark:text-yellow-200">
+                          <strong>Question:</strong> Does the extracted narrator match the database narrator?
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+
+              {/* Modal Footer */}
+              <div className="flex items-center justify-between p-6 border-t border-gray-200 dark:border-gray-700">
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleRejectAllMatches}
+                    className="px-4 py-2 text-sm font-medium text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-colors"
+                  >
+                    Reject All
+                  </button>
+                  <button
+                    onClick={handleAcceptAllMatches}
+                    className="px-4 py-2 text-sm font-medium text-green-700 dark:text-green-400 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30 rounded-lg transition-colors"
+                  >
+                    Accept All
+                  </button>
+                </div>
+                <div className="flex gap-3">
+                  <button
+                    onClick={handleRejectMatch}
+                    className="px-6 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors"
+                  >
+                    No
+                  </button>
+                  <button
+                    onClick={handleAcceptMatch}
+                    className="px-6 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors"
+                  >
+                    Yes
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Header with theme toggle */}
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
@@ -2131,7 +3619,7 @@ export default function HadithAnalyzer() {
               setChains([]);
               setShowVisualization(false);
               setEditingChainId(null);
-              setEditFormData({ title: '', narrators: [] });
+              setEditFormData({ title: '', narrators: [], chainText: '', matn: '' });
               setShowAddNarrator(false);
               setNewNarrator({ arabicName: '', englishName: '', reputation: [], calculatedGrade: 0 });
               setApiKey('');
@@ -2169,6 +3657,16 @@ export default function HadithAnalyzer() {
               >
                 Manual Builder
               </button>
+              <button
+                onClick={() => setActiveTab('narrators')}
+                className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
+                  activeTab === 'narrators'
+                    ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
+                }`}
+              >
+                Narrators
+              </button>
             </nav>
           </div>
         </div>
@@ -2205,19 +3703,25 @@ export default function HadithAnalyzer() {
                 setError(null);
 
                 try {
-                  const narrators = await extractNarrators(hadithText);
+                  const { narrators, chainText, matn } = await extractNarrators(hadithText);
 
-                  // Create a new chain with the extracted narrators
+                  // Create a new chain with the extracted narrators and separated chain/matn
+                  const newChainId = `chain-${Date.now()}`;
                   const newChain: Chain = {
-                    id: `chain-${Date.now()}`,
+                    id: newChainId,
                     narrators: narrators,
-                    hadithText: hadithText.trim(),
+                    chainText: chainText || hadithText.trim(), // Fallback to full text if chainText not provided
+                    matn: matn || '',
                     title: `Chain ${chains.length + 1}`,
                     collapsed: false
                   };
 
                   setChains(prev => [...prev, newChain]);
                   setShowVisualization(true);
+                  
+                  // Automatically trigger matching modal after extraction
+                  // Pass the chain directly to avoid state timing issues
+                  handleMatchNarrators(newChainId, newChain);
                 } catch (err) {
                   setError(err instanceof Error ? err.message : 'Failed to extract narrators');
                 } finally {
@@ -2302,21 +3806,24 @@ export default function HadithAnalyzer() {
                   {
                     id: `chain-${Date.now()}-1`,
                     narrators: chain1Narrators,
-                    hadithText: "حَدَّثَنَا الْحُمَيْدِيُّ عَبْدُ اللَّهِ بْنُ الزُّبَيْرِ... (Sahih al-Bukhari 1)",
+                    chainText: "حَدَّثَنَا الْحُمَيْدِيُّ عَبْدُ اللَّهِ بْنُ الزُّبَيْرِ...",
+                    matn: "إِنَّمَا الأَعْمَالُ بِالنِّيَّاتِ...",
                     title: `Sahih al-Bukhari 1 - Intentions (Demo)`,
                     collapsed: false
                   },
                   {
                     id: `chain-${Date.now()}-2`,
                     narrators: chain2Narrators,
-                    hadithText: "حَدَّثَنَا مُحَمَّدُ بْنُ كَثِيرٍ... (Sahih al-Bukhari 2529)",
+                    chainText: "حَدَّثَنَا مُحَمَّدُ بْنُ كَثِيرٍ...",
+                    matn: "إِنَّمَا الأَعْمَالُ بِالنِّيَّاتِ...",
                     title: `Sahih al-Bukhari 2529 - Intentions (Demo)`,
                     collapsed: false
                   },
                   {
                     id: `chain-${Date.now()}-3`,
                     narrators: chain3Narrators,
-                    hadithText: "حَدَّثَنَا عَبْدُ اللَّهِ بْنُ مَسْلَمَةَ... (Sahih al-Bukhari 54)",
+                    chainText: "حَدَّثَنَا عَبْدُ اللَّهِ بْنُ مَسْلَمَةَ...",
+                    matn: "إِنَّمَا الأَعْمَالُ بِالنِّيَّاتِ...",
                     title: `Sahih al-Bukhari 54 - Intentions (Demo)`,
                     collapsed: false
                   }
@@ -2525,7 +4032,7 @@ export default function HadithAnalyzer() {
                       if (chains.length > 0 && chains[selectedChainIndex]) {
                         const updatedChains = chains.map((chain, index) =>
                           index === selectedChainIndex
-                            ? { ...chain, title: e.target.value, hadithText: e.target.value }
+                            ? { ...chain, title: e.target.value }
                             : chain
                         );
                         setChains(updatedChains);
@@ -2612,7 +4119,8 @@ export default function HadithAnalyzer() {
                                   reputation: newNarrator.reputation,
                                   calculatedGrade: newNarrator.calculatedGrade
                                 }],
-                                hadithText: hadithText.trim() || 'Manual Chain',
+                                chainText: '',
+                                matn: '',
                                 title: hadithText.trim() || `Chain 1`,
                                 collapsed: false
                               };
@@ -2695,7 +4203,7 @@ export default function HadithAnalyzer() {
                     </thead>
                     <tbody>
                       {chains[selectedChainIndex].narrators.map((narrator, index) => (
-                        <tr key={narrator.number} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                        <tr key={`table-narrator-${selectedChainIndex}-${index}-${narrator.number}`} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                           <td className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center text-gray-900 dark:text-white">
                             {narrator.number}
                           </td>
@@ -2737,9 +4245,9 @@ export default function HadithAnalyzer() {
                                 />
                                 {(narrator.reputation || []).length > 0 && (
                                   <div className="flex flex-wrap gap-1 justify-center mt-2">
-                                    {(narrator.reputation || []).map((grade) => (
+                                    {(narrator.reputation || []).map((grade, gradeIdx) => (
                                       <span
-                                        key={grade}
+                                        key={`table-narrator-${narrator.number}-grade-${gradeIdx}-${grade}`}
                                         className={`px-2 py-1 text-xs rounded ${
                                           REPUTATION_GRADES[grade].category === 'high'
                                             ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
@@ -2822,6 +4330,143 @@ export default function HadithAnalyzer() {
           </>
         )}
 
+        {/* Narrators Tab */}
+        {activeTab === 'narrators' && (
+          <div className="space-y-6">
+            {/* Search Section */}
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+              <label htmlFor="narrator-search" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Search Narrators
+              </label>
+              <div className="flex gap-2">
+                <input
+                  id="narrator-search"
+                  type="text"
+                  value={narratorSearchQuery}
+                  onChange={(e) => setNarratorSearchQuery(e.target.value)}
+                  placeholder="Search by name (Arabic or English), title, kunya, or lineage... (min. 2 characters)"
+                  className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                  dir="auto"
+                />
+                {isSearchingNarrators && (
+                  <div className="flex items-center px-4">
+                    <svg className="animate-spin h-5 w-5 text-blue-500" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                  </div>
+                )}
+              </div>
+              {narratorSearchQuery.trim().length > 0 && narratorSearchQuery.trim().length < 2 && (
+                <p className="mt-2 text-sm text-gray-500 dark:text-gray-500">
+                  Type at least 2 characters to search
+                </p>
+              )}
+              {narratorSearchQuery.trim().length >= 2 && narratorSearchTotal > 0 && (
+                <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                  Found {narratorSearchTotal} narrator{narratorSearchTotal !== 1 ? 's' : ''}
+                </p>
+              )}
+            </div>
+
+            {/* Results Section */}
+            {narratorSearchQuery.trim().length >= 2 && (
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+                {isSearchingNarrators && narratorSearchResults.length === 0 ? (
+                  <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">Searching...</p>
+                  </div>
+                ) : narratorSearchResults.length === 0 ? (
+                  <div className="text-center py-8">
+                    <p className="text-gray-600 dark:text-gray-400">No narrators found. Try a different search term.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {narratorSearchResults.map((narrator) => (
+                      <button
+                        key={narrator.id}
+                        onClick={() => fetchNarratorDetails(narrator.id)}
+                        className="w-full text-left p-4 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                      >
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <h3 className="font-semibold text-gray-900 dark:text-white" dir="rtl">
+                                {narrator.primaryArabicName}
+                              </h3>
+                              {narrator.title && (
+                                <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded">
+                                  {narrator.title}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                              {narrator.primaryEnglishName}
+                            </p>
+                            {narrator.fullNameEnglish && narrator.fullNameEnglish !== narrator.primaryEnglishName && (
+                              <p className="text-xs text-gray-500 dark:text-gray-500 mb-1">
+                                {narrator.fullNameEnglish}
+                              </p>
+                            )}
+                            <div className="flex flex-wrap gap-2 text-xs text-gray-500 dark:text-gray-400">
+                              {narrator.kunya && (
+                                <span>Kunya: {narrator.kunya}</span>
+                              )}
+                              {narrator.deathYearAH && (
+                                <span>Died: {narrator.deathYearAH} AH</span>
+                              )}
+                              {narrator.placeOfResidence && (
+                                <span>Residence: {narrator.placeOfResidence}</span>
+                              )}
+                            </div>
+                          </div>
+                          <svg className="w-5 h-5 text-gray-400 flex-shrink-0 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                          </svg>
+                        </div>
+                      </button>
+                    ))}
+                    
+                    {/* Pagination */}
+                    {narratorSearchTotal > 50 && (
+                      <div className="flex justify-center gap-2 mt-4">
+                        <button
+                          onClick={() => searchNarrators(narratorSearchQuery, Math.max(0, narratorSearchOffset - 50))}
+                          disabled={narratorSearchOffset === 0 || isSearchingNarrators}
+                          className="px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          Previous
+                        </button>
+                        <button
+                          onClick={() => searchNarrators(narratorSearchQuery, narratorSearchOffset + 50)}
+                          disabled={narratorSearchOffset + 50 >= narratorSearchTotal || isSearchingNarrators}
+                          className="px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          Next
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Empty State */}
+            {!narratorSearchQuery.trim() && (
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-12 text-center">
+                <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Search Narrators</h3>
+                <p className="text-gray-600 dark:text-gray-400">
+                  Enter a search term above to find narrators in the database.
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Error Section */}
         {error && (
           <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-6">
@@ -2836,17 +4481,30 @@ export default function HadithAnalyzer() {
         )}
 
         {/* Results Section */}
-        {chains.length > 0 && (
+        {chains.length > 0 && activeTab !== 'narrators' && (
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
                 Hadith Chains ({chains.length})
               </h2>
-              {chains.length > 1 && (
-                <span className="text-sm text-gray-600 dark:text-gray-400">
-                  Duplicate narrators are automatically merged in the visualization
-                </span>
-              )}
+              <div className="flex items-center gap-3">
+                {chains.length > 1 && (
+                  <span className="text-sm text-gray-600 dark:text-gray-400">
+                    Duplicate narrators are automatically merged in the visualization
+                  </span>
+                )}
+                <button
+                  onClick={handleMatchAllNarrators}
+                  disabled={isLoading}
+                  className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                  title="Match narrators to database for all chains"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  Match All Narrators
+                </button>
+              </div>
             </div>
 
                         <DndContext
@@ -2868,6 +4526,7 @@ export default function HadithAnalyzer() {
                       onToggleCollapse={handleToggleChainCollapse}
                       onEdit={handleEditChain}
                       onRemove={handleRemoveChain}
+                      onMatchNarrators={handleMatchNarrators}
                       editingChainId={editingChainId}
                       editFormData={editFormData}
                       setEditFormData={setEditFormData}
@@ -2876,6 +4535,10 @@ export default function HadithAnalyzer() {
                       handleDragEnd={handleDragEnd}
                       handleUpdateNarrator={handleUpdateNarrator}
                       handleRemoveNarrator={handleRemoveNarrator}
+                      handleViewNarratorDetails={handleViewNarratorDetails}
+                      handleUnmatchNarratorEdit={handleUnmatchNarratorEdit}
+                      handleUnmatchNarratorView={handleUnmatchNarratorView}
+                      handleOpenNarratorSearch={handleOpenNarratorSearch}
                       activeNarrator={activeNarrator}
                       showAddNarrator={showAddNarrator}
                       setShowAddNarrator={setShowAddNarrator}
@@ -2931,47 +4594,87 @@ export default function HadithAnalyzer() {
           </div>
         )}
 
+        {/* Show Visualization Button - when hidden but chains exist */}
+        {chains.length > 0 && !showVisualization && activeTab !== 'narrators' && (
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mt-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                Chain Visualization Available
+              </h2>
+              <button
+                onClick={() => {
+                  if (chains.length > 0) {
+                    const graphCode = generateMermaidCode(chains);
+                    setMermaidCode(graphCode);
+                    setShowVisualization(true);
+                  }
+                }}
+                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors flex items-center gap-2 text-sm font-medium"
+                title="Show chain visualization diagram"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+                <span>Show Visualization</span>
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Visualization Section */}
-        {showVisualization && mermaidCode && (
+        {showVisualization && mermaidCode && activeTab !== 'narrators' && (
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mt-4">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
                 Combined Chain Visualization ({chains.length} chain{chains.length > 1 ? 's' : ''})
               </h2>
-              <button
-                onClick={() => {
-                  if (graphRef.current) {
-                    const svgElement = graphRef.current.querySelector('svg');
-                    if (svgElement) {
-                      // Clone the SVG to avoid modifying the original
-                      const svgClone = svgElement.cloneNode(true) as SVGElement;
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    if (graphRef.current) {
+                      const svgElement = graphRef.current.querySelector('svg');
+                      if (svgElement) {
+                        // Clone the SVG to avoid modifying the original
+                        const svgClone = svgElement.cloneNode(true) as SVGElement;
 
-                      // Create a blob with the SVG content
-                      const svgData = new XMLSerializer().serializeToString(svgClone);
-                      const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+                        // Create a blob with the SVG content
+                        const svgData = new XMLSerializer().serializeToString(svgClone);
+                        const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
 
-                      // Create download link
-                      const link = document.createElement('a');
-                      link.href = URL.createObjectURL(svgBlob);
-                      link.download = `hadith-chains-diagram-${new Date().toISOString().split('T')[0]}.svg`;
-                      document.body.appendChild(link);
-                      link.click();
-                      document.body.removeChild(link);
+                        // Create download link
+                        const link = document.createElement('a');
+                        link.href = URL.createObjectURL(svgBlob);
+                        link.download = `hadith-chains-diagram-${new Date().toISOString().split('T')[0]}.svg`;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
 
-                      // Clean up the object URL
-                      URL.revokeObjectURL(link.href);
+                        // Clean up the object URL
+                        URL.revokeObjectURL(link.href);
+                      }
                     }
-                  }
-                }}
-                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors flex items-center gap-2 text-sm font-medium"
-                title="Download current hadith chains diagram as SVG"
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                <span className="hidden sm:inline">Download Diagram</span>
-                <span className="sm:hidden">Download</span>
-              </button>
+                  }}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors flex items-center gap-2 text-sm font-medium"
+                  title="Download current hadith chains diagram as SVG"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  <span className="hidden sm:inline">Download Diagram</span>
+                  <span className="sm:hidden">Download</span>
+                </button>
+                <button
+                  onClick={() => setShowVisualization(false)}
+                  className="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 transition-colors flex items-center gap-2 text-sm font-medium"
+                  title="Hide visualization"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                  <span className="hidden sm:inline">Hide</span>
+                </button>
+              </div>
             </div>
 
             {/* Inline Mermaid Rendering */}
@@ -3015,6 +4718,481 @@ export default function HadithAnalyzer() {
           </div>
         </footer>
       </div>
+
+      {/* Narrator Details Modal (from Search Tab) */}
+      {showNarratorDetailsModal && selectedNarratorData && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={() => setShowNarratorDetailsModal(false)}>
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white" dir="rtl">
+                {selectedNarratorData.primaryArabicName}
+              </h3>
+              <button
+                onClick={() => setShowNarratorDetailsModal(false)}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Modal Content - Scrollable */}
+            <div className="p-6 overflow-y-auto flex-1">
+              {isLoadingNarratorData ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                  <p className="mt-4 text-gray-600 dark:text-gray-400">Loading narrator details...</p>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {/* Basic Information */}
+                  <div>
+                    <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">Basic Information</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {selectedNarratorData.primaryEnglishName && (
+                        <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+                          <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1.5">English Name</label>
+                          <p className="text-sm text-gray-900 dark:text-white font-medium">{selectedNarratorData.primaryEnglishName}</p>
+                        </div>
+                      )}
+                      {selectedNarratorData.fullNameEnglish && (
+                        <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+                          <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1.5">Full English Name</label>
+                          <p className="text-sm text-gray-900 dark:text-white font-medium">{selectedNarratorData.fullNameEnglish}</p>
+                        </div>
+                      )}
+                      {selectedNarratorData.fullNameArabic && (
+                        <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+                          <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1.5">Full Arabic Name</label>
+                          <p className="text-base text-gray-900 dark:text-white font-medium" dir="rtl" lang="ar">{selectedNarratorData.fullNameArabic}</p>
+                        </div>
+                      )}
+                      {selectedNarratorData.title && (
+                        <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+                          <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1.5">Title</label>
+                          <p className="text-base text-gray-900 dark:text-white font-medium" dir="rtl" lang="ar">{selectedNarratorData.title}</p>
+                        </div>
+                      )}
+                      {selectedNarratorData.kunya && (
+                        <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+                          <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1.5">Kunya</label>
+                          <p className="text-base text-gray-900 dark:text-white font-medium" dir="rtl" lang="ar">{selectedNarratorData.kunya}</p>
+                        </div>
+                      )}
+                      {selectedNarratorData.lineage && (
+                        <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+                          <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1.5">Lineage</label>
+                          <p className="text-base text-gray-900 dark:text-white font-medium" dir="rtl" lang="ar">{selectedNarratorData.lineage}</p>
+                        </div>
+                      )}
+                      {selectedNarratorData.deathYearAH && (
+                        <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+                          <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1.5">Death Year (AH)</label>
+                          <p className="text-sm text-gray-900 dark:text-white font-medium">
+                            {selectedNarratorData.deathYearAH}
+                            {selectedNarratorData.deathYearAHAlternative && ` or ${selectedNarratorData.deathYearAHAlternative}`}
+                          </p>
+                        </div>
+                      )}
+                      {selectedNarratorData.deathYearCE && (
+                        <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+                          <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1.5">Death Year (CE)</label>
+                          <p className="text-sm text-gray-900 dark:text-white font-medium">{selectedNarratorData.deathYearCE}</p>
+                        </div>
+                      )}
+                      {selectedNarratorData.placeOfResidence && (
+                        <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+                          <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1.5">Place of Residence</label>
+                          <p className="text-base text-gray-900 dark:text-white font-medium" dir="rtl" lang="ar">{selectedNarratorData.placeOfResidence}</p>
+                        </div>
+                      )}
+                      {selectedNarratorData.placeOfDeath && (
+                        <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+                          <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1.5">Place of Death</label>
+                          <p className="text-base text-gray-900 dark:text-white font-medium" dir="rtl" lang="ar">{selectedNarratorData.placeOfDeath}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Scholarly Ranks */}
+                  {(selectedNarratorData.ibnHajarRank || selectedNarratorData.dhahabiRank || selectedNarratorData.taqribCategory) && (
+                    <div>
+                      <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">Scholarly Ranks</h4>
+                      <div className="space-y-3">
+                        {selectedNarratorData.ibnHajarRank && (
+                          <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+                            <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1.5">Ibn Hajar Rank</label>
+                            <p className="text-base text-gray-900 dark:text-white font-medium" dir="rtl" lang="ar">{selectedNarratorData.ibnHajarRank}</p>
+                          </div>
+                        )}
+                        {selectedNarratorData.dhahabiRank && (
+                          <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+                            <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1.5">Dhahabi Rank</label>
+                            <p className="text-base text-gray-900 dark:text-white font-medium" dir="rtl" lang="ar">{selectedNarratorData.dhahabiRank}</p>
+                          </div>
+                        )}
+                        {selectedNarratorData.taqribCategory && (
+                          <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+                            <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1.5">Taqrib Category</label>
+                            <p className="text-base text-gray-900 dark:text-white font-medium" dir="rtl" lang="ar">{selectedNarratorData.taqribCategory}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Scholarly Opinions */}
+                  {selectedNarratorData.scholarlyOpinions && selectedNarratorData.scholarlyOpinions.length > 0 && (
+                    <div>
+                      <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">
+                        Scholarly Opinions ({selectedNarratorData.scholarlyOpinions.length})
+                      </h4>
+                      <div className="space-y-3 max-h-64 overflow-y-auto">
+                        {[...selectedNarratorData.scholarlyOpinions].sort((a, b) => {
+                          const getPriority = (type: string) => {
+                            if (type === 'jarh') return 0;
+                            if (type === 'ta\'dil') return 1;
+                            return 2;
+                          };
+                          return getPriority(a.opinionType || '') - getPriority(b.opinionType || '');
+                        }).map((opinion, idx: number) => (
+                          <div key={`modal-opinion-${opinion.id || idx}-${opinion.scholarName}-${idx}`} className="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                            <div className="flex items-start justify-between mb-3">
+                              <h5 className="text-base font-semibold text-gray-900 dark:text-white" dir="rtl" lang="ar">
+                                {opinion.scholarName}
+                              </h5>
+                              <span className={`text-xs px-2.5 py-1 rounded-full font-medium flex-shrink-0 ml-3 ${
+                                opinion.opinionType === 'ta\'dil' 
+                                  ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                                  : opinion.opinionType === 'jarh'
+                                  ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                                  : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
+                              }`}>
+                                {opinion.opinionType === 'ta\'dil' ? 'Praise' : opinion.opinionType === 'jarh' ? 'Criticism' : 'Neutral'}
+                              </span>
+                            </div>
+                            <p className="text-base text-gray-700 dark:text-gray-300 mb-2 leading-relaxed" dir="rtl" lang="ar">
+                              {opinion.opinionText}
+                            </p>
+                            {opinion.sourceReference && (
+                              <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 pt-2 border-t border-gray-200 dark:border-gray-700" dir="rtl" lang="ar">
+                                <span className="font-medium">Source:</span> {opinion.sourceReference}
+                              </p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Grading Section */}
+                  {(() => {
+                    // Extract grades from scholarly opinions and other sources
+                    const extractedGrades = extractReputationGrades(selectedNarratorData as NarratorType);
+                    const calculatedGrade = extractedGrades.length > 0 ? calculateNarratorGrade(extractedGrades) : null;
+                    
+                    return (
+                      <div>
+                        <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">
+                          Grading
+                        </h4>
+                        <div className="space-y-4">
+                          {/* Reputation Grades */}
+                          {extractedGrades.length > 0 ? (
+                            <div>
+                              <label className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2 block">
+                                Reputation Grades ({extractedGrades.length})
+                              </label>
+                              <div className="flex flex-wrap gap-2">
+                                {extractedGrades.map((grade: ReputationGrade, idx: number) => {
+                                  const gradeInfo = REPUTATION_GRADES[grade];
+                                  const categoryColor = gradeInfo?.category === 'high' 
+                                    ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200'
+                                    : gradeInfo?.category === 'low'
+                                    ? 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200'
+                                    : 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200';
+                                  
+                                  return (
+                                    <span key={`modal-extracted-grade-${grade}-${idx}`} className={`px-3 py-1 ${categoryColor} rounded-lg text-sm`}>
+                                      {grade}
+                                    </span>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          ) : (
+                            <div>
+                              <label className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2 block">
+                                Reputation Grades
+                              </label>
+                              <p className="text-sm text-gray-500 dark:text-gray-400">No reputation grades could be extracted from available sources</p>
+                            </div>
+                          )}
+                          
+                          {/* Calculated Grade */}
+                          {calculatedGrade !== null ? (
+                            <div>
+                              <div className="flex items-center gap-2 mb-2">
+                                <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                                  Calculated Grade
+                                </label>
+                                <div className="relative">
+                                  <button
+                                    type="button"
+                                    onClick={() => setShowGradeFormulaTooltip2(!showGradeFormulaTooltip2)}
+                                    className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                                    aria-label="Grade calculation formula info"
+                                  >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                  </button>
+                                  <div className={`absolute left-0 bottom-full mb-2 w-80 p-3 bg-gray-900 dark:bg-gray-800 text-white text-xs rounded-lg shadow-lg transition-all duration-200 z-50 ${showGradeFormulaTooltip2 ? 'opacity-100 visible' : 'opacity-0 invisible'}`}>
+                                    <div className="space-y-2">
+                                      <p className="font-semibold mb-2">Grade Calculation Formula</p>
+                                      <div className="space-y-1 text-gray-300">
+                                        <p>1. Count frequency of each grade (how many times it appears)</p>
+                                        <p className="ml-2 text-gray-400">Each statement/opinion that mentions a grade counts</p>
+                                        <p className="mt-2">2. Calculate frequency-weighted average</p>
+                                        <p className="ml-2 text-gray-400">Average = Sum of (weight × frequency) ÷ Total count</p>
+                                        <p className="ml-2 text-gray-400">Example: 5×&quot;Thiqah&quot; + 1×&quot;Saduq&quot; = (9×5 + 8×1) ÷ 6 = 8.83</p>
+                                        <p className="mt-2">3. Apply penalties for conflicting grades:</p>
+                                        <p className="ml-2 text-gray-400">• High + Low grades together: -2 points</p>
+                                        <p className="ml-2 text-gray-400">• Mixed categories with Intermediate: -1 point</p>
+                                        <p className="mt-2">4. Final grade = max(0, round((Average - Penalty) × 10) ÷ 10)</p>
+                                      </div>
+                                      <div className="pt-2 border-t border-gray-700">
+                                        <p className="text-gray-400 text-xs">Grade range: 0.0 (Very Poor) to 10.0 (Excellent)</p>
+                                      </div>
+                                    </div>
+                                    <div className="absolute left-4 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900 dark:border-t-gray-800"></div>
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-3">
+                                <div className={`text-2xl font-bold ${getGradeColorClass(calculatedGrade)}`}>
+                                  {calculatedGrade.toFixed(1)}
+                                </div>
+                                <div className="text-sm text-gray-600 dark:text-gray-400">
+                                  {getGradeDescription(calculatedGrade)}
+                                </div>
+                              </div>
+                            </div>
+                          ) : (
+                            <div>
+                              <label className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2 block">
+                                Calculated Grade
+                              </label>
+                              <p className="text-sm text-gray-500 dark:text-gray-400">No grade calculated</p>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })()}
+
+                  {/* Relationships */}
+                  {selectedNarratorData.relationships && selectedNarratorData.relationships.length > 0 && (
+                    <div>
+                      <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">
+                        Relationships ({selectedNarratorData.relationships.length})
+                      </h4>
+                      <div className="space-y-3">
+                        {selectedNarratorData.relationships.map((rel, idx: number) => (
+                          <div key={`modal-relationship-${rel.relatedNarratorId || idx}-${rel.relationshipType}-${idx}`} className="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg p-3">
+                            <p className="text-sm text-gray-900 dark:text-white">
+                              <span className="font-semibold capitalize text-gray-700 dark:text-gray-300">{rel.relationshipType}</span>
+                              {rel.relationshipDescription && (
+                                <span className="text-gray-600 dark:text-gray-400 ml-2">: {rel.relationshipDescription}</span>
+                              )}
+                              {rel.durationYears && (
+                                <span className="text-gray-600 dark:text-gray-400 ml-2">({rel.durationYears} years)</span>
+                              )}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Notes */}
+                  {selectedNarratorData.notes && (
+                    <div>
+                      <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">Notes</h4>
+                      <div className="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                        <p className="text-base text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap" dir="rtl" lang="ar">
+                          {selectedNarratorData.notes}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex justify-end p-6 border-t border-gray-200 dark:border-gray-700">
+              <button
+                onClick={() => setShowNarratorDetailsModal(false)}
+                className="px-6 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Narrator Search Modal */}
+      {showNarratorSearchModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={() => setShowNarratorSearchModal(false)}>
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                Search Narrators in Database
+              </h3>
+              <button
+                onClick={() => setShowNarratorSearchModal(false)}
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Search Input */}
+            <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+              <div className="relative">
+                <input
+                  type="text"
+                  value={narratorSearchModalQuery}
+                  onChange={(e) => setNarratorSearchModalQuery(e.target.value)}
+                  placeholder="Search by Arabic or English name..."
+                  className="w-full px-4 py-3 pl-10 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  autoFocus
+                />
+                <svg className="absolute left-3 top-3.5 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                {isSearchingModal && (
+                  <div className="absolute right-3 top-3.5">
+                    <svg className="animate-spin h-5 w-5 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                  </div>
+                )}
+              </div>
+              {narratorSearchModalTotal > 0 && (
+                <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                  Found {narratorSearchModalTotal} narrator{narratorSearchModalTotal !== 1 ? 's' : ''}
+                </p>
+              )}
+            </div>
+
+            {/* Results */}
+            <div className="flex-1 overflow-y-auto p-6">
+              {narratorSearchModalQuery.trim() === '' ? (
+                <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+                  <svg className="w-16 h-16 mx-auto mb-4 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  <p className="text-lg font-medium">Enter a search query to find narrators</p>
+                  <p className="text-sm mt-2">Search by Arabic or English name</p>
+                </div>
+              ) : narratorSearchModalResults.length === 0 && !isSearchingModal ? (
+                <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+                  <p className="text-lg font-medium">No narrators found</p>
+                  <p className="text-sm mt-2">Try a different search term</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {narratorSearchModalResults.map((narrator) => (
+                    <div
+                      key={narrator.id}
+                      className="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:bg-gray-100 dark:hover:bg-gray-900 transition-colors"
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <h4 className="text-lg font-semibold text-gray-900 dark:text-white" dir="rtl">
+                              {narrator.primaryArabicName}
+                            </h4>
+                            <span className="text-gray-400">•</span>
+                            <h4 className="text-lg font-semibold text-gray-900 dark:text-white">
+                              {narrator.primaryEnglishName}
+                            </h4>
+                          </div>
+                          {narrator.fullNameArabic && (
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-1" dir="rtl">
+                              {narrator.fullNameArabic}
+                            </p>
+                          )}
+                          {narrator.fullNameEnglish && (
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                              {narrator.fullNameEnglish}
+                            </p>
+                          )}
+                          <div className="flex flex-wrap gap-2 mt-2">
+                            {narrator.deathYearAH && (
+                              <span className="px-2 py-1 text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 rounded">
+                                Died {narrator.deathYearAH} AH
+                              </span>
+                            )}
+                            {narrator.taqribCategory && (
+                              <span className="px-2 py-1 text-xs bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 rounded">
+                                {narrator.taqribCategory}
+                              </span>
+                            )}
+                            {narrator.ibnHajarRank && (
+                              <span className="px-2 py-1 text-xs bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-200 rounded">
+                                Ibn Hajar: {narrator.ibnHajarRank}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => handleMatchNarratorFromSearch(narrator)}
+                          className="ml-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium flex items-center gap-2"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                          Match
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                  {narratorSearchModalResults.length < narratorSearchModalTotal && (
+                    <button
+                      onClick={() => handleSearchNarratorsModal(narratorSearchModalQuery, narratorSearchModalOffset + 20)}
+                      disabled={isSearchingModal}
+                      className="w-full py-3 text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 border border-blue-200 dark:border-blue-800 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isSearchingModal ? 'Loading...' : `Load More (${narratorSearchModalTotal - narratorSearchModalResults.length} remaining)`}
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex justify-end p-6 border-t border-gray-200 dark:border-gray-700">
+              <button
+                onClick={() => setShowNarratorSearchModal(false)}
+                className="px-6 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Import Modal */}
       {showImportModal && (
@@ -3137,9 +5315,27 @@ export default function HadithAnalyzer() {
 
                             if (!confirmed) return;
 
-                            // Import the data
+                            // Import the data with backward compatibility
+                            // Migrate old chains that have hadithText to new format with chainText and matn
+                            const migratedChains = jsonData.chains.map((chain: { hadithText?: string; chainText?: string; matn?: string; [key: string]: unknown }) => {
+                              if ('hadithText' in chain && !('chainText' in chain)) {
+                                // Old format: migrate hadithText to chainText, leave matn empty
+                                return {
+                                  ...chain,
+                                  chainText: chain.hadithText || '',
+                                  matn: ''
+                                };
+                              }
+                              // New format or already migrated
+                              return {
+                                ...chain,
+                                chainText: chain.chainText || '',
+                                matn: chain.matn || ''
+                              };
+                            });
+                            
                             setHadithText(jsonData.hadithText || '');
-                            setChains(jsonData.chains);
+                            setChains(migratedChains);
                             setActiveTab(jsonData.activeTab || 'llm');
                             setSelectedChainIndex(jsonData.selectedChainIndex || 0);
                             setShowVisualization(jsonData.showVisualization || false);

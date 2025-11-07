@@ -8,6 +8,8 @@ A modern web application for analyzing and visualizing Islamic hadith chains (is
 - Uses Google Gemini AI to automatically extract narrators from Arabic hadith text
 - Intelligent parsing of complex hadith chains with multiple narrators
 - Real-time processing with loading indicators
+- Automatic narrator matching against biographical database
+- Auto-assignment of reputation grades based on scholarly opinions
 
 ### 🎯 **Interactive Chain Management**
 - **Edit Mode**: Full editing capabilities for chain titles and narrator names
@@ -33,6 +35,8 @@ A modern web application for analyzing and visualizing Islamic hadith chains (is
 - **Tailwind CSS**: Modern utility-first styling
 - **@dnd-kit**: Professional drag-and-drop functionality
 - **Google Gemini AI**: Advanced AI integration for text analysis
+- **SQLite Database**: Comprehensive narrator biographical database
+- **Narrator Matching**: Intelligent fuzzy matching against historical records
 
 ## 🚀 Getting Started
 
@@ -81,6 +85,24 @@ A modern web application for analyzing and visualizing Islamic hadith chains (is
 - **Click anywhere on headers** to collapse/expand chains
 - **Add multiple chains** for comparative analysis
 - **Edit existing chains** to correct or modify data
+- **Automatic narrator matching** against biographical database
+- **Reputation grade assignment** based on scholarly opinions
+
+## 🔌 API Endpoints
+
+### Narrator Extraction
+- `POST /api/extract-narrators` - Extract narrators from hadith text using AI
+
+### Narrator Matching
+- `POST /api/match-narrators` - Match extracted narrators to database and assign grades
+
+### Narrator Search
+- `GET /api/narrators` - Search narrators by name, death year, etc.
+- `GET /api/narrators/[id]` - Get detailed narrator information
+
+### Chain Management
+- `GET /api/chains` - List all saved chains
+- `POST /api/chains` - Load a specific chain by path
 
 ## 🛠️ Tech Stack
 
@@ -99,15 +121,34 @@ ICMA/
 ├── src/
 │   ├── app/
 │   │   ├── api/
-│   │   │   └── extract-narrators/
-│   │   │       └── route.ts          # AI narrator extraction API
+│   │   │   ├── chains/
+│   │   │   │   └── route.ts          # Chain storage and retrieval API
+│   │   │   ├── extract-narrators/
+│   │   │   │   └── route.ts          # AI narrator extraction API
+│   │   │   ├── match-narrators/
+│   │   │   │   └── route.ts          # Narrator matching and grading API
+│   │   │   └── narrators/
+│   │   │       ├── route.ts          # Narrator search API
+│   │   │       └── [id]/
+│   │   │           └── route.ts     # Individual narrator details API
 │   │   ├── layout.tsx                # Root layout with theme provider
-│   │   └── page.tsx                  # Main application page
+│   │   ├── page.tsx                  # Main application page
+│   │   ├── privacy-policy/          # Privacy policy page
+│   │   └── terms-of-service/        # Terms of service page
 │   ├── components/
-│   │   ├── HadithAnalyzer.tsx        # Main analyzer component
-│   │   └── Hero.tsx                  # Hero section component
+│   │   └── HadithAnalyzer.tsx        # Main analyzer component
 │   └── contexts/
 │       └── ThemeContext.tsx          # Dark/light theme context
+├── data/
+│   ├── db.ts                         # Database connection utilities
+│   ├── types.ts                      # TypeScript type definitions
+│   ├── schema.sql                    # Database schema
+│   ├── narrator-matcher.ts          # Narrator matching algorithms
+│   ├── grade-extractor.ts            # Reputation grade extraction
+│   ├── import-shamela-to-db.ts       # Shamela data import utilities
+│   └── narrators.db                  # SQLite database file
+├── scripts/                          # Utility scripts
+├── chains/                           # Exported chain JSON files
 ├── docs/                             # Documentation and examples
 ├── public/                           # Static assets
 └── README.md                         # This file
