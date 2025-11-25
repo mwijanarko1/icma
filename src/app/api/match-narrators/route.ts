@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { findNarratorByName } from '@/data/narrator-matcher';
 import { extractReputationGrades } from '@/data/grade-extractor';
-import { ReputationGrade } from '@/components/HadithAnalyzer';
+import { ReputationGrade } from '@/lib/grading/constants';
 
 interface ExtractedNarrator {
   number: number;
@@ -9,11 +9,29 @@ interface ExtractedNarrator {
   englishName: string;
 }
 
+interface MatchCandidate {
+  narratorId: string;
+  confidence: number;
+  matchedName: string;
+  suggestedGrades: ReputationGrade[];
+  databaseNarrator: {
+    id: string;
+    primaryArabicName: string;
+    primaryEnglishName: string;
+    ibnHajarRank?: string;
+    dhahabiRank?: string;
+    taqribCategory?: string;
+    scholarlyOpinionsCount?: number;
+  };
+}
+
 interface MatchResult {
   number: number;
   arabicName: string;
   englishName: string;
   matched: boolean;
+  matches?: MatchCandidate[]; // Top 3 matches
+  // Legacy fields for backward compatibility (use first match if available)
   narratorId?: string;
   confidence?: number;
   matchedName?: string;
@@ -62,31 +80,47 @@ export async function POST(request: NextRequest) {
       }
 
       // Try to find matching narrator in database
-      const matches = findNarratorByName(narrator.arabicName);
+      // Use both Arabic and English names for better matching
+      const allMatches = findNarratorByName(narrator.arabicName, narrator.englishName);
 
-      if (matches.length > 0 && matches[0].confidence >= 0.5) {
-        // Found a good match
-        const bestMatch = matches[0];
-        const grades = extractReputationGrades(bestMatch.databaseNarrator);
+      // Get top 3 matches (filter by minimum confidence threshold of 0.3)
+      const topMatches = allMatches
+        .filter(m => m.confidence >= 0.3)
+        .slice(0, 3)
+        .map(match => {
+          const grades = extractReputationGrades(match.databaseNarrator);
+          return {
+            narratorId: match.narratorId,
+            confidence: match.confidence,
+            matchedName: match.matchedName,
+            suggestedGrades: grades,
+            databaseNarrator: {
+              id: match.databaseNarrator.id,
+              primaryArabicName: match.databaseNarrator.primaryArabicName,
+              primaryEnglishName: match.databaseNarrator.primaryEnglishName,
+              ibnHajarRank: match.databaseNarrator.ibnHajarRank,
+              dhahabiRank: match.databaseNarrator.dhahabiRank,
+              taqribCategory: match.databaseNarrator.taqribCategory,
+              scholarlyOpinionsCount: match.databaseNarrator.scholarlyOpinions?.length || 0,
+            },
+          };
+        });
 
+      if (topMatches.length > 0) {
+        // Found matches - return top 3
+        const bestMatch = topMatches[0];
         results.push({
           number: narrator.number,
           arabicName: narrator.arabicName,
           englishName: narrator.englishName,
           matched: true,
+          matches: topMatches,
+          // Legacy fields for backward compatibility
           narratorId: bestMatch.narratorId,
           confidence: bestMatch.confidence,
           matchedName: bestMatch.matchedName,
-          suggestedGrades: grades,
-          databaseNarrator: {
-            id: bestMatch.databaseNarrator.id,
-            primaryArabicName: bestMatch.databaseNarrator.primaryArabicName,
-            primaryEnglishName: bestMatch.databaseNarrator.primaryEnglishName,
-            ibnHajarRank: bestMatch.databaseNarrator.ibnHajarRank,
-            dhahabiRank: bestMatch.databaseNarrator.dhahabiRank,
-            taqribCategory: bestMatch.databaseNarrator.taqribCategory,
-            scholarlyOpinionsCount: bestMatch.databaseNarrator.scholarlyOpinions?.length || 0,
-          },
+          suggestedGrades: bestMatch.suggestedGrades,
+          databaseNarrator: bestMatch.databaseNarrator,
         });
       } else {
         // No match found

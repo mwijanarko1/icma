@@ -1,7 +1,43 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDatabase, closeDatabase } from '@/data/db';
 import type { Narrator } from '@/data/types';
-import { normalizeArabic, calculateSimilarity } from '@/data/narrator-matcher';
+import { 
+  normalizeArabic, 
+  normalizeEnglish,
+  normalizeSearchTerm,
+  hasArabicCharacters,
+  calculateSimilarity 
+} from '@/data/narrator-matcher';
+
+/**
+ * Check if a normalized field matches a search term with word boundary awareness
+ * For Arabic: matches whole words or word prefixes
+ * For English: matches whole words or word prefixes
+ */
+function matchesSearchTerm(normalizedField: string, normalizedTerm: string, isArabic: boolean): boolean {
+  // Exact match
+  if (normalizedField === normalizedTerm) {
+    return true;
+  }
+  
+  // Split field into words
+  const words = normalizedField.split(/\s+/).filter(w => w.length > 0);
+  
+  // Check if any word matches exactly or starts with the term
+  for (const word of words) {
+    if (word === normalizedTerm || word.startsWith(normalizedTerm)) {
+      return true;
+    }
+  }
+  
+  // For Arabic, also check substring match (more flexible for Arabic names)
+  // This handles cases where names might be written without spaces
+  if (isArabic && normalizedField.includes(normalizedTerm)) {
+    return true;
+  }
+  
+  return false;
+}
 
 interface SearchParams {
   query?: string;
@@ -38,13 +74,20 @@ interface NarratorRow {
  * Calculate relevance score for a narrator based on search query
  * Uses the match algorithm's similarity calculation for better accuracy
  */
-function calculateRelevanceScore(narrator: NarratorRow, normalizedSearchTerms: string[]): number {
+function calculateRelevanceScore(
+  narrator: NarratorRow, 
+  normalizedSearchTerms: string[],
+  originalSearchTerms: string[]
+): number {
   let score = 0;
   const normalizedSearchText = normalizedSearchTerms.join(' ');
 
   // Use similarity-based scoring for better matching (like the match algorithm)
   // Calculate similarity for each search term against narrator fields
-  for (const normalizedTerm of normalizedSearchTerms) {
+  for (let i = 0; i < normalizedSearchTerms.length; i++) {
+    const normalizedTerm = normalizedSearchTerms[i];
+    const originalTerm = originalSearchTerms[i];
+    const termIsArabic = hasArabicCharacters(originalTerm);
     // Primary Arabic name - use similarity calculation (like match algorithm)
     if (narrator.primary_arabic_name) {
       const similarity = calculateSimilarity(narrator.primary_arabic_name, normalizedTerm);
@@ -91,20 +134,31 @@ function calculateRelevanceScore(narrator: NarratorRow, normalizedSearchTerms: s
       }
     }
 
-    // English names - simple string matching (no similarity needed for English)
-    const lowerPrimaryEnglish = narrator.primary_english_name?.toLowerCase() || '';
-    const lowerFullEnglish = narrator.full_name_english?.toLowerCase() || '';
-    
-    if (lowerPrimaryEnglish === normalizedTerm) {
-      score += 100;
-    } else if (lowerPrimaryEnglish.startsWith(normalizedTerm)) {
-      score += 50;
-    } else if (lowerPrimaryEnglish.includes(normalizedTerm)) {
-      score += 20;
-    }
+    // English names - use proper normalization and word boundary-aware matching
+    // Only process if the search term is not Arabic (to avoid false matches)
+    if (!termIsArabic && normalizedTerm) {
+      const normalizedPrimaryEnglish = narrator.primary_english_name 
+        ? normalizeEnglish(narrator.primary_english_name) 
+        : '';
+      const normalizedFullEnglish = narrator.full_name_english 
+        ? normalizeEnglish(narrator.full_name_english) 
+        : '';
+      
+      // Use word boundary-aware matching for English
+      if (normalizedPrimaryEnglish === normalizedTerm) {
+        score += 100;
+      } else if (matchesSearchTerm(normalizedPrimaryEnglish, normalizedTerm, false)) {
+        // Check if it's a word start match (higher score) vs substring match
+        const words = normalizedPrimaryEnglish.split(/\s+/);
+        const isWordStart = words.some(w => w.startsWith(normalizedTerm));
+        score += isWordStart ? 50 : 20;
+      }
 
-    if (lowerFullEnglish.includes(normalizedTerm)) {
-      score += 30;
+      if (matchesSearchTerm(normalizedFullEnglish, normalizedTerm, false)) {
+        const words = normalizedFullEnglish.split(/\s+/);
+        const isWordStart = words.some(w => w.startsWith(normalizedTerm));
+        score += isWordStart ? 30 : 15;
+      }
     }
 
     // Title, lineage, search_text - simple matching
@@ -223,12 +277,21 @@ export async function GET(request: NextRequest) {
     };
 
     // Parse search terms from query and normalize them
+    // Minimum 2 characters per term to avoid too many results
     const searchTerms = params.query 
-      ? params.query.trim().split(/\s+/).filter(term => term.length > 0)
+      ? params.query.trim().split(/\s+/).filter(term => term.length >= 2)
       : [];
     
-    // Normalize search terms (remove harakats and ابي/ابو)
-    const normalizedSearchTerms = searchTerms.map(term => normalizeArabic(term));
+    // Validate minimum query length
+    if (params.query && searchTerms.length === 0) {
+      return NextResponse.json({
+        success: false,
+        error: 'Search query must contain at least one term with 2 or more characters'
+      }, { status: 400 });
+    }
+    
+    // Normalize search terms (use appropriate normalization based on language)
+    const normalizedSearchTerms = searchTerms.map(term => normalizeSearchTerm(term));
 
     let narrators: NarratorRow[] = [];
 
@@ -276,14 +339,28 @@ export async function GET(request: NextRequest) {
           if (alt.english_name) searchableFields.push(alt.english_name);
         }
 
-        // Normalize all searchable fields
-        const normalizedFields = searchableFields.map(field => normalizeArabic(field));
+        // Normalize all searchable fields appropriately
+        const normalizedFields = searchableFields.map(field => {
+          // Determine if field contains Arabic
+          const fieldHasArabic = hasArabicCharacters(field);
+          return fieldHasArabic ? normalizeArabic(field) : normalizeEnglish(field);
+        });
 
         // Check if all normalized search terms match in any normalized field
-        for (const normalizedTerm of normalizedSearchTerms) {
-          const termMatches = normalizedFields.some(normalizedField => 
-            normalizedField.includes(normalizedTerm)
-          );
+        // Use word boundary-aware matching
+        for (let i = 0; i < normalizedSearchTerms.length; i++) {
+          const normalizedTerm = normalizedSearchTerms[i];
+          const originalTerm = searchTerms[i];
+          const termIsArabic = hasArabicCharacters(originalTerm);
+          
+          const termMatches = normalizedFields.some((normalizedField, fieldIndex) => {
+            const originalField = searchableFields[fieldIndex];
+            const fieldIsArabic = hasArabicCharacters(originalField);
+            
+            // Use word boundary-aware matching
+            return matchesSearchTerm(normalizedField, normalizedTerm, termIsArabic || fieldIsArabic);
+          });
+          
           if (!termMatches) {
             return false; // This term doesn't match, exclude this narrator
           }
@@ -294,7 +371,7 @@ export async function GET(request: NextRequest) {
       // Calculate relevance scores and sort (using normalized terms)
       const scoredNarrators = narrators.map(narrator => ({
         ...narrator,
-        relevanceScore: calculateRelevanceScore(narrator, normalizedSearchTerms)
+        relevanceScore: calculateRelevanceScore(narrator, normalizedSearchTerms, searchTerms)
       }));
 
       // Sort by relevance score (descending), then by name

@@ -33,6 +33,69 @@ export function normalizeArabic(text: string): string {
 }
 
 /**
+ * Normalize English text (simple lowercase and trim)
+ */
+export function normalizeEnglish(text: string): string {
+  return text.trim().toLowerCase();
+}
+
+/**
+ * Detect if text contains Arabic characters
+ */
+export function hasArabicCharacters(text: string): boolean {
+  return /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/.test(text);
+}
+
+/**
+ * Normalize search term - use Arabic normalization if contains Arabic, otherwise English normalization
+ */
+export function normalizeSearchTerm(term: string): string {
+  return hasArabicCharacters(term) ? normalizeArabic(term) : normalizeEnglish(term);
+}
+
+/**
+ * Calculate similarity between two English strings
+ * Uses word boundary-aware matching
+ */
+function calculateEnglishSimilarity(str1: string, str2: string): number {
+  const normalized1 = normalizeEnglish(str1);
+  const normalized2 = normalizeEnglish(str2);
+  
+  // Exact match
+  if (normalized1 === normalized2) return 1.0;
+  
+  // Split into words
+  const words1 = normalized1.split(/\s+/).filter(w => w.length > 0);
+  const words2 = normalized2.split(/\s+/).filter(w => w.length > 0);
+  
+  if (words1.length === 0 || words2.length === 0) return 0;
+  
+  // Check for exact word matches
+  const set1 = new Set(words1);
+  const set2 = new Set(words2);
+  const commonWords = words1.filter(w => set2.has(w));
+  const allWords = new Set([...words1, ...words2]);
+  
+  // Jaccard similarity for word sets
+  const wordSimilarity = allWords.size > 0 ? commonWords.length / allWords.size : 0;
+  
+  // Also check for word prefix matches (e.g., "John" matches "John Smith")
+  let prefixMatches = 0;
+  for (const word1 of words1) {
+    for (const word2 of words2) {
+      if (word1.startsWith(word2) || word2.startsWith(word1)) {
+        const shorter = Math.min(word1.length, word2.length);
+        const longer = Math.max(word1.length, word2.length);
+        prefixMatches = Math.max(prefixMatches, shorter / longer);
+      }
+    }
+  }
+  
+  // Combine word similarity and prefix matches
+  return Math.max(wordSimilarity, prefixMatches * 0.9); // Slightly lower weight for prefix matches
+}
+
+/**
  * Parse an Arabic name into its components
  * Returns: { firstName, fatherName, grandfatherName, familyName, otherParts }
  */
@@ -279,14 +342,25 @@ function calculateWordSimilarity(word1: string, word2: string): number {
 }
 
 /**
- * Search for a narrator in the database by Arabic name
+ * Search for a narrator in the database by name (Arabic or English)
+ * Uses the same normalization and matching logic as the search function
  */
-export function findNarratorByName(arabicName: string): MatchedNarrator[] {
+export function findNarratorByName(arabicName: string, englishName?: string): MatchedNarrator[] {
   const db = getDatabase();
   
   try {
-    // Normalize the search name
-    const normalizedSearch = normalizeArabic(arabicName);
+    // Determine if we're searching by Arabic or English
+    const searchByArabic = arabicName && arabicName.trim().length > 0;
+    const searchByEnglish = englishName && englishName.trim().length > 0;
+    
+    if (!searchByArabic && !searchByEnglish) {
+      return []; // No search terms provided
+    }
+    
+    // Normalize search terms using the same logic as search function
+    const normalizedArabic = searchByArabic ? normalizeSearchTerm(arabicName) : '';
+    const normalizedEnglish = searchByEnglish ? normalizeSearchTerm(englishName) : '';
+    const isArabicSearch = searchByArabic && hasArabicCharacters(arabicName);
     
     // Get all narrators from database
     const narrators = db.prepare(`
@@ -307,18 +381,31 @@ export function findNarratorByName(arabicName: string): MatchedNarrator[] {
       taqrib_category: string | null;
     }>;
     
-    // Get alternate names
+    // Get alternate names (both Arabic and English)
     const alternateNames = db.prepare(`
-      SELECT narrator_id, arabic_name
+      SELECT narrator_id, arabic_name, english_name
       FROM narrator_names
-    `).all() as Array<{ narrator_id: string; arabic_name: string }>;
+    `).all() as Array<{ 
+      narrator_id: string; 
+      arabic_name: string | null;
+      english_name: string | null;
+    }>;
     
-    const alternateMap = new Map<string, string[]>();
+    const alternateArabicMap = new Map<string, string[]>();
+    const alternateEnglishMap = new Map<string, string[]>();
     for (const alt of alternateNames) {
-      if (!alternateMap.has(alt.narrator_id)) {
-        alternateMap.set(alt.narrator_id, []);
+      if (alt.arabic_name) {
+        if (!alternateArabicMap.has(alt.narrator_id)) {
+          alternateArabicMap.set(alt.narrator_id, []);
+        }
+        alternateArabicMap.get(alt.narrator_id)!.push(alt.arabic_name);
       }
-      alternateMap.get(alt.narrator_id)!.push(alt.arabic_name);
+      if (alt.english_name) {
+        if (!alternateEnglishMap.has(alt.narrator_id)) {
+          alternateEnglishMap.set(alt.narrator_id, []);
+        }
+        alternateEnglishMap.get(alt.narrator_id)!.push(alt.english_name);
+      }
     }
     
     // Calculate similarity for each narrator
@@ -326,40 +413,88 @@ export function findNarratorByName(arabicName: string): MatchedNarrator[] {
     
     for (const narrator of narrators) {
       let maxSimilarity = 0;
-      let matchedName = narrator.primary_arabic_name;
+      let matchedName = narrator.primary_arabic_name || narrator.primary_english_name;
       
-      // Check primary name
-      const primarySim = calculateSimilarity(arabicName, narrator.primary_arabic_name);
-      if (primarySim > maxSimilarity) {
-        maxSimilarity = primarySim;
-        matchedName = narrator.primary_arabic_name;
-      }
-      
-      // Check full name
-      if (narrator.full_name_arabic) {
-        const fullSim = calculateSimilarity(arabicName, narrator.full_name_arabic);
-        if (fullSim > maxSimilarity) {
-          maxSimilarity = fullSim;
-          matchedName = narrator.full_name_arabic;
+      // Check Arabic names if searching by Arabic
+      if (searchByArabic && isArabicSearch) {
+        // Check primary Arabic name
+        const primarySim = calculateSimilarity(arabicName, narrator.primary_arabic_name);
+        if (primarySim > maxSimilarity) {
+          maxSimilarity = primarySim;
+          matchedName = narrator.primary_arabic_name;
+        }
+        
+        // Check full Arabic name
+        if (narrator.full_name_arabic) {
+          const fullSim = calculateSimilarity(arabicName, narrator.full_name_arabic);
+          if (fullSim > maxSimilarity) {
+            maxSimilarity = fullSim;
+            matchedName = narrator.full_name_arabic;
+          }
+        }
+        
+        // Check alternate Arabic names
+        const alternates = alternateArabicMap.get(narrator.id) || [];
+        for (const altName of alternates) {
+          const altSim = calculateSimilarity(arabicName, altName);
+          if (altSim > maxSimilarity) {
+            maxSimilarity = altSim;
+            matchedName = altName;
+          }
+        }
+        
+        // Check kunya if provided
+        if (narrator.kunya) {
+          const kunyaSim = calculateSimilarity(arabicName, narrator.kunya);
+          if (kunyaSim > maxSimilarity) {
+            maxSimilarity = kunyaSim;
+            matchedName = narrator.kunya;
+          }
         }
       }
       
-      // Check alternate names
-      const alternates = alternateMap.get(narrator.id) || [];
-      for (const altName of alternates) {
-        const altSim = calculateSimilarity(arabicName, altName);
-        if (altSim > maxSimilarity) {
-          maxSimilarity = altSim;
-          matchedName = altName;
+      // Check English names if searching by English (or if Arabic search didn't find good match)
+      if (searchByEnglish || (!isArabicSearch && searchByArabic)) {
+        const searchName = searchByEnglish ? englishName : arabicName;
+        const normalizedSearch = searchByEnglish ? normalizedEnglish : normalizedArabic;
+        
+        // Check primary English name
+        if (narrator.primary_english_name) {
+          const primarySim = calculateEnglishSimilarity(searchName, narrator.primary_english_name);
+          if (primarySim > maxSimilarity) {
+            maxSimilarity = primarySim;
+            matchedName = narrator.primary_english_name;
+          }
+        }
+        
+        // Check full English name
+        if (narrator.full_name_english) {
+          const fullSim = calculateEnglishSimilarity(searchName, narrator.full_name_english);
+          if (fullSim > maxSimilarity) {
+            maxSimilarity = fullSim;
+            matchedName = narrator.full_name_english;
+          }
+        }
+        
+        // Check alternate English names
+        const alternates = alternateEnglishMap.get(narrator.id) || [];
+        for (const altName of alternates) {
+          const altSim = calculateEnglishSimilarity(searchName, altName);
+          if (altSim > maxSimilarity) {
+            maxSimilarity = altSim;
+            matchedName = altName;
+          }
         }
       }
       
-      // Check kunya if provided
-      if (narrator.kunya) {
-        const kunyaSim = calculateSimilarity(arabicName, narrator.kunya);
-        if (kunyaSim > maxSimilarity) {
-          maxSimilarity = kunyaSim;
-          matchedName = narrator.kunya;
+      // Also check if Arabic name matches English search (cross-language matching)
+      // This handles cases where user searches English but database has Arabic
+      if (searchByEnglish && narrator.primary_arabic_name) {
+        // Use a lower threshold for cross-language matching
+        const crossSim = calculateSimilarity(englishName, narrator.primary_arabic_name) * 0.7;
+        if (crossSim > maxSimilarity) {
+          maxSimilarity = crossSim;
+          matchedName = narrator.primary_arabic_name;
         }
       }
       
