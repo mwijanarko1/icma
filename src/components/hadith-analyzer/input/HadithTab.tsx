@@ -3,10 +3,11 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import type { HadithTabProps } from './types';
 
-type HadithCollection = 'bukhari' | 'muslim' | 'nasai' | 'tirmidhi' | 'abudawud' | 'ibnmajah' | 'muwatta-malik';
+type HadithCollection = 'bukhari' | 'muslim' | 'nasai' | 'tirmidhi' | 'abudawud' | 'ibnmajah';
 
 interface Hadith {
   hadith_number: number;
+  sub_version?: string;
   reference: string;
   english_narrator?: string;
   english_translation: string;
@@ -22,8 +23,7 @@ export function HadithTab({}: HadithTabProps) {
   const [error, setError] = useState<string | null>(null);
   const [total, setTotal] = useState(0);
   const [offset, setOffset] = useState(0);
-  const [expandedHadith, setExpandedHadith] = useState<number | null>(null);
-  const [expandedHadithData, setExpandedHadithData] = useState<Hadith | null>(null);
+  const [expandedHadith, setExpandedHadith] = useState<string | null>(null);
   const [copiedHadithNumber, setCopiedHadithNumber] = useState<number | null>(null);
   const limit = 20;
   const previousSearchQuery = useRef<string>('');
@@ -35,7 +35,6 @@ export function HadithTab({}: HadithTabProps) {
     { value: 'tirmidhi', label: 'Jami` at-Tirmidhi' },
     { value: 'abudawud', label: 'Sunan Abi Dawud' },
     { value: 'ibnmajah', label: 'Sunan Ibn Majah' },
-    { value: 'muwatta-malik', label: 'Muwatta Malik' },
   ];
 
 
@@ -119,7 +118,6 @@ export function HadithTab({}: HadithTabProps) {
   // Reset expanded hadith when collection changes or pagination occurs
   useEffect(() => {
     setExpandedHadith(null);
-    setExpandedHadithData(null);
   }, [collection, offset, searchQuery]);
 
   return (
@@ -220,12 +218,13 @@ export function HadithTab({}: HadithTabProps) {
           </div>
 
           {hadithList.map((h) => {
-            const isExpanded = expandedHadith === h.hadith_number;
-            const displayHadith = isExpanded && expandedHadithData ? expandedHadithData : h;
+            const hadithKey = h.sub_version ? `${h.hadith_number}${h.sub_version}` : h.hadith_number.toString();
+            const isExpanded = expandedHadith === hadithKey;
+            const displayHadith = h;
             
             return (
               <div
-                key={h.hadith_number}
+                key={hadithKey}
                 className="bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-all duration-200 ease-in-out"
               >
                 <div
@@ -236,21 +235,8 @@ export function HadithTab({}: HadithTabProps) {
 
                     if (isExpanded) {
                       setExpandedHadith(null);
-                      setExpandedHadithData(null);
                     } else {
-                      setExpandedHadith(h.hadith_number);
-                      // Fetch full hadith details if not already loaded
-                      if (!expandedHadithData || expandedHadithData.hadith_number !== h.hadith_number) {
-                        try {
-                          const response = await fetch(`/api/hadith?collection=${collection}&hadith=${h.hadith_number}`);
-                          const data = await response.json();
-                          if (data.success) {
-                            setExpandedHadithData(data.data);
-                          }
-                        } catch (err) {
-                          console.error('Error fetching hadith:', err);
-                        }
-                      }
+                      setExpandedHadith(hadithKey);
                     }
                   }}
                 >

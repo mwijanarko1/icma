@@ -2,6 +2,7 @@ import type { ReputationGrade } from '@/lib/grading/constants';
 
 export interface HadithRecord {
   hadith_number: number;
+  sub_version?: string | null;
   reference: string;
   english_narrator?: string;
   english_translation: string;

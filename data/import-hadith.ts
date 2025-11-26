@@ -6,7 +6,7 @@
  *   npm run import-hadith -- --collection bukhari --all
  */
 
-import { fetchSunnahHadith } from '@/services/sunnahService';
+import { fetchSunnahHadith, fetchSunnahHadithVersions, type SunnahHadithData } from '@/services/sunnahService';
 import { 
   withHadithDatabase, 
   getHadithCount, 
@@ -25,7 +25,6 @@ const COLLECTION_MAP: Record<HadithCollection, string> = {
   'tirmidhi': 'tirmidhi',
   'abudawud': 'abudawud',
   'ibnmajah': 'ibnmajah',
-  'muwatta-malik': 'malik',
 };
 
 interface ImportOptions {
@@ -36,6 +35,7 @@ interface ImportOptions {
   skipExisting?: boolean;
   batchSize?: number;
   delay?: number; // Delay between requests in ms
+  introduction?: boolean; // Whether to import introduction narrations
 }
 
 interface ImportResult {
@@ -43,6 +43,7 @@ interface ImportResult {
   imported: number;
   skipped: number;
   failed: number;
+  versionsImported: number; // Total number of versions imported
   errors: Array<{ hadithNumber: number; error: string }>;
 }
 
@@ -53,55 +54,105 @@ async function importHadith(
   db: Database.Database,
   collection: HadithCollection,
   hadithNumber: number,
-  skipExisting: boolean = true
-): Promise<{ success: boolean; skipped: boolean; error?: string }> {
+  skipExisting: boolean = true,
+  isIntroduction: boolean = false
+): Promise<{ success: boolean; skipped: boolean; imported: number; error?: string }> {
   try {
-    // Check if already exists
+    const dbHadithNumber = isIntroduction ? -hadithNumber : hadithNumber;
+    
+    // Check if already exists (for collections with sub-versions, check if any version exists)
     if (skipExisting) {
-      const exists = db.prepare('SELECT 1 FROM hadith WHERE hadith_number = ?').get(hadithNumber);
+      const exists = db.prepare('SELECT 1 FROM hadith WHERE hadith_number = ?').get(dbHadithNumber);
       if (exists) {
-        return { success: true, skipped: true };
+        return { success: true, skipped: true, imported: 0 };
       }
+    } else {
+      // With --no-skip, delete existing versions first to ensure we get all sub-versions
+      db.prepare('DELETE FROM hadith WHERE hadith_number = ?').run(dbHadithNumber);
     }
 
     // Fetch from sunnah.com
     const sunnahCollection = COLLECTION_MAP[collection];
-    const hadithData = await fetchSunnahHadith(sunnahCollection, hadithNumber, {
+
+    // Fetch the hadith (introduction or regular)
+    let hadithVersions: SunnahHadithData[];
+    if (isIntroduction) {
+      // For introductions, fetch single version
+      const singleHadith = await fetchSunnahHadith(sunnahCollection, hadithNumber, {
+        timeout: 10000,
+        retries: 2,
+      }, true);
+      hadithVersions = singleHadith ? [singleHadith] : [];
+    } else if (collection === 'muslim') {
+      // For Muslim collection, fetch all sub-versions
+      hadithVersions = await fetchSunnahHadithVersions(sunnahCollection, hadithNumber, {
       timeout: 10000,
       retries: 2,
     });
-
-    if (!hadithData) {
-      return { success: false, skipped: false, error: 'Failed to fetch or parse hadith' };
+    } else {
+      // For other collections, fetch single version
+      const singleHadith = await fetchSunnahHadith(sunnahCollection, hadithNumber, {
+        timeout: 10000,
+        retries: 2,
+      }, false);
+      hadithVersions = singleHadith ? [singleHadith] : [];
     }
 
-    // Insert into database
+    if (hadithVersions.length === 0) {
+      // Hadith doesn't exist (404) - treat as skipped, not failure
+      return { success: true, skipped: true, imported: 0 };
+    }
+
+    // Insert all versions into database
     const insert = db.prepare(`
       INSERT OR REPLACE INTO hadith (
         hadith_number,
+        sub_version,
         reference,
         english_narrator,
         english_translation,
         arabic_text,
         in_book_reference,
         updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
     `);
 
-    insert.run(
-      hadithNumber,
+    let imported = 0;
+    for (const hadithData of hadithVersions) {
+      if (isIntroduction && !/Introduction/i.test(hadithData.reference)) {
+        // Some introduction endpoints point to regular hadith; skip those to avoid duplicates
+        continue;
+      }
+      // For introductions, use negative numbers to distinguish from regular hadith
+      const dbHadithNumber = isIntroduction ? -hadithNumber : hadithNumber;
+
+      // Extract sub-version from reference (e.g., "Sahih Muslim 8 a" -> "a")
+      let subVersion: string | null = null;
+      const referenceMatch = hadithData.reference.match(/(\d+)\s*([a-z])$/i);
+      if (referenceMatch) {
+        subVersion = referenceMatch[2].toLowerCase();
+      }
+
+      const normalizedSubVersion = subVersion ?? '';
+
+      insert.run(
+        dbHadithNumber,
+        normalizedSubVersion,
       hadithData.reference,
       hadithData.englishNarrator || null,
       hadithData.englishTranslation,
       hadithData.arabicText,
       hadithData.inBookReference || null
     );
+      imported++;
+    }
 
-    return { success: true, skipped: false };
+    return { success: true, skipped: false, imported };
   } catch (error) {
     return {
       success: false,
       skipped: false,
+      imported: 0,
       error: error instanceof Error ? error.message : String(error)
     };
   }
@@ -119,6 +170,7 @@ export async function importHadithBatch(options: ImportOptions): Promise<ImportR
     skipExisting = true,
     batchSize = 10,
     delay = 1000, // 1 second delay between requests
+    introduction = false,
   } = options;
 
   const result: ImportResult = {
@@ -126,6 +178,7 @@ export async function importHadithBatch(options: ImportOptions): Promise<ImportR
     imported: 0,
     skipped: 0,
     failed: 0,
+    versionsImported: 0,
     errors: [],
   };
 
@@ -138,12 +191,11 @@ export async function importHadithBatch(options: ImportOptions): Promise<ImportR
     // For now, we'll use a reasonable upper limit based on known collection sizes
     const collectionLimits: Record<HadithCollection, number> = {
       'bukhari': 7563,
-      'muslim': 7563,
-      'nasai': 5762,
+      'muslim': 3033,
+      'nasai': 5758,
       'tirmidhi': 3956,
       'abudawud': 5274,
       'ibnmajah': 4341,
-      'muwatta-malik': 1842,
     };
     endNumber = collectionLimits[collection] || 10000;
   }
@@ -152,7 +204,7 @@ export async function importHadithBatch(options: ImportOptions): Promise<ImportR
     throw new Error('Either --end or --all must be specified');
   }
 
-  console.log(`\nStarting import for ${collection}:`);
+  console.log(`\nStarting import for ${collection}${introduction ? ' (introduction)' : ''}:`);
   console.log(`  Range: ${startNumber} to ${endNumber}`);
   console.log(`  Skip existing: ${skipExisting}`);
   console.log(`  Batch size: ${batchSize}`);
@@ -199,13 +251,14 @@ export async function importHadithBatch(options: ImportOptions): Promise<ImportR
       const currentProgress = `Processing hadith ${i}/${endNumber}... (✓ ${result.imported} | ✗ ${result.failed} | ⊘ ${result.skipped})`;
       process.stdout.write(`\r  ${currentProgress}`);
       
-      const importResult = await importHadith(db, collection, i, skipExisting);
+      const importResult = await importHadith(db, collection, i, skipExisting, introduction);
 
       if (importResult.skipped) {
         result.skipped++;
         skippedList.push(i);
       } else if (importResult.success) {
         result.imported++;
+        result.versionsImported += importResult.imported;
         successList.push(i);
       } else {
         result.failed++;
@@ -228,7 +281,8 @@ export async function importHadithBatch(options: ImportOptions): Promise<ImportR
   });
 
   console.log(`\n\nImport complete:`);
-  console.log(`  ✓ Imported: ${result.imported}`);
+  console.log(`  ✓ Hadith imported: ${result.imported}`);
+  console.log(`  ✓ Total versions imported: ${result.versionsImported}`);
   console.log(`  ⊘ Skipped: ${result.skipped}`);
   console.log(`  ✗ Failed: ${result.failed}`);
 
@@ -304,6 +358,8 @@ if (require.main === module) {
     } else if (arg === '--delay' && nextArg) {
       options.delay = parseInt(nextArg, 10);
       i++;
+    } else if (arg === '--introduction') {
+      options.introduction = true;
     }
   }
 
@@ -312,14 +368,16 @@ if (require.main === module) {
     console.error('\nUsage:');
     console.error('  npm run import-hadith -- --collection bukhari --start 1 --end 100');
     console.error('  npm run import-hadith -- --collection bukhari --all');
+    console.error('  npm run import-hadith -- --collection muslim --introduction --start 8 --end 14');
     console.error('\nOptions:');
-    console.error('  --collection    Collection name (bukhari, muslim, nasai, tirmidhi, abudawud, ibnmajah, muwatta-malik)');
+    console.error('  --collection    Collection name (bukhari, muslim, nasai, tirmidhi, abudawud, ibnmajah)');
     console.error('  --start        Starting hadith number (default: 1)');
     console.error('  --end          Ending hadith number');
     console.error('  --all          Import all hadith (uses known collection limits)');
     console.error('  --no-skip      Don\'t skip existing hadith');
     console.error('  --batch-size   Batch size for transactions (default: 10)');
     console.error('  --delay        Delay between requests in ms (default: 1000)');
+    console.error('  --introduction Import introduction narrations instead of regular hadith');
     process.exit(1);
   }
 

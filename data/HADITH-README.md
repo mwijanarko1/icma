@@ -15,7 +15,6 @@ data/
 ├── tirmidhi.db          # SQLite database for Jami` at-Tirmidhi
 ├── abudawud.db          # SQLite database for Sunan Abi Dawud
 ├── ibnmajah.db          # SQLite database for Sunan Ibn Majah
-├── muwatta-malik.db     # SQLite database for Muwatta Malik
 └── HADITH-README.md     # This file
 ```
 
@@ -27,7 +26,6 @@ data/
 - **tirmidhi** - Jami` at-Tirmidhi
 - **abudawud** - Sunan Abi Dawud
 - **ibnmajah** - Sunan Ibn Majah
-- **muwatta-malik** - Muwatta Malik
 
 ## Database Schema
 
@@ -65,7 +63,7 @@ npm run import-hadith -- --collection bukhari --start 1 --end 100 --no-skip
 
 ### Options
 
-- `--collection` (required) - Collection name: bukhari, muslim, nasai, tirmidhi, abudawud, ibnmajah, muwatta-malik
+- `--collection` (required) - Collection name: bukhari, muslim, nasai, tirmidhi, abudawud, ibnmajah
 - `--start` - Starting hadith number (default: 1)
 - `--end` - Ending hadith number
 - `--all` - Import all hadith (uses known collection limits)
@@ -78,12 +76,11 @@ npm run import-hadith -- --collection bukhari --start 1 --end 100 --no-skip
 The script uses these approximate limits when using `--all`:
 
 - **bukhari**: 7,563 hadith
-- **muslim**: 7,563 hadith
-- **nasai**: 5,762 hadith
+- **muslim**: 3,033 hadith
+- **nasai**: 5,758 hadith
 - **tirmidhi**: 3,956 hadith
 - **abudawud**: 5,274 hadith
 - **ibnmajah**: 4,341 hadith
-- **muwatta-malik**: 1,842 hadith
 
 ### Programmatic Usage
 

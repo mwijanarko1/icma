@@ -11,7 +11,6 @@ export const HADITH_COLLECTIONS = [
   'tirmidhi',
   'abudawud',
   'ibnmajah',
-  'muwatta-malik',
 ] as const;
 
 export type HadithCollection = typeof HADITH_COLLECTIONS[number];

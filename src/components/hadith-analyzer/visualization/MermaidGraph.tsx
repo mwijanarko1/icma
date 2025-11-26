@@ -46,8 +46,8 @@ cytoscape.use(dagre);
 
 // Function to create Cytoscape graph from chains
 const createCytoscapeGraph = (
-  container: HTMLElement,
-  chains: Chain[],
+  container: HTMLElement, 
+  chains: Chain[], 
   isDarkMode: boolean,
   onEdgeClickRef?: { current?: (chainIndices: number[]) => void },
   onEdgeHoverRef?: { current?: (chainIndices: number[]) => void }
@@ -427,7 +427,7 @@ const createCytoscapeGraph = (
     nodesByRank.forEach((nodes) => {
       // Get the average Y position for this rank
       const avgY = nodes.reduce((sum: number, node: cytoscape.NodeSingular) => sum + node.position('y'), 0) / nodes.length;
-
+      
       // Align all nodes in this rank to the same Y and sort by X
       nodes.forEach((node: cytoscape.NodeSingular) => {
         node.position('y', avgY);
@@ -523,8 +523,8 @@ export function MermaidGraph({
 
       // Create new Cytoscape instance
       cyRef.current = createCytoscapeGraph(
-        graphRef.current,
-        chains,
+        graphRef.current, 
+        chains, 
         isDarkMode,
         onEdgeClickRef,
         onEdgeHoverRef

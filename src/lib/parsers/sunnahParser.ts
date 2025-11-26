@@ -33,8 +33,9 @@ export function parseSunnahHTML(html: string): SunnahHadithData | null {
     let englishMatch = html.match(/<div class=["']?text_details["']?><p>([\s\S]*?)(?:<\/p>|<\/b>|<\/div>)/);
     if (!englishMatch) {
       // Try without <p> tag - text might be directly in the div
-      // Handle closing with </b></div> or just </div>
-      englishMatch = html.match(/<div class=["']?text_details["']?>([\s\S]*?)(?:<\/b>)?<\/div>/);
+      // Match everything until the closing </div> tag (handle cases where </b> appears in content)
+      // Use a more robust pattern that matches until the actual closing div
+      englishMatch = html.match(/<div class=["']?text_details["']?>([\s\S]*?)<\/div>/);
     }
     let englishTranslation = '';
     if (englishMatch) {
@@ -61,7 +62,11 @@ export function parseSunnahHTML(html: string): SunnahHadithData | null {
 
     // Extract Arabic hadith text (matn)
     // Handle both quoted and unquoted class attributes, and handle class="arabic_text_details arabic"
-    const arabicTextMatch = html.match(/<span class=["']?arabic_text_details[^"']*["']?>([\s\S]*?)<\/span>/);
+    let arabicTextMatch = html.match(/<span class=["']?arabic_text_details[^"']*["']?>([\s\S]*?)<\/span>/);
+    // Also try arabic_hadith_full (used in some collections like Ibn Majah)
+    if (!arabicTextMatch) {
+      arabicTextMatch = html.match(/<div class=["']?arabic_hadith_full[^"']*["']?>([\s\S]*?)<\/div>/);
+    }
     let arabicMatn = '';
     if (arabicTextMatch) {
       arabicMatn = arabicTextMatch[1]
@@ -79,7 +84,7 @@ export function parseSunnahHTML(html: string): SunnahHadithData | null {
       // Only sanad exists
       arabicText = arabicSanad;
     } else if (arabicMatn) {
-      // Only matn exists (or they're combined in arabic_text_details)
+      // Only matn exists (or they're combined in arabic_text_details or arabic_hadith_full)
       arabicText = arabicMatn;
     }
 
@@ -108,10 +113,14 @@ export function parseSunnahHTML(html: string): SunnahHadithData | null {
 /**
  * Constructs a sunnah.com URL for a given collection and hadith number
  * @param collection - The collection name (e.g., 'bukhari', 'muslim')
- * @param hadithNumber - The hadith number
+ * @param hadithNumber - The hadith number (can be number or string like "8a")
+ * @param isIntroduction - Whether this is an introduction narration
  * @returns The full URL
  */
-export function buildSunnahURL(collection: string, hadithNumber: number): string {
+export function buildSunnahURL(collection: string, hadithNumber: number | string, isIntroduction: boolean = false): string {
+  if (isIntroduction) {
+    return `https://sunnah.com/${collection}/introduction/${hadithNumber}`;
+  }
   return `https://sunnah.com/${collection}:${hadithNumber}`;
 }
 
