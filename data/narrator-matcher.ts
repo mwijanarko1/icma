@@ -1,6 +1,6 @@
 // Utility to match extracted narrators to database narrators
-import { getDatabase, closeDatabase } from './db';
-import { Narrator, ScholarlyOpinion } from './types';
+import { getDatabase, closeDatabase } from '@/data/db';
+import type { Narrator } from '@/data/types';
 
 export interface MatchedNarrator {
   narratorId: string;
@@ -491,7 +491,7 @@ export function findNarratorByName(arabicName: string, englishName?: string): Ma
       // This handles cases where user searches English but database has Arabic
       if (searchByEnglish && narrator.primary_arabic_name) {
         // Use a lower threshold for cross-language matching
-        const crossSim = calculateSimilarity(englishName, narrator.primary_arabic_name) * 0.7;
+        const crossSim = calculateSimilarity(englishName!, narrator.primary_arabic_name) * 0.7;
         if (crossSim > maxSimilarity) {
           maxSimilarity = crossSim;
           matchedName = narrator.primary_arabic_name;

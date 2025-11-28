@@ -4,7 +4,6 @@ import type { ReputationGrade } from '@/lib/grading/constants';
 export interface ReputationSelectorProps {
   selectedReputations: ReputationGrade[];
   onReputationChange: (reputations: ReputationGrade[]) => void;
-  isDarkMode: boolean;
 }
 
 export interface DraggableNarratorRowProps {
@@ -17,6 +16,5 @@ export interface DraggableNarratorRowProps {
   onViewNarratorDetails?: (narratorId: string) => void;
   onUnmatchNarrator?: (index: number) => void;
   onSearchNarrator?: (narratorIndex: number) => void;
-  isDarkMode: boolean;
 }
 

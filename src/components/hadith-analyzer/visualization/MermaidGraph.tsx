@@ -48,7 +48,6 @@ cytoscape.use(dagre);
 const createCytoscapeGraph = (
   container: HTMLElement, 
   chains: Chain[], 
-  isDarkMode: boolean,
   onEdgeClickRef?: { current?: (chainIndices: number[]) => void },
   onEdgeHoverRef?: { current?: (chainIndices: number[]) => void }
 ) => {
@@ -60,19 +59,19 @@ const createCytoscapeGraph = (
     chainIndexMap.set(visibleIndex, originalIndex);
   });
 
-  const chainColors = getChainColors(isDarkMode);
-  const bgColor = isDarkMode ? "#1f2937" : "#ffffff";
-  const textColor = isDarkMode ? "#ffffff" : "#111827";
-  const nodeBgColor = isDarkMode ? "#374151" : "#f3f4f6";
+  const chainColors = getChainColors();
+  const bgColor = "#ffffff";
+  const textColor = "#111827";
+  const nodeBgColor = "#f3f4f6";
 
   // Get grade color
   const getGradeColor = (grade: number | null) => {
     if (grade === null) return nodeBgColor;
-    if (grade >= 8) return isDarkMode ? "#10b981" : "#059669";
-    if (grade >= 6) return isDarkMode ? "#3b82f6" : "#2563eb";
-    if (grade >= 4) return isDarkMode ? "#f59e0b" : "#d97706";
-    if (grade >= 2) return isDarkMode ? "#f97316" : "#ea580c";
-    return isDarkMode ? "#ef4444" : "#dc2626";
+    if (grade >= 8) return "#059669";
+    if (grade >= 6) return "#2563eb";
+    if (grade >= 4) return "#d97706";
+    if (grade >= 2) return "#ea580c";
+    return "#dc2626";
   };
 
   // Collect unique narrators and their ranks
@@ -102,7 +101,7 @@ const createCytoscapeGraph = (
     const { narrator, rank, grade } = data;
     const gradeColor = getGradeColor(grade);
     const isMessenger = narrator.arabicName === "رَسُولَ اللَّهِ";
-    const bgColor = isMessenger ? (isDarkMode ? "#6b7280" : "#9ca3af") : gradeColor;
+    const bgColor = isMessenger ? "#9ca3af" : gradeColor;
     
     // Include both Arabic and English names
     nodes.push({
@@ -161,7 +160,7 @@ const createCytoscapeGraph = (
     // Use the first chain's color, or a neutral color if multiple chains share the edge
     const color = edgeData.colors.length === 1 
       ? edgeData.colors[0] 
-      : (isDarkMode ? "#9ca3af" : "#6b7280"); // Neutral gray for shared edges
+      : "#6b7280"; // Neutral gray for shared edges
     
     edges.push({
       data: {
@@ -209,7 +208,7 @@ const createCytoscapeGraph = (
         selector: 'node:selected',
         style: {
           'border-width': '8px',
-          'border-color': isDarkMode ? '#60a5fa' : '#2563eb'
+          'border-color': '#2563eb'
         }
       },
       {
@@ -289,11 +288,11 @@ const createCytoscapeGraph = (
     tooltip.className = 'cytoscape-tooltip';
     tooltip.style.cssText = `
       position: absolute;
-      background: ${isDarkMode ? '#1f2937' : '#ffffff'};
+      background: #ffffff;
       color: ${textColor};
       padding: 12px 16px;
       border-radius: 8px;
-      border: 2px solid ${isDarkMode ? '#374151' : '#e5e7eb'};
+      border: 2px solid #e5e7eb;
       box-shadow: 0 4px 6px rgba(0,0,0,0.1);
       z-index: 1000;
       font-size: 14px;
@@ -461,7 +460,6 @@ const createCytoscapeGraph = (
 export function MermaidGraph({
   chains,
   showVisualization,
-  isDarkMode,
   onHide,
   onEdgeClick,
   onEdgeHover,
@@ -482,7 +480,7 @@ export function MermaidGraph({
     if (cyRef.current) {
       const png = cyRef.current.png({ 
         output: 'blob',
-        bg: isDarkMode ? '#1f2937' : '#ffffff',
+        bg: '#ffffff',
         full: true
       });
       
@@ -525,7 +523,6 @@ export function MermaidGraph({
       cyRef.current = createCytoscapeGraph(
         graphRef.current, 
         chains, 
-        isDarkMode,
         onEdgeClickRef,
         onEdgeHoverRef
       );
@@ -537,7 +534,7 @@ export function MermaidGraph({
         cyRef.current = null;
       }
     };
-  }, [showVisualization, chains, isDarkMode, highlightedChainIds]);
+  }, [showVisualization, chains, highlightedChainIds]);
 
   // Update highlighting when highlightedChainIds changes
   useEffect(() => {
@@ -552,8 +549,8 @@ export function MermaidGraph({
       if (belongsToHighlighted && highlightedChainIds.length > 0) {
         edge.style('opacity', '1');
         edge.style('width', '4px');
-        edge.style('line-color', isDarkMode ? '#60a5fa' : '#2563eb');
-        edge.style('target-arrow-color', isDarkMode ? '#60a5fa' : '#2563eb');
+        edge.style('line-color', '#2563eb');
+        edge.style('target-arrow-color', '#2563eb');
       } else {
         const originalColor = edge.data('color');
         edge.style('opacity', '0.6');
@@ -562,44 +559,47 @@ export function MermaidGraph({
         edge.style('target-arrow-color', originalColor);
       }
     });
-  }, [highlightedChainIds, chains, isDarkMode, showVisualization]);
+  }, [highlightedChainIds, chains, showVisualization]);
 
 
   if (!showVisualization || chains.length === 0) return null;
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
+    <div className="rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 border-2 border-black bg-white mb-6 mt-6" style={{ boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(0, 0, 0, 0.1)' }}>
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-          Chain Spider Diagram
+        <h2 className="text-xl font-semibold" style={{ fontFamily: 'var(--font-title)', color: '#000000' }}>
+          Chain Diagram
         </h2>
         <div className="flex gap-2">
           <button
             onClick={handleResetZoom}
-            className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition-colors flex items-center gap-2 text-sm font-medium"
+            className="px-4 py-2 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-black flex items-center gap-2 text-sm font-semibold"
+            style={{ backgroundColor: '#000000', color: '#f2e9dd', fontFamily: 'var(--font-content)' }}
             title="Reset zoom and pan"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
             </svg>
-            <span className="hidden sm:inline">Reset View</span>
+            <span className="hidden sm:inline">Reset</span>
             <span className="sm:hidden">Reset</span>
           </button>
           <button
             onClick={handleDownload}
-            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors flex items-center gap-2 text-sm font-medium"
+            className="px-4 py-2 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-black flex items-center gap-2 text-sm font-semibold"
+            style={{ backgroundColor: '#000000', color: '#f2e9dd', fontFamily: 'var(--font-content)' }}
             title="Download chain diagram as PNG"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
-            <span className="hidden sm:inline">Download Diagram</span>
+            <span className="hidden sm:inline">Download</span>
             <span className="sm:hidden">Download</span>
           </button>
           {onHide && (
             <button
               onClick={onHide}
-              className="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 transition-colors flex items-center gap-2 text-sm font-medium"
+              className="px-4 py-2 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-black flex items-center gap-2 text-sm font-semibold"
+              style={{ backgroundColor: '#000000', color: '#f2e9dd', fontFamily: 'var(--font-content)' }}
               title="Hide visualization"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -612,12 +612,12 @@ export function MermaidGraph({
       </div>
 
       {/* Cytoscape Graph */}
-      <div className="bg-gray-100 dark:bg-gray-900 rounded-lg p-4 mb-4">
-        <div ref={graphRef} className="w-full h-[800px] border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800"></div>
+      <div className="bg-gray-100 rounded-lg p-4 mb-4 border-2 border-black">
+        <div ref={graphRef} className="w-full h-[800px] border-2 border-black rounded-lg bg-white"></div>
 
         {/* Instructions */}
-        <div className="mt-4 text-xs text-gray-500 dark:text-gray-400">
-          💡 Narrators are organized by rank (position in chain). Hover over nodes to see full details. Edges show chain connections - numbers indicate multiple chains sharing the same path. Pan by dragging, zoom with mouse wheel/pinch, or use Reset View to return to default.
+        <div className="mt-4 text-xs" style={{ fontFamily: 'var(--font-content)', color: '#000000', opacity: 0.7 }}>
+          💡 Narrators are organized by rank (position in chain). Hover over nodes to see full details. Edges show chain connections - numbers indicate multiple chains sharing the same path. Pan by dragging, zoom with mouse wheel/pinch, or use Reset to return to default.
         </div>
       </div>
     </div>

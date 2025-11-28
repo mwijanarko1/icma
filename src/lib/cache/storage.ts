@@ -93,11 +93,11 @@ export const saveApiKey = (apiKey: string): void => {
 };
 
 // Load cached active tab
-export const loadCachedActiveTab = (): 'llm' | 'manual' | 'narrators' | null => {
+export const loadCachedActiveTab = (): 'llm' | 'manual' | 'narrators' | 'hadith' | 'settings' | null => {
   try {
     const cached = localStorage.getItem(CACHE_KEYS.ACTIVE_TAB);
-    if (cached && (cached === 'llm' || cached === 'manual' || cached === 'narrators')) {
-      return cached as 'llm' | 'manual' | 'narrators';
+    if (cached && (cached === 'llm' || cached === 'manual' || cached === 'narrators' || cached === 'hadith' || cached === 'settings')) {
+      return cached as 'llm' | 'manual' | 'narrators' | 'hadith' | 'settings';
     }
     return null;
   } catch (error) {
@@ -107,7 +107,7 @@ export const loadCachedActiveTab = (): 'llm' | 'manual' | 'narrators' | null => 
 };
 
 // Save active tab to cache
-export const saveActiveTab = (tab: 'llm' | 'manual' | 'narrators' | 'hadith'): void => {
+export const saveActiveTab = (tab: 'llm' | 'manual' | 'narrators' | 'hadith' | 'settings'): void => {
   try {
     localStorage.setItem(CACHE_KEYS.ACTIVE_TAB, tab);
   } catch (error) {

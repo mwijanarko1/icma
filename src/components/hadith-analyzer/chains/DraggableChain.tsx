@@ -29,19 +29,18 @@ export function DraggableChain({
   handleDragEnd,
   actions,
   editingChainId,
-  isDarkMode,
   state,
   dispatch,
   globalActions
 }: DraggableChainProps) {
   // Memoize services to prevent recreation on every render and stale closures
   const narratorService = useMemo(
-    () => createNarratorService(state, dispatch, globalActions, generateMermaidCode, isDarkMode),
-    [state, dispatch, globalActions, isDarkMode]
+    () => createNarratorService(state, dispatch, globalActions, generateMermaidCode),
+    [state, dispatch, globalActions]
   );
   const chainService = useMemo(
-    () => createChainService(state, dispatch, globalActions, isDarkMode),
-    [state, dispatch, globalActions, isDarkMode]
+    () => createChainService(state, dispatch, globalActions),
+    [state, dispatch, globalActions]
   );
 
   // Extract needed state
@@ -78,38 +77,45 @@ export function DraggableChain({
     <div
       ref={setNodeRef}
       data-chain-id={chain.id}
-      style={style}
+      style={{
+        ...style,
+        ...(isDragging
+          ? { boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(0, 0, 0, 0.1)' }
+          : isHighlighted
+          ? { boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(0, 0, 0, 0.1)' }
+          : { boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(0, 0, 0, 0.1)' })
+      }}
       className={
         isDragging
-          ? 'bg-white dark:bg-gray-800 rounded-lg shadow-lg ring-2 ring-blue-400 dark:ring-blue-500'
+          ? 'bg-white rounded-xl sm:rounded-2xl border-2 border-black ring-2 ring-blue-400 w-full min-w-0 max-w-full'
           : isHighlighted
-          ? 'bg-white dark:bg-gray-800 rounded-lg shadow-lg ring-4 ring-blue-500 dark:ring-blue-400 border-2 border-blue-500 dark:border-blue-400'
-          : 'bg-white dark:bg-gray-800 rounded-lg shadow-md'
+          ? 'bg-white rounded-xl sm:rounded-2xl border-2 border-black ring-4 ring-blue-500 w-full min-w-0 max-w-full'
+          : 'bg-white rounded-xl sm:rounded-2xl border-2 border-black w-full min-w-0 max-w-full'
       }
     >
       {/* Chain Header - Always Visible */}
       <div
-        className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+        className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 sm:p-6 border-b-2 border-black cursor-pointer hover:bg-gray-50 transition-colors gap-3 sm:gap-0"
         onClick={() => actions.onToggleCollapse(chain.id)}
         aria-label={isCollapsed ? "Expand chain" : "Collapse chain"}
       >
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 min-w-0 flex-1">
           {/* Drag Handle */}
           <button
             {...attributes}
             {...listeners}
-            className={`p-2 rounded-md border group ${
+            className={`p-2 rounded-md border-2 group flex-shrink-0 ${
               isDragging
-                ? 'bg-blue-200 dark:bg-blue-800 border-blue-400 dark:border-blue-500 shadow-md'
-                : 'hover:bg-blue-100 dark:hover:bg-blue-900/50 border-transparent hover:border-blue-300 dark:hover:border-blue-600'
+                ? 'bg-blue-200 border-blue-400 shadow-md'
+                : 'hover:bg-blue-100 border-black hover:border-blue-300'
             }`}
             aria-label="Drag to reorder chain"
             title="Drag to reorder chain"
           >
             <svg className={`w-4 h-4 ${
               isDragging
-                ? 'text-blue-700 dark:text-blue-300'
-                : 'text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400'
+                ? 'text-blue-700'
+                : 'text-gray-500 group-hover:text-blue-600'
             }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
               <circle cx="9" cy="12" r="1.5" fill="currentColor" />
@@ -117,9 +123,10 @@ export function DraggableChain({
             </svg>
           </button>
 
-          <div className="p-1">
+          <div className="p-1 flex-shrink-0">
             <svg
-              className={`w-4 h-4 text-gray-500 dark:text-gray-400 transform transition-transform ${isCollapsed ? 'rotate-0' : 'rotate-90'}`}
+              className={`w-4 h-4 transform transition-transform ${isCollapsed ? 'rotate-0' : 'rotate-90'}`}
+              style={{ color: '#000000', opacity: 0.6 }}
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -127,25 +134,27 @@ export function DraggableChain({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           </div>
-          <h3 className={`text-lg font-medium ${chain.hiddenFromVisualization ? 'text-gray-400 dark:text-gray-500 line-through' : 'text-gray-900 dark:text-white'}`}>
-            {chain.title || `Chain ${chainIndex + 1}`}
-            {chain.hiddenFromVisualization && (
-              <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400">
-                Hidden from diagram
-              </span>
-            )}
-            {chain.title?.includes('(Demo)') && (
-              <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300">
-                <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                Demo
-              </span>
-            )}
+          <h3 className={`text-lg font-medium min-w-0 ${chain.hiddenFromVisualization ? 'line-through' : ''}`} style={{ fontFamily: 'var(--font-title)', color: chain.hiddenFromVisualization ? '#000000' : '#000000', opacity: chain.hiddenFromVisualization ? 0.5 : 1 }}>
+            <span className="truncate block">{chain.title || `Chain ${chainIndex + 1}`}</span>
+            <span className="flex flex-wrap items-center gap-2 mt-1">
+              {chain.hiddenFromVisualization && (
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 flex-shrink-0" style={{ fontFamily: 'var(--font-content)', color: '#000000', opacity: 0.6 }}>
+                  Hidden from diagram
+                </span>
+              )}
+              {chain.title?.includes('(Demo)') && (
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 flex-shrink-0" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>
+                  <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Demo
+                </span>
+              )}
+            </span>
           </h3>
         </div>
 
-        <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center gap-2 flex-wrap flex-shrink-0" onClick={(e) => e.stopPropagation()}>
           {!isEditing && (
             <>
           <button
@@ -155,9 +164,10 @@ export function DraggableChain({
             }}
             className={`text-sm font-medium px-3 py-1 rounded-md transition-colors flex items-center gap-1 ${
               chain.hiddenFromVisualization
-                ? 'text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-900/20'
-                : 'text-purple-600 hover:text-purple-800 dark:text-purple-400 dark:hover:text-purple-300 hover:bg-purple-50 dark:hover:bg-purple-900/20'
+                ? 'hover:bg-gray-50'
+                : 'hover:bg-purple-50'
             }`}
+            style={{ fontFamily: 'var(--font-content)', color: chain.hiddenFromVisualization ? '#000000' : '#000000', opacity: chain.hiddenFromVisualization ? 0.6 : 1 }}
             title={chain.hiddenFromVisualization ? "Show in diagram" : "Hide from diagram"}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -176,7 +186,8 @@ export function DraggableChain({
               e.stopPropagation();
               actions.onEdit(chain.id);
             }}
-            className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-sm font-medium px-3 py-1 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+            className="text-sm font-medium px-3 py-1 rounded-md hover:bg-blue-50 transition-colors"
+            style={{ fontFamily: 'var(--font-content)', color: '#000000' }}
           >
             Edit
           </button>
@@ -185,7 +196,8 @@ export function DraggableChain({
               e.stopPropagation();
               actions.onMatchNarrators(chain.id);
             }}
-            className="text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300 text-sm font-medium px-3 py-1 rounded-md hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors flex items-center gap-1"
+            className="text-sm font-medium px-3 py-1 rounded-md hover:bg-green-50 transition-colors flex items-center gap-1"
+            style={{ fontFamily: 'var(--font-content)', color: '#000000' }}
             title="Match narrators to database and auto-assign grades"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -198,7 +210,8 @@ export function DraggableChain({
               e.stopPropagation();
               actions.onRemove(chain.id);
             }}
-            className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 text-sm font-medium px-3 py-1 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+            className="text-sm font-medium px-3 py-1 rounded-md hover:bg-red-50 transition-colors"
+            style={{ fontFamily: 'var(--font-content)', color: '#000000' }}
           >
             Remove
           </button>
@@ -211,7 +224,8 @@ export function DraggableChain({
                   e.stopPropagation();
                   chainService.handleSaveEdit();
                 }}
-                className="bg-green-600 text-white px-3 py-1 rounded-md hover:bg-green-700 text-sm font-medium transition-colors"
+                className="px-3 py-1 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-black text-sm font-semibold"
+                style={{ backgroundColor: '#000000', color: '#f2e9dd', fontFamily: 'var(--font-content)' }}
               >
                 Save
               </button>
@@ -220,7 +234,8 @@ export function DraggableChain({
                   e.stopPropagation();
                   chainService.handleCancelEdit();
                 }}
-                className="bg-gray-600 text-white px-3 py-1 rounded-md hover:bg-gray-700 text-sm font-medium transition-colors"
+                className="px-3 py-1 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-black text-sm font-semibold"
+                style={{ backgroundColor: '#f2e9dd', color: '#000000', fontFamily: 'var(--font-content)' }}
               >
                 Cancel
           </button>
@@ -231,38 +246,37 @@ export function DraggableChain({
 
       {/* Chain Content - Collapsible */}
       {!isCollapsed && (
-        <div className="p-6">
+        <div className="p-4 sm:p-6">
           {isEditing ? (
             /* Edit Mode */
             <div className="space-y-4">
               {/* Chain Title Input */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium mb-2" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>
                   Chain Title
                 </label>
                 <input
                   type="text"
                   value={editFormData.title}
                   onChange={(e) => dispatch(globalActions.setEditFormData({ ...editFormData, title: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                  className="w-full px-3 py-2 border-2 border-black rounded-lg focus:outline-none focus:ring-2 focus:ring-black bg-white text-gray-900"
+                  style={{ fontFamily: 'var(--font-content)' }}
                   placeholder="Enter chain title..."
                 />
           </div>
 
           {/* Chain Text (Sanad) Input - Above Narrator Table */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium mb-2" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>
                   Chain (Sanad)
                 </label>
                 <textarea
                   value={editFormData.chainText}
                   onChange={(e) => dispatch(globalActions.setEditFormData({ ...editFormData, chainText: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-y min-h-[80px]"
+                  className="w-full px-3 py-2 border-2 border-black rounded-lg focus:outline-none focus:ring-2 focus:ring-black bg-white text-gray-900 resize-y min-h-[80px]"
+                  style={{ fontFamily: 'var(--font-content)' }}
                   placeholder="Enter chain text (sanad)..."
                   dir={/[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/.test(editFormData.chainText) ? 'rtl' : 'ltr'}
-                  style={{
-                    textAlign: /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/.test(editFormData.chainText) ? 'right' : 'left'
-                  }}
                 />
               </div>
 
@@ -274,15 +288,15 @@ export function DraggableChain({
                   onDragStart={handleDragStart}
                   onDragEnd={handleDragEnd}
                 >
-                  <table className="min-w-full border border-gray-300 dark:border-gray-600" style={{ transition: 'none' }}>
+                  <table className="min-w-full border-2 border-black" style={{ transition: 'none' }}>
                     <thead>
-                      <tr className="bg-gray-50 dark:bg-gray-700">
-                        <th className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-700 dark:text-gray-300">Number</th>
-                        <th className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-right font-medium text-gray-700 dark:text-gray-300">Arabic Name</th>
-                        <th className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-700 dark:text-gray-300">English Name</th>
-                        <th className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center font-medium text-gray-700 dark:text-gray-300">Reputation</th>
-                        <th className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center font-medium text-gray-700 dark:text-gray-300">Calculated Grade</th>
-                        <th className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center font-medium text-gray-700 dark:text-gray-300">Actions</th>
+                      <tr className="bg-gray-50">
+                        <th className="border-2 border-black px-4 py-2 text-left font-medium" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>Number</th>
+                        <th className="border-2 border-black px-4 py-2 text-right font-medium" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>Arabic Name</th>
+                        <th className="border-2 border-black px-4 py-2 text-left font-medium" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>English Name</th>
+                        <th className="border-2 border-black px-4 py-2 text-center font-medium" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>Reputation</th>
+                        <th className="border-2 border-black px-4 py-2 text-center font-medium" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>Calculated Grade</th>
+                        <th className="border-2 border-black px-4 py-2 text-center font-medium" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>Actions</th>
                       </tr>
                     </thead>
                     <SortableContext
@@ -311,7 +325,6 @@ export function DraggableChain({
                             onViewNarratorDetails={narratorService.handleViewNarratorDetails}
                             onUnmatchNarrator={narratorService.handleUnmatchNarratorEdit}
                             onSearchNarrator={(index) => narratorService.handleOpenNarratorSearch(index, chain.id, true)}
-                            isDarkMode={isDarkMode}
                           />
                         ))}
                       </tbody>
@@ -319,13 +332,13 @@ export function DraggableChain({
                   </table>
                   <DragOverlay>
                     {activeNarrator ? (
-                      <table className="min-w-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 shadow-xl rounded-lg" style={{ transition: 'none' }}>
+                      <table className="min-w-full border-2 border-black bg-white shadow-xl rounded-lg" style={{ transition: 'none' }}>
                         <tbody style={{ transition: 'none' }}>
-                          <tr style={{ transition: 'none' }} className="bg-blue-100 dark:bg-blue-900/30 ring-2 ring-blue-400 dark:ring-blue-500">
-                            <td style={{ transition: 'none' }} className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center text-gray-900 dark:text-white">
+                          <tr style={{ transition: 'none' }} className="bg-blue-100 ring-2 ring-blue-400">
+                            <td style={{ transition: 'none', fontFamily: 'var(--font-content)', color: '#000000' }} className="border-2 border-black px-4 py-2 text-center">
                               <div className="flex items-center justify-center gap-2">
-                                <div className="p-2 rounded-md border border-blue-300 dark:border-blue-600">
-                                  <svg className="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <div className="p-2 rounded-md border-2 border-blue-300">
+                                  <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
                                     <circle cx="9" cy="12" r="1.5" fill="currentColor" />
                                     <circle cx="15" cy="12" r="1.5" fill="currentColor" />
@@ -334,15 +347,15 @@ export function DraggableChain({
                                 {activeNarrator.number}
                               </div>
                             </td>
-                            <td style={{ transition: 'none' }} className="border border-gray-300 dark:border-gray-600 px-4 py-2">
-                              <span className="text-gray-900 dark:text-white text-right block" dir="rtl">{activeNarrator.arabicName}</span>
+                            <td style={{ transition: 'none' }} className="border-2 border-black px-4 py-2">
+                              <span className="text-right block" style={{ fontFamily: 'var(--font-content)', color: '#000000' }} dir="rtl">{activeNarrator.arabicName}</span>
                             </td>
-                            <td style={{ transition: 'none' }} className="border border-gray-300 dark:border-gray-600 px-4 py-2">
-                              <span className="text-gray-900 dark:text-white">{activeNarrator.englishName}</span>
+                            <td style={{ transition: 'none' }} className="border-2 border-black px-4 py-2">
+                              <span style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>{activeNarrator.englishName}</span>
                             </td>
-                            <td style={{ transition: 'none' }} className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center">
-                              <div className="p-2 rounded-md border border-blue-300 dark:border-blue-600">
-                                <svg className="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <td style={{ transition: 'none' }} className="border-2 border-black px-4 py-2 text-center">
+                              <div className="p-2 rounded-md border-2 border-blue-300">
+                                <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
                                   <circle cx="9" cy="12" r="1.5" fill="currentColor" />
                                   <circle cx="15" cy="12" r="1.5" fill="currentColor" />
@@ -356,7 +369,7 @@ export function DraggableChain({
                   </DragOverlay>
                 </DndContext>
                 {editFormData.narrators.length > 1 && (
-                  <div className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                  <div className="mt-2 text-sm" style={{ fontFamily: 'var(--font-content)', color: '#000000', opacity: 0.6 }}>
                     💡 Drag the handle (≡) to reorder narrators • Use Tab to navigate, Space/Enter to grab/release
                   </div>
                 )}
@@ -366,17 +379,17 @@ export function DraggableChain({
                   const chainGrade = calculateChainGrade(editFormData.narrators);
                   
                   return (
-                    <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                    <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border-2 border-black">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-                            <svg className="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <div className="p-2 bg-blue-100 rounded-lg">
+                            <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                           </div>
                           <div>
-                            <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">Chain Grade</h4>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">Average of all narrator grades</p>
+                            <h4 className="text-sm font-medium" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>Chain Grade</h4>
+                            <p className="text-xs" style={{ fontFamily: 'var(--font-content)', color: '#000000', opacity: 0.7 }}>Average of all narrator grades</p>
                           </div>
                         </div>
                         <div className="text-right">
@@ -391,10 +404,10 @@ export function DraggableChain({
                             </>
                           ) : (
                             <>
-                              <div className="text-2xl font-bold text-gray-400 dark:text-gray-500">
+                              <div className="text-2xl font-bold" style={{ fontFamily: 'var(--font-content)', color: '#000000', opacity: 0.4 }}>
                                 --
                               </div>
-                              <div className="text-xs font-medium text-gray-400 dark:text-gray-500">
+                              <div className="text-xs font-medium" style={{ fontFamily: 'var(--font-content)', color: '#000000', opacity: 0.4 }}>
                                 Insufficient data
                               </div>
                             </>
@@ -405,29 +418,14 @@ export function DraggableChain({
                   );
                 })()}
 
-                {/* Matn (Hadith Text) Input - Below Chain Grade */}
-                <div className="mt-4">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Matn (Hadith Text)
-                  </label>
-                  <textarea
-                    value={editFormData.matn}
-                    onChange={(e) => dispatch(globalActions.setEditFormData({ ...editFormData, matn: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-y min-h-[80px]"
-                    placeholder="Enter matn (hadith text)..."
-                    dir={/[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/.test(editFormData.matn) ? 'rtl' : 'ltr'}
-                    style={{
-                      textAlign: /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/.test(editFormData.matn) ? 'right' : 'left'
-                    }}
-                  />
-                </div>
 
                 {/* Add Narrator Section */}
-                <div className="mt-4 border-t border-gray-200 dark:border-gray-700 pt-4">
+                <div className="mt-4 border-t-2 border-black pt-4">
                   {!showAddNarrator ? (
                     <button
                       onClick={() => dispatch(globalActions.setShowAddNarrator(true))}
-                      className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors flex items-center gap-2"
+                      className="px-4 py-2 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-black flex items-center gap-2 font-semibold"
+                      style={{ backgroundColor: '#000000', color: '#f2e9dd', fontFamily: 'var(--font-content)' }}
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -435,40 +433,42 @@ export function DraggableChain({
                       Add Narrator
                     </button>
                   ) : (
-                    <div className="space-y-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                      <h4 className="font-medium text-gray-900 dark:text-white">Add New Narrator</h4>
+                    <div className="space-y-3 p-4 bg-gray-50 rounded-lg border-2 border-black">
+                      <h4 className="font-medium" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>Add New Narrator</h4>
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                          <label className="block text-sm font-medium mb-1" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>
                             Arabic Name
                           </label>
                           <input
                             type="text"
                             value={newNarrator.arabicName}
                             onChange={(e) => dispatch(globalActions.setNewNarrator({ ...newNarrator, arabicName: e.target.value }))}
-                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                            className="w-full px-3 py-2 border-2 border-black rounded-lg focus:outline-none focus:ring-2 focus:ring-black bg-white text-gray-900"
+                            style={{ fontFamily: 'var(--font-content)' }}
                             placeholder="Enter Arabic name..."
                             dir="rtl"
                           />
                         </div>
 
                         <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                          <label className="block text-sm font-medium mb-1" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>
                             English Name
                           </label>
                           <input
                             type="text"
                             value={newNarrator.englishName}
                             onChange={(e) => dispatch(globalActions.setNewNarrator({ ...newNarrator, englishName: e.target.value }))}
-                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                            className="w-full px-3 py-2 border-2 border-black rounded-lg focus:outline-none focus:ring-2 focus:ring-black bg-white text-gray-900"
+                            style={{ fontFamily: 'var(--font-content)' }}
                             placeholder="Enter English name..."
                           />
                         </div>
                       </div>
                       
                       <div className="mt-3">
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        <label className="block text-sm font-medium mb-1" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>
                           Reputation
                         </label>
                         <ReputationSelector
@@ -478,7 +478,6 @@ export function DraggableChain({
                             reputation,
                             calculatedGrade: calculateNarratorGrade(reputation)
                           }))}
-                          isDarkMode={isDarkMode}
                         />
                       </div>
 
@@ -486,13 +485,15 @@ export function DraggableChain({
                         <button
                           onClick={narratorService.handleAddNarrator}
                           disabled={!newNarrator.arabicName.trim() || !newNarrator.englishName.trim()}
-                          className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed transition-colors"
+                          className="px-4 py-2 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-black font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                          style={{ backgroundColor: '#000000', color: '#f2e9dd', fontFamily: 'var(--font-content)' }}
                         >
                           Add Narrator
                         </button>
                         <button
                           onClick={narratorService.handleCancelAddNarrator}
-                          className="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 transition-colors"
+                          className="px-4 py-2 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-black font-semibold"
+                          style={{ backgroundColor: '#f2e9dd', color: '#000000', fontFamily: 'var(--font-content)' }}
                         >
                           Cancel
                         </button>
@@ -507,32 +508,36 @@ export function DraggableChain({
             <div className="space-y-4">
               {/* Chain Text (Sanad) - Above Narrator Table */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium mb-2" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>
                   Chain (Sanad)
                 </label>
-                <div className="p-3 bg-gray-50 dark:bg-gray-900 rounded-md border border-gray-200 dark:border-gray-700">
+                <div className="p-3 bg-gray-50 rounded-lg border-2 border-black overflow-visible">
                   <p 
-                    className="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-wrap break-words" 
-                    dir={/[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/.test(chain.chainText) ? 'rtl' : 'ltr'}
-                    style={{
-                      textAlign: /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/.test(chain.chainText) ? 'right' : 'left'
+                    className="text-sm whitespace-pre-wrap break-words overflow-visible" 
+                    style={{ 
+                      fontFamily: 'var(--font-content)', 
+                      color: '#000000',
+                      wordBreak: 'break-word',
+                      overflowWrap: 'break-word',
+                      maxWidth: '100%'
                     }}
+                    dir={/[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/.test(chain.chainText) ? 'rtl' : 'ltr'}
                   >
-                    {chain.chainText || <span className="text-gray-400 dark:text-gray-500 italic">No chain text</span>}
+                    {chain.chainText || <span className="italic" style={{ opacity: 0.6 }}>No chain text</span>}
                   </p>
                 </div>
               </div>
 
         {/* Narrators Table */}
         <div className="overflow-x-auto">
-          <table className="min-w-full border border-gray-300 dark:border-gray-600">
+          <table className="min-w-full border-2 border-black">
             <thead>
-              <tr className="bg-gray-50 dark:bg-gray-700">
-                <th className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-700 dark:text-gray-300">Number</th>
-                <th className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-right font-medium text-gray-700 dark:text-gray-300">Narrator Name</th>
-                <th className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-700 dark:text-gray-300">English Name</th>
-                <th className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center font-medium text-gray-700 dark:text-gray-300">Reputation</th>
-                <th className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center font-medium text-gray-700 dark:text-gray-300">Calculated Grade</th>
+              <tr className="bg-gray-50">
+                <th className="border-2 border-black px-4 py-2 text-left font-medium" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>Number</th>
+                <th className="border-2 border-black px-4 py-2 text-right font-medium" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>Narrator Name</th>
+                <th className="border-2 border-black px-4 py-2 text-left font-medium" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>English Name</th>
+                <th className="border-2 border-black px-4 py-2 text-center font-medium" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>Reputation</th>
+                <th className="border-2 border-black px-4 py-2 text-center font-medium" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>Calculated Grade</th>
               </tr>
             </thead>
             <tbody>
@@ -557,14 +562,13 @@ export function DraggableChain({
                       : c
                   );
                   dispatch(globalActions.setChains(updatedChains));
-                  const graphCode = generateMermaidCode(updatedChains, isDarkMode);
+                  const graphCode = generateMermaidCode(updatedChains);
                   dispatch(globalActions.setMermaidCode(graphCode));
                 }}
                 onRemoveNarrator={undefined} // Not shown in view mode
                 onViewNarratorDetails={narratorService.handleViewNarratorDetails}
                 onUnmatchNarrator={(index) => narratorService.handleUnmatchNarratorView(index, chain.id)}
                 onSearchNarrator={(index) => narratorService.handleOpenNarratorSearch(index, chain.id, false)}
-                isDarkMode={isDarkMode}
               />
             ))}
             </tbody>
@@ -576,17 +580,17 @@ export function DraggableChain({
           const chainGrade = calculateChainGrade(chain.narrators);
           
           return (
-            <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+            <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border-2 border-black">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-                    <svg className="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <div className="p-2 bg-blue-100 rounded-lg">
+                    <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                   </div>
                   <div>
-                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">Chain Grade</h4>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">Average of all narrator grades</p>
+                    <h4 className="text-sm font-medium" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>Chain Grade</h4>
+                    <p className="text-xs" style={{ fontFamily: 'var(--font-content)', color: '#000000', opacity: 0.7 }}>Average of all narrator grades</p>
                   </div>
                 </div>
                 <div className="text-right">
@@ -601,10 +605,10 @@ export function DraggableChain({
                     </>
                   ) : (
                     <>
-                      <div className="text-2xl font-bold text-gray-400 dark:text-gray-500">
+                      <div className="text-2xl font-bold" style={{ fontFamily: 'var(--font-content)', color: '#000000', opacity: 0.4 }}>
                         --
                       </div>
-                      <div className="text-xs font-medium text-gray-400 dark:text-gray-500">
+                      <div className="text-xs font-medium" style={{ fontFamily: 'var(--font-content)', color: '#000000', opacity: 0.4 }}>
                         Insufficient data
                       </div>
                     </>
@@ -615,23 +619,6 @@ export function DraggableChain({
           );
         })()}
 
-        {/* Matn (Hadith Text) - Below Chain Grade */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Matn (Hadith Text)
-          </label>
-          <div className="p-3 bg-gray-50 dark:bg-gray-900 rounded-md border border-gray-200 dark:border-gray-700">
-            <p 
-              className="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-wrap break-words" 
-              dir={/[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/.test(chain.matn) ? 'rtl' : 'ltr'}
-              style={{
-                textAlign: /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/.test(chain.matn) ? 'right' : 'left'
-              }}
-            >
-              {chain.matn || <span className="text-gray-400 dark:text-gray-500 italic">No matn text</span>}
-            </p>
-          </div>
-        </div>
       </div>
           )}
         </div>

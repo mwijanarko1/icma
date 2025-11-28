@@ -10,6 +10,83 @@ function normalizeHadithRecords(records: HadithRecord[]): HadithRecord[] {
 }
 
 /**
+ * Collection name variations mapping
+ * Maps common variations to the actual collection name
+ */
+const COLLECTION_VARIATIONS: Record<string, HadithCollection> = {
+  'bukhari': 'bukhari',
+  'sahih bukhari': 'bukhari',
+  'muslim': 'muslim',
+  'sahih muslim': 'muslim',
+  'nasai': 'nasai',
+  'nasa\'i': 'nasai',
+  'sunan nasai': 'nasai',
+  'tirmidhi': 'tirmidhi',
+  'jami tirmidhi': 'tirmidhi',
+  'abudawud': 'abudawud',
+  'abu dawud': 'abudawud',
+  'abi dawud': 'abudawud',
+  'sunan abu dawud': 'abudawud',
+  'sunan abi dawud': 'abudawud',
+  'ibnmajah': 'ibnmajah',
+  'ibn majah': 'ibnmajah',
+  'sunan ibn majah': 'ibnmajah',
+};
+
+/**
+ * Normalize collection name from query
+ * Handles variations like "abi dawud" -> "abudawud", "abu dawud" -> "abudawud"
+ */
+function normalizeCollectionName(query: string): { collection: HadithCollection; remainingQuery: string } | null {
+  const trimmed = query.trim().toLowerCase();
+  
+  // Try exact matches first
+  for (const [variation, collection] of Object.entries(COLLECTION_VARIATIONS)) {
+    if (trimmed.startsWith(variation)) {
+      const afterCollection = trimmed.slice(variation.length).trim();
+      return { collection, remainingQuery: afterCollection };
+    }
+  }
+  
+  // Try matching collection names directly
+  for (const collection of HADITH_COLLECTIONS) {
+    if (trimmed.startsWith(collection)) {
+      const afterCollection = trimmed.slice(collection.length).trim();
+      return { collection, remainingQuery: afterCollection };
+    }
+  }
+  
+  return null;
+}
+
+/**
+ * Parse collection name + hadith number from search query
+ * Examples: "tirmidhi 23", "muslim 8a", "bukhari 1", "abi dawud 23", "abu dawud 8a"
+ * Returns: { collection: 'tirmidhi', hadithNumber: '23', remainingQuery: '' } or null
+ */
+function parseCollectionAndNumber(query: string): { collection: HadithCollection; hadithNumber: string; remainingQuery: string } | null {
+  const trimmed = query.trim().toLowerCase();
+  
+  // First, try to normalize collection name (handles variations)
+  const collectionMatch = normalizeCollectionName(trimmed);
+  if (!collectionMatch) {
+    return null;
+  }
+  
+  const { collection, remainingQuery: afterCollection } = collectionMatch;
+  
+  // Match hadith number (with optional letter suffix like "8a")
+  const numberMatch = afterCollection.match(/^(\d+[a-z]?)\b/);
+  if (numberMatch) {
+    const hadithNumber = numberMatch[1];
+    const remaining = afterCollection.slice(numberMatch[0].length).trim();
+    return { collection, hadithNumber, remainingQuery: remaining };
+  }
+  
+  return null;
+}
+
+/**
  * Get sort order for Muslim hadith according to the special sequence:
  * 1-5 (regular), 8-14 (intro), 6-7 (regular), 17-92 (intro), 8+ (regular)
  */
@@ -187,9 +264,46 @@ export async function GET(request: NextRequest) {
       const limit = limitParam ? parseInt(limitParam, 10) : 50;
       const offset = offsetParam ? parseInt(offsetParam, 10) : 0;
 
+      // Check if query contains collection name + number (e.g., "tirmidhi 23", "muslim 8a")
+      const collectionMatch = parseCollectionAndNumber(searchQuery);
+      if (collectionMatch && collectionMatch.collection === hadithCollection) {
+        // Extract hadith number (may include letter suffix like "8a")
+        const hadithNumMatch = collectionMatch.hadithNumber.match(/^(\d+)([a-z])?$/);
+        if (hadithNumMatch) {
+          const baseNumber = parseInt(hadithNumMatch[1], 10);
+          const subVersion = hadithNumMatch[2] || null;
+          
+          const hadith = await withHadithDatabase(hadithCollection, (db) => {
+            if (subVersion) {
+              // Search for specific sub-version
+              const result = db.prepare(`
+                SELECT * FROM hadith
+                WHERE hadith_number = ? AND sub_version = ?
+              `).get(baseNumber, subVersion) as HadithRecord | undefined;
+              return result ? [result] : [];
+            } else {
+              // Search for all versions of this hadith number
+              return db.prepare(`
+                SELECT * FROM hadith
+                WHERE hadith_number = ?
+                ORDER BY COALESCE(sub_version, '')
+              `).all(baseNumber) as HadithRecord[];
+            }
+          });
+
+          return NextResponse.json({
+            success: true,
+            data: normalizeHadithRecords(hadith),
+            total: hadith.length,
+            limit,
+            offset: 0,
+            query: searchQuery,
+          });
+        }
+      }
+
       const result = await withHadithDatabase(hadithCollection, (db) => {
         // Check if search query is a number (for hadith number search)
-        // If it's a number, skip FTS5 and go straight to LIKE search
         const isNumber = !isNaN(Number(searchQuery)) && /^\d+$/.test(searchQuery.trim());
         
         if (isNumber) {
@@ -197,160 +311,189 @@ export async function GET(request: NextRequest) {
           const hadithNum = parseInt(searchQuery, 10);
           const likeQuery = `%${searchQuery}%`;
           
-          let hadith: HadithRecord[];
-          let total: number;
-
+          // Optimized query: search hadith number first (exact match), then text fields
           if (hadithCollection === 'muslim') {
-            // For Muslim, fetch all matching and sort using custom ordering
+            // For Muslim, we need custom ordering but can still optimize
             const allHadith = db.prepare(`
               SELECT * FROM hadith
-              WHERE hadith_number = ? OR english_translation LIKE ? OR arabic_text LIKE ? OR reference LIKE ?
-            `).all(hadithNum, likeQuery, likeQuery, likeQuery) as HadithRecord[];
+              WHERE hadith_number = ? OR english_translation LIKE ? OR arabic_text LIKE ? OR reference LIKE ? OR english_narrator LIKE ?
+            `).all(hadithNum, likeQuery, likeQuery, likeQuery, likeQuery) as HadithRecord[];
 
             // Sort using custom Muslim ordering
             allHadith.sort((a, b) => {
               // Exact match first
               const exactA = a.hadith_number === hadithNum ? 0 : 1;
               const exactB = b.hadith_number === hadithNum ? 0 : 1;
-              if (exactA !== exactB) {
-                return exactA - exactB;
-              }
+              if (exactA !== exactB) return exactA - exactB;
+              
               // Then by custom order
               const orderA = getMuslimSortOrder(a.hadith_number);
               const orderB = getMuslimSortOrder(b.hadith_number);
-              if (orderA !== orderB) {
-                return orderA - orderB;
-              }
+              if (orderA !== orderB) return orderA - orderB;
+              
               // Finally by sub_version
-              const subA = a.sub_version || '';
-              const subB = b.sub_version || '';
-              return subA.localeCompare(subB);
+              return (a.sub_version || '').localeCompare(b.sub_version || '');
             });
 
-            total = allHadith.length;
-            hadith = allHadith.slice(offset, offset + limit);
+            return {
+              hadith: allHadith.slice(offset, offset + limit),
+              total: allHadith.length,
+            };
           } else {
-            hadith = db.prepare(`
-            SELECT * FROM hadith
-            WHERE hadith_number = ? OR english_translation LIKE ? OR arabic_text LIKE ? OR reference LIKE ?
-            ORDER BY 
-              CASE WHEN hadith_number = ? THEN 0 ELSE 1 END,
+            const hadith = db.prepare(`
+              SELECT * FROM hadith
+              WHERE hadith_number = ? OR english_translation LIKE ? OR arabic_text LIKE ? OR reference LIKE ? OR english_narrator LIKE ?
+              ORDER BY 
+                CASE WHEN hadith_number = ? THEN 0 ELSE 1 END,
                 hadith_number,
                 COALESCE(sub_version, '')
-            LIMIT ? OFFSET ?
-            `).all(hadithNum, likeQuery, likeQuery, likeQuery, hadithNum, limit, offset) as HadithRecord[];
+              LIMIT ? OFFSET ?
+            `).all(hadithNum, likeQuery, likeQuery, likeQuery, likeQuery, hadithNum, limit, offset) as HadithRecord[];
 
             const totalResult = db.prepare(`
-            SELECT COUNT(*) as count FROM hadith
-            WHERE hadith_number = ? OR english_translation LIKE ? OR arabic_text LIKE ? OR reference LIKE ?
-          `).get(hadithNum, likeQuery, likeQuery, likeQuery) as { count: number };
-            total = totalResult.count;
-          }
+              SELECT COUNT(*) as count FROM hadith
+              WHERE hadith_number = ? OR english_translation LIKE ? OR arabic_text LIKE ? OR reference LIKE ? OR english_narrator LIKE ?
+            `).get(hadithNum, likeQuery, likeQuery, likeQuery, likeQuery) as { count: number };
 
-          return { hadith, total };
+            return { hadith, total: totalResult.count };
+          }
         }
         
-        // For text queries, try FTS5 first, then fall back to LIKE
-        // Escape special characters for FTS5
-        const escapedQuery = searchQuery.replace(/[^\w\s]/g, ' ').trim().split(/\s+/).join(' OR ');
-        const ftsQuery = `${escapedQuery}*`;
+        // For text queries, build FTS5 query properly
+        // FTS5 supports phrase search with quotes, and word search with AND/OR
+        const words = searchQuery.trim().split(/\s+/).filter(w => w.length > 0);
+        
+        // Build FTS5 query: use phrase search if query contains quotes, otherwise use AND logic
+        let ftsQuery: string;
+        if (searchQuery.includes('"')) {
+          // Phrase search - keep quotes and escape them for FTS5
+          ftsQuery = searchQuery.replace(/"/g, '"');
+        } else {
+          // Word search - use AND logic for better relevance
+          // Escape special FTS5 characters but preserve Arabic and English text
+          const escapedWords = words.map(word => {
+            // Escape FTS5 special characters: " ' * ^
+            // But preserve Arabic (U+0600-U+06FF) and English characters
+            return word
+              .replace(/"/g, '""')  // Escape double quotes
+              .replace(/'/g, "''")   // Escape single quotes
+              .replace(/\*/g, '')    // Remove asterisks (we'll add them if needed)
+              .replace(/\^/g, '');   // Remove caret
+          }).filter(w => w.length > 0);
+          
+          if (escapedWords.length === 0) {
+            // Fallback to LIKE if no valid words
+            throw new Error('No valid search terms');
+          }
+          
+          // Use AND logic for better relevance (all words must appear)
+          // FTS5 will handle Arabic and English text automatically
+          ftsQuery = escapedWords.join(' AND ');
+        }
         
         try {
-          let hadith: HadithRecord[];
-          let total: number;
-
-          if (hadithCollection === 'muslim') {
-            // For Muslim, fetch all matching and sort using custom ordering
-            const allHadith = db.prepare(`
-              SELECT h.* FROM hadith h
-              JOIN hadith_fts fts ON h.rowid = fts.rowid
-              WHERE hadith_fts MATCH ?
-            `).all(ftsQuery) as HadithRecord[];
-
-            // Sort using custom Muslim ordering
-            allHadith.sort((a, b) => {
-              const orderA = getMuslimSortOrder(a.hadith_number);
-              const orderB = getMuslimSortOrder(b.hadith_number);
-              if (orderA !== orderB) {
-                return orderA - orderB;
-              }
-              // If same order, sort by sub_version
-              const subA = a.sub_version || '';
-              const subB = b.sub_version || '';
-              return subA.localeCompare(subB);
-            });
-
-            total = allHadith.length;
-            hadith = allHadith.slice(offset, offset + limit);
-          } else {
-            hadith = db.prepare(`
-            SELECT h.* FROM hadith h
-            JOIN hadith_fts fts ON h.rowid = fts.rowid
-            WHERE hadith_fts MATCH ?
-              ORDER BY rank, h.hadith_number, COALESCE(h.sub_version, '')
-            LIMIT ? OFFSET ?
-            `).all(ftsQuery, limit, offset) as HadithRecord[];
-
-            const totalResult = db.prepare(`
+          // Get total count efficiently using FTS5 (this is fast with index)
+          const totalResult = db.prepare(`
             SELECT COUNT(*) as count FROM hadith h
             JOIN hadith_fts fts ON h.rowid = fts.rowid
             WHERE hadith_fts MATCH ?
           `).get(ftsQuery) as { count: number };
-            total = totalResult.count;
-          }
-
-          // If FTS5 returns results, use them
-          if (hadith.length > 0 || total > 0) {
-            return { hadith, total };
-          }
-          
-          // If FTS5 returns no results, fall back to LIKE search
-          throw new Error('FTS5 returned no results');
-        } catch {
-          // Fall back to LIKE search for text queries
-          const likeQuery = `%${searchQuery}%`;
-          
-          let hadith: HadithRecord[];
-          let total: number;
+          const total = totalResult.count;
 
           if (hadithCollection === 'muslim') {
-            // For Muslim, fetch all matching and sort using custom ordering
+            // For Muslim, we need custom ordering but can't do it efficiently in SQL
+            // Optimize by fetching a reasonable subset (top 5000 by relevance) for sorting
+            // This prevents fetching all 34k+ hadiths when searching common words
+            const maxResultsForSorting = Math.min(5000, total);
             const allHadith = db.prepare(`
-              SELECT * FROM hadith
-              WHERE english_translation LIKE ? OR arabic_text LIKE ? OR reference LIKE ?
-            `).all(likeQuery, likeQuery, likeQuery) as HadithRecord[];
+              SELECT h.* FROM hadith h
+              JOIN hadith_fts fts ON h.rowid = fts.rowid
+              WHERE hadith_fts MATCH ?
+              ORDER BY rank
+              LIMIT ?
+            `).all(ftsQuery, maxResultsForSorting) as HadithRecord[];
 
             // Sort using custom Muslim ordering
             allHadith.sort((a, b) => {
               const orderA = getMuslimSortOrder(a.hadith_number);
               const orderB = getMuslimSortOrder(b.hadith_number);
-              if (orderA !== orderB) {
-                return orderA - orderB;
-              }
-              // If same order, sort by sub_version
-              const subA = a.sub_version || '';
-              const subB = b.sub_version || '';
-              return subA.localeCompare(subB);
+              if (orderA !== orderB) return orderA - orderB;
+              return (a.sub_version || '').localeCompare(b.sub_version || '');
             });
 
-            total = allHadith.length;
-            hadith = allHadith.slice(offset, offset + limit);
+            return {
+              hadith: allHadith.slice(offset, offset + limit),
+              total: total, // Use actual total from FTS5 count
+            };
           } else {
-            hadith = db.prepare(`
-            SELECT * FROM hadith
-            WHERE english_translation LIKE ? OR arabic_text LIKE ? OR reference LIKE ?
-              ORDER BY hadith_number, sub_version
-            LIMIT ? OFFSET ?
-            `).all(likeQuery, likeQuery, likeQuery, limit, offset) as HadithRecord[];
+            // For other collections, use efficient SQL LIMIT/OFFSET
+            const hadith = db.prepare(`
+              SELECT h.* FROM hadith h
+              JOIN hadith_fts fts ON h.rowid = fts.rowid
+              WHERE hadith_fts MATCH ?
+              ORDER BY rank, h.hadith_number, COALESCE(h.sub_version, '')
+              LIMIT ? OFFSET ?
+            `).all(ftsQuery, limit, offset) as HadithRecord[];
 
-            const totalResult = db.prepare(`
-            SELECT COUNT(*) as count FROM hadith
-            WHERE english_translation LIKE ? OR arabic_text LIKE ? OR reference LIKE ?
-          `).get(likeQuery, likeQuery, likeQuery) as { count: number };
-            total = totalResult.count;
+            return { hadith, total };
           }
+        } catch {
+          // Fall back to LIKE search for text queries
+          // Search in all relevant fields including narrator
+          const likeQuery = `%${searchQuery}%`;
+          
+          // Get total count first (needed for pagination)
+          const totalResult = db.prepare(`
+            SELECT COUNT(*) as count FROM hadith
+            WHERE english_translation LIKE ? 
+              OR arabic_text LIKE ? 
+              OR reference LIKE ? 
+              OR english_narrator LIKE ?
+              OR in_book_reference LIKE ?
+          `).get(likeQuery, likeQuery, likeQuery, likeQuery, likeQuery) as { count: number };
+          const total = totalResult.count;
+          
+          if (hadithCollection === 'muslim') {
+            // For Muslim, limit results before sorting to avoid fetching all 34k+ hadiths
+            // Fetch top 5000 results, sort them, then paginate
+            const maxResultsForSorting = Math.min(5000, total);
+            const allHadith = db.prepare(`
+              SELECT * FROM hadith
+              WHERE english_translation LIKE ? 
+                OR arabic_text LIKE ? 
+                OR reference LIKE ? 
+                OR english_narrator LIKE ?
+                OR in_book_reference LIKE ?
+              LIMIT ?
+            `).all(likeQuery, likeQuery, likeQuery, likeQuery, likeQuery, maxResultsForSorting) as HadithRecord[];
 
-          return { hadith, total };
+            // Sort using custom Muslim ordering
+            allHadith.sort((a, b) => {
+              const orderA = getMuslimSortOrder(a.hadith_number);
+              const orderB = getMuslimSortOrder(b.hadith_number);
+              if (orderA !== orderB) return orderA - orderB;
+              return (a.sub_version || '').localeCompare(b.sub_version || '');
+            });
+
+            return {
+              hadith: allHadith.slice(offset, offset + limit),
+              total: total, // Use actual total count
+            };
+          } else {
+            // For other collections, use efficient SQL LIMIT/OFFSET
+            const hadith = db.prepare(`
+              SELECT * FROM hadith
+              WHERE english_translation LIKE ? 
+                OR arabic_text LIKE ? 
+                OR reference LIKE ? 
+                OR english_narrator LIKE ?
+                OR in_book_reference LIKE ?
+              ORDER BY hadith_number, sub_version
+              LIMIT ? OFFSET ?
+            `).all(likeQuery, likeQuery, likeQuery, likeQuery, likeQuery, limit, offset) as HadithRecord[];
+
+            return { hadith, total };
+          }
         }
       });
 

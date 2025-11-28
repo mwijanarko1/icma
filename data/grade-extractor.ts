@@ -1,22 +1,6 @@
 // Utility to extract reputation grades from database narrator data
-import { Narrator } from './types';
-
-// Reputation grade types (matching HadithAnalyzer)
-export type ReputationGrade = 
-  | 'Companion'
-  | 'Thiqah Thabt'
-  | 'Thiqah'
-  | 'Saduq'
-  | 'Saduq Yahim'
-  | 'Maqbūl'
-  | 'La Ba\'sa Bihi'
-  | 'Saduq Sayyi\' al-Hifz'
-  | 'Majhul al-Ain'
-  | 'Majhul al-Hal'
-  | 'Da\'if'
-  | 'Matruk'
-  | 'Muttaham bi al-Kidhb'
-  | 'Kadhdhab';
+import type { Narrator } from '@/data/types';
+import type { ReputationGrade } from '@/lib/grading/constants';
 
 // Grade keywords mapping
 const GRADE_KEYWORDS: Record<string, ReputationGrade[]> = {

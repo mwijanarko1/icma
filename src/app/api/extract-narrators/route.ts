@@ -20,8 +20,7 @@ class GeminiService {
   async extractNarratorsFromHadith(hadithText: string): Promise<{ narrators: Narrator[]; chainText: string; matn: string }> {
     const prompt = `You are an expert in Islamic Hadith and Arabic textual analysis. Your task is to:
 1. Extract the complete chain of narrators (sanad) from a given Hadith text
-2. Separate the chain text (sanad) from the matn (hadith text content)
-3. Identify the speaker of the Hadith and the Hadith compiler
+2. Identify the speaker of the Hadith and the Hadith compiler
 
 **Input:**
 You will receive a complete Hadith text, which includes the Arabic chain of narration, the Hadith text (matn), its English translation, and compiler information.
@@ -41,17 +40,15 @@ Your output must be a JSON object with this exact format:
       "englishName": "Abu Bakr as-Siddiq"
     }
   ],
-  "chainText": "حَدَّثَنَا الْحُمَيْدِيُّ عَبْدُ اللَّهِ بْنُ الزُّبَيْرِ...",
-  "matn": "إِنَّمَا الأَعْمَالُ بِالنِّيَّاتِ..."
+  "chainText": "حَدَّثَنَا الْحُمَيْدِيُّ عَبْدُ اللَّهِ بْنُ الزُّبَيْرِ..."
 }
 
 **Instructions:**
 
-1.  **Separate Chain (Sanad) and Matn**:
+1.  **Extract Chain Text (Sanad)**:
     *   The **chainText (sanad)** is the transmission chain that lists all the narrators from the compiler back to the Prophet. It typically starts with words like \`حَدَّثَنَا\`, \`أَخْبَرَنَا\`, \`حَدَّثَنِي\`, etc., and includes all the narrator names and transmission phrases.
-    *   The **matn** is the actual content/text of the Hadith - the words spoken by the Prophet. It usually comes after the chain and contains the substantive message or teaching.
-    *   Extract the complete chain text (sanad) as a single string, preserving all Arabic text from the beginning of the chain until the matn begins.
-    *   Extract the complete matn as a single string, including all the actual Hadith content.
+    *   Extract the complete chain text (sanad) as a single string, preserving all Arabic text from the beginning of the chain until the matn (hadith text content) begins.
+    *   Focus ONLY on the chain (sanad) - do not include the matn (hadith text content) in the chainText.
 
 2.  **Extract Narrator Chain (Sanad)**:
     *   Focus on the Arabic portion of the text that describes the transmission chain, from the earliest narrator to the Companion who heard the Hadith.
@@ -71,7 +68,7 @@ Your output must be a JSON object with this exact format:
 
 6.  **Translate Names to English**: Provide a widely accepted English transliteration or translation for each Arabic narrator name.
 
-7.  **Format the Output**: Return ONLY the JSON object, no additional text, explanations, or conversational elements. Ensure the chainText and matn are complete and properly separated.
+7.  **Format the Output**: Return ONLY the JSON object, no additional text, explanations, or conversational elements. Focus only on extracting the chain (sanad) and narrators - do not extract or include the matn (hadith text content).
 
 Hadith text:
 ${hadithText}`;
@@ -82,7 +79,7 @@ ${hadithText}`;
         contents: prompt,
         config: {
           temperature: 0.1,
-          maxOutputTokens: 4000, // Increased to accommodate chainText and matn
+          maxOutputTokens: 3000, // Focused on chain extraction only
         },
       });
 
@@ -93,7 +90,7 @@ ${hadithText}`;
 
       // Parse the JSON response robustly (strip code fences if present)
       const text = stripCodeFences(raw);
-      const parsed = parseNarratorsJson(text) as { narrators: Narrator[]; chainText: string; matn: string };
+      const parsed = parseNarratorsJson(text) as { narrators: Narrator[]; chainText: string; matn?: string };
 
       // Validate the response structure
       if (!parsed || typeof parsed !== 'object') {
@@ -126,18 +123,16 @@ ${hadithText}`;
         }
       }
 
-      // Validate chainText and matn
+      // Validate chainText
       if (typeof parsed.chainText !== "string") {
         parsed.chainText = '';
       }
-      if (typeof parsed.matn !== "string") {
-        parsed.matn = '';
-      }
 
+      // Return empty matn since we're focusing only on chain analysis
       return {
         narrators: parsed.narrators,
         chainText: parsed.chainText || '',
-        matn: parsed.matn || ''
+        matn: ''
       };
     } catch (error) {
       console.error("Error extracting narrators with Gemini:", error);
@@ -203,7 +198,8 @@ export async function POST(request: NextRequest) {
     const geminiService = new GeminiService(apiKey);
     const { narrators, chainText, matn } = await geminiService.extractNarratorsFromHadith(hadithText);
 
-    // Return narrators without automatic matching - matching will be done via the match modal
+    // Return narrators and chainText only (matn is empty for chain analyzer focus)
+    // Matching will be done via the match modal
     return NextResponse.json({ narrators, chainText, matn });
   } catch (error) {
     console.error('API Error:', error);

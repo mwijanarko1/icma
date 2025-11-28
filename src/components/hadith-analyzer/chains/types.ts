@@ -26,7 +26,6 @@ export interface DraggableChainProps {
 
   // State (reduced to essentials)
   editingChainId: string | null;
-  isDarkMode: boolean;
   
   // Shared state and dispatch - pass from parent to avoid separate reducer instances
   state: HadithAnalyzerState;

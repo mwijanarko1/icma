@@ -17,8 +17,7 @@ export function DraggableNarratorRow({
   onRemoveNarrator,
   onViewNarratorDetails,
   onUnmatchNarrator,
-  onSearchNarrator,
-  isDarkMode
+  onSearchNarrator
 }: DraggableNarratorRowProps) {
   const [showGradeFormulaTooltip, setShowGradeFormulaTooltip] = useState(false);
   const {
@@ -45,28 +44,28 @@ export function DraggableNarratorRow({
       style={style}
       className={
         isDragging
-          ? 'bg-blue-100 dark:bg-blue-900/30 shadow-lg ring-2 ring-blue-400 dark:ring-blue-500'
-          : 'hover:bg-gray-50 dark:hover:bg-gray-700'
+          ? 'bg-blue-100 shadow-lg ring-2 ring-blue-400'
+          : 'hover:bg-gray-50'
       }
     >
-      <td className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center text-gray-900 dark:text-white">
+      <td className="border-2 border-black px-4 py-2 text-center" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>
         <div className="flex items-center justify-center gap-2">
           {isEditing && (
             <button
               {...attributes}
               {...listeners}
-              className={`cursor-grab active:cursor-grabbing p-2 rounded-md border group ${
+              className={`cursor-grab active:cursor-grabbing p-2 rounded-md border-2 group ${
                 isDragging
-                  ? 'bg-blue-200 dark:bg-blue-800 border-blue-400 dark:border-blue-500 shadow-md'
-                  : 'hover:bg-blue-100 dark:hover:bg-blue-900/50 border-transparent hover:border-blue-300 dark:hover:border-blue-600'
+                  ? 'bg-blue-200 border-blue-400 shadow-md'
+                  : 'hover:bg-blue-100 border-black hover:border-blue-300'
               }`}
               aria-label="Drag to reorder narrator"
               title="Drag to reorder narrator in chain"
             >
               <svg className={`w-4 h-4 ${
                 isDragging
-                  ? 'text-blue-700 dark:text-blue-300'
-                  : 'text-gray-500 dark:text-gray-400 group-hover:text-blue-600 dark:group-hover:text-blue-400'
+                  ? 'text-blue-700'
+                  : 'text-gray-500 group-hover:text-blue-600'
               }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
                 <circle cx="9" cy="12" r="1.5" fill="currentColor" />
@@ -77,13 +76,14 @@ export function DraggableNarratorRow({
           {narrator.number}
         </div>
       </td>
-      <td className="border border-gray-300 dark:border-gray-600 px-4 py-2 relative">
+      <td className="border-2 border-black px-4 py-2 relative">
         {isEditing ? (
           <input
             type="text"
             value={narrator.arabicName}
             onChange={(e) => onUpdateNarrator(index, 'arabicName', e.target.value)}
-            className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-right"
+            className="w-full px-2 py-1 border-2 border-black rounded-lg focus:outline-none focus:ring-2 focus:ring-black bg-white text-gray-900 text-right"
+            style={{ fontFamily: 'var(--font-content)' }}
             dir="rtl"
           />
         ) : (
@@ -96,13 +96,14 @@ export function DraggableNarratorRow({
                     e.stopPropagation();
                     onViewNarratorDetails(narrator.narratorId!);
                   }}
-                  className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 underline hover:no-underline transition-all cursor-pointer text-right"
+                  className="underline hover:no-underline transition-all cursor-pointer text-right"
+                  style={{ fontFamily: 'var(--font-content)', color: '#0000ff' }}
                   title={`Click to view database entry (${(narrator.confidence || 0) * 100}% confidence)`}
                 >
                   {narrator.arabicName}
                 </button>
               ) : (
-                <span className="text-gray-900 dark:text-white text-right">{narrator.arabicName}</span>
+                <span className="text-right" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>{narrator.arabicName}</span>
               )}
             </div>
             {/* Action buttons - below the name */}
@@ -118,10 +119,10 @@ export function DraggableNarratorRow({
                     onMouseDown={(e) => {
                       e.stopPropagation();
                     }}
-                    className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 hover:bg-blue-200 dark:bg-blue-900 dark:text-blue-200 dark:hover:bg-blue-800 transition-colors relative z-30 cursor-pointer"
+                    className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 hover:bg-blue-200 transition-colors relative z-30 cursor-pointer"
+                    style={{ fontFamily: 'var(--font-content)', color: '#0000ff' }}
                     title="Search and match narrator from database"
                     type="button"
-                    style={{ pointerEvents: 'auto' }}
                   >
                     <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -132,7 +133,8 @@ export function DraggableNarratorRow({
                 {narrator.matched && (
                   <div className="inline-flex items-center gap-1">
                     <span
-                      className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                      className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100"
+                      style={{ fontFamily: 'var(--font-content)', color: '#000000' }}
                       title={`Matched to database (${(narrator.confidence || 0) * 100}% confidence)`}
                     >
                       <svg className="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -146,7 +148,8 @@ export function DraggableNarratorRow({
                           e.stopPropagation();
                           onUnmatchNarrator(index);
                         }}
-                        className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800 hover:bg-red-200 dark:bg-red-900 dark:text-red-200 dark:hover:bg-red-800 transition-colors"
+                        className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-red-100 hover:bg-red-200 transition-colors"
+                        style={{ fontFamily: 'var(--font-content)', color: '#000000' }}
                         title="Unmatch from database"
                       >
                         <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -161,27 +164,28 @@ export function DraggableNarratorRow({
           </div>
         )}
       </td>
-      <td className="border border-gray-300 dark:border-gray-600 px-4 py-2">
+      <td className="border-2 border-black px-4 py-2">
         {isEditing ? (
           <input
             type="text"
             value={narrator.englishName}
             onChange={(e) => onUpdateNarrator(index, 'englishName', e.target.value)}
-            className="w-full px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            className="w-full px-2 py-1 border-2 border-black rounded-lg focus:outline-none focus:ring-2 focus:ring-black bg-white text-gray-900"
+            style={{ fontFamily: 'var(--font-content)' }}
           />
         ) : (
-          <span className="text-gray-900 dark:text-white">{narrator.englishName}</span>
+          <span style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>{narrator.englishName}</span>
         )}
       </td>
-      <td className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center">
+      <td className="border-2 border-black px-4 py-2 text-center">
         {narrator.arabicName === "رَسُولَ اللَّهِ" ? (
-          <div className="text-gray-500 dark:text-gray-400 text-sm italic">
+          <div className="text-sm italic" style={{ fontFamily: 'var(--font-content)', color: '#000000', opacity: 0.6 }}>
             N/A
           </div>
         ) : (
           <>
             {narrator.matched && narrator.reputation && narrator.reputation.length > 0 && (
-              <div className="mb-2 text-xs text-green-600 dark:text-green-400 font-medium">
+              <div className="mb-2 text-xs font-medium" style={{ fontFamily: 'var(--font-content)', color: '#008000' }}>
                 ✓ Auto-assigned from database
               </div>
             )}
@@ -189,7 +193,6 @@ export function DraggableNarratorRow({
               <ReputationSelector
                 selectedReputations={narrator.reputation || []}
                 onReputationChange={(reputation) => onUpdateReputation(index, reputation)}
-                isDarkMode={isDarkMode}
               />
             </div>
             {(narrator.reputation || []).length > 0 && (
@@ -199,10 +202,10 @@ export function DraggableNarratorRow({
                     key={`narrator-${narrator.number}-grade-${gradeIdx}-${grade}`}
                     className={`px-2 py-1 text-xs rounded ${
                       REPUTATION_GRADES[grade].category === 'high'
-                        ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                        ? 'bg-green-100 text-green-800'
                         : REPUTATION_GRADES[grade].category === 'intermediate'
-                        ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
-                        : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                        ? 'bg-yellow-100 text-yellow-800'
+                        : 'bg-red-100 text-red-800'
                     }`}
                   >
                     {grade}
@@ -213,9 +216,9 @@ export function DraggableNarratorRow({
           </>
         )}
       </td>
-      <td className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center">
+      <td className="border-2 border-black px-4 py-2 text-center">
         {narrator.arabicName === "رَسُولَ اللَّهِ" ? (
-          <div className="text-gray-500 dark:text-gray-400 text-sm italic">
+          <div className="text-sm italic" style={{ fontFamily: 'var(--font-content)', color: '#000000', opacity: 0.6 }}>
             N/A
           </div>
         ) : (
@@ -231,14 +234,15 @@ export function DraggableNarratorRow({
                     e.stopPropagation();
                     setShowGradeFormulaTooltip(!showGradeFormulaTooltip);
                   }}
-                  className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                  className="transition-colors"
+                  style={{ color: '#000000', opacity: 0.4 }}
                   aria-label="Grade calculation formula info"
                 >
                   <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </button>
-                <div className={`absolute right-0 bottom-full mb-2 w-80 p-3 bg-gray-900 dark:bg-gray-800 text-white text-xs rounded-lg shadow-lg transition-all duration-200 z-50 ${showGradeFormulaTooltip ? 'opacity-100 visible' : 'opacity-0 invisible'}`}>
+                <div className={`absolute right-0 bottom-full mb-2 w-80 p-3 bg-gray-900 text-white text-xs rounded-lg shadow-lg transition-all duration-200 z-50 ${showGradeFormulaTooltip ? 'opacity-100 visible' : 'opacity-0 invisible'}`}>
                   <div className="space-y-2">
                     <p className="font-semibold mb-2">Grade Calculation Formula</p>
                     <div className="space-y-1 text-gray-300">
@@ -256,21 +260,22 @@ export function DraggableNarratorRow({
                       <p className="text-gray-400 text-xs">Grade range: 0.0 (Very Poor) to 10.0 (Excellent)</p>
                     </div>
                   </div>
-                  <div className="absolute right-4 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900 dark:border-t-gray-800"></div>
+                  <div className="absolute right-4 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
                 </div>
               </div>
             </div>
-            <div className="text-xs text-gray-600 dark:text-gray-400">
+            <div className="text-xs" style={{ fontFamily: 'var(--font-content)', color: '#000000', opacity: 0.6 }}>
               {getGradeDescription(narrator.calculatedGrade || 0)}
             </div>
           </div>
         )}
       </td>
       {isEditing && onRemoveNarrator && (
-        <td className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center">
+        <td className="border-2 border-black px-4 py-2 text-center">
           <button
             onClick={() => onRemoveNarrator(index)}
-            className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+            className="p-1 rounded hover:bg-red-50 transition-colors"
+            style={{ color: '#ff0000' }}
             title="Remove narrator"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

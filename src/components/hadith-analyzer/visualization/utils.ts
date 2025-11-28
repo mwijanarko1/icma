@@ -13,49 +13,37 @@ export const normalizeNarratorName = (name: string): string => {
   return removeTashkeel(name).trim();
 };
 
-// Array of 30 distinct colors for chain connections (theme-aware)
-export const getChainColors = (isDarkMode: boolean): string[] => {
-  if (isDarkMode) {
-    // Dark mode colors - vibrant colors that work well on dark backgrounds
-    return [
-      "#e6194b", "#3cb44b", "#ffe119", "#4363d8", "#f58231",
-      "#911eb4", "#42d4f4", "#f032e6", "#bfef45", "#fabed4",
-      "#469990", "#dcbeff", "#9a6324", "#ffd8b1", "#ff6b6b",
-      "#aaffc3", "#ffd93d", "#6bcf7f", "#4d96ff", "#a9a9a9",
-      "#ff1493", "#00ced1", "#daa520", "#adff2f", "#ff6347",
-      "#1e90ff", "#dda0dd", "#98fb98", "#ff8c42", "#87ceeb"
-    ];
-  } else {
-    // Light mode colors - darker colors that contrast well on light backgrounds
-    return [
-      "#8b0000", "#006400", "#daa520", "#000080", "#8b4513",
-      "#4b0082", "#008080", "#8b008b", "#556b2f", "#8b4513",
-      "#2f4f4f", "#483d8b", "#a0522d", "#696969", "#800000",
-      "#008000", "#808000", "#483d8b", "#000080", "#2f4f4f",
-      "#8b0000", "#006400", "#daa520", "#556b2f", "#8b4513",
-      "#4b0082", "#008080", "#8b008b", "#483d8b", "#a0522d"
-    ];
-  }
+// Array of 30 distinct colors for chain connections
+export const getChainColors = (): string[] => {
+  // Light mode colors - darker colors that contrast well on light backgrounds
+  return [
+    "#8b0000", "#006400", "#daa520", "#000080", "#8b4513",
+    "#4b0082", "#008080", "#8b008b", "#556b2f", "#8b4513",
+    "#2f4f4f", "#483d8b", "#a0522d", "#696969", "#800000",
+    "#008000", "#808000", "#483d8b", "#000080", "#2f4f4f",
+    "#8b0000", "#006400", "#daa520", "#556b2f", "#8b4513",
+    "#4b0082", "#008080", "#8b008b", "#483d8b", "#a0522d"
+  ];
 };
 
 // Function to generate Mermaid code from chains
-export const generateMermaidCode = (chains: Chain[], isDarkMode: boolean): string => {
+export const generateMermaidCode = (chains: Chain[]): string => {
   if (chains.length === 0) return "";
 
-  const chainColors = getChainColors(isDarkMode);
+  const chainColors = getChainColors();
 
-  // Define colors based on theme
-  const bgColor = isDarkMode ? "#374151" : "#f3f4f6";
-  const strokeColor = isDarkMode ? "#9ca3af" : "#9ca3af";
-  const textColor = isDarkMode ? "#ffffff" : "#111827";
+  // Define colors for light mode
+  const bgColor = "#f3f4f6";
+  const strokeColor = "#9ca3af";
+  const textColor = "#111827";
 
   // Define grade-based colors
   const getGradeColorHex = (grade: number) => {
-    if (grade >= 8) return isDarkMode ? "#10b981" : "#059669"; // Green for excellent
-    if (grade >= 6) return isDarkMode ? "#3b82f6" : "#2563eb"; // Blue for good
-    if (grade >= 4) return isDarkMode ? "#f59e0b" : "#d97706"; // Yellow for fair
-    if (grade >= 2) return isDarkMode ? "#f97316" : "#ea580c"; // Orange for poor
-    return isDarkMode ? "#ef4444" : "#dc2626"; // Red for very poor
+    if (grade >= 8) return "#059669"; // Green for excellent
+    if (grade >= 6) return "#2563eb"; // Blue for good
+    if (grade >= 4) return "#d97706"; // Yellow for fair
+    if (grade >= 2) return "#ea580c"; // Orange for poor
+    return "#dc2626"; // Red for very poor
   };
 
   let mermaidCode = `flowchart TD
@@ -65,7 +53,7 @@ export const generateMermaidCode = (chains: Chain[], isDarkMode: boolean): strin
     classDef fairClass fill:${getGradeColorHex(4)},stroke:${getGradeColorHex(4)},stroke-width:2px,color:${textColor}
     classDef poorClass fill:${getGradeColorHex(2)},stroke:${getGradeColorHex(2)},stroke-width:2px,color:${textColor}
     classDef veryPoorClass fill:${getGradeColorHex(0)},stroke:${getGradeColorHex(0)},stroke-width:2px,color:${textColor}
-    classDef messengerClass fill:${isDarkMode ? "#6b7280" : "#9ca3af"},stroke:${isDarkMode ? "#6b7280" : "#9ca3af"},stroke-width:2px,color:${textColor}
+    classDef messengerClass fill:#9ca3af,stroke:#9ca3af,stroke-width:2px,color:${textColor}
 
 `;
 

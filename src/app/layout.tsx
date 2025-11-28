@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Playfair_Display, Merriweather } from "next/font/google";
 import "./globals.css";
-import { ThemeProvider } from "@/contexts/ThemeContext";
 
 // Initialize the Geist font with Latin subset
 const geistSans = Geist({
@@ -13,6 +12,21 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+});
+
+// Initialize Playfair Display for titles
+const titleFont = Playfair_Display({
+  weight: ["400", "500", "600", "700", "800", "900"],
+  variable: "--font-title",
+  subsets: ["latin"],
+});
+
+// Initialize Merriweather for content - optimized for reading
+const contentFont = Merriweather({
+  weight: ["300", "400", "700"],
+  variable: "--font-content",
+  subsets: ["latin"],
+  display: "swap",
 });
 
 // Define metadata for better SEO
@@ -76,11 +90,9 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 transition-colors duration-200`}
+        className={`${geistSans.variable} ${geistMono.variable} ${titleFont.variable} ${contentFont.variable} antialiased bg-white text-gray-900`}
       >
-        <ThemeProvider>
-          {children}
-        </ThemeProvider>
+        {children}
       </body>
     </html>
   );

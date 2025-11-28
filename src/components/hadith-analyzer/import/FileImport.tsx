@@ -90,12 +90,13 @@ export function FileImport({ onImport, onBack }: FileImportProps) {
           />
           <div
             onClick={handleClick}
-            className="w-full p-8 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg hover:border-gray-400 dark:hover:border-gray-500 transition-colors cursor-pointer"
+            className="w-full p-8 border-2 border-dashed border-black rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+            style={{ fontFamily: 'var(--font-content)' }}
           >
-            <svg className="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-12 h-12 mx-auto mb-4" style={{ color: '#000000', opacity: 0.6 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
             </svg>
-            <p className="text-gray-600 dark:text-gray-400 text-center">
+            <p className="text-center" style={{ color: '#000000', opacity: 0.7 }}>
               Click to select JSON file or drag and drop
             </p>
           </div>
@@ -103,7 +104,8 @@ export function FileImport({ onImport, onBack }: FileImportProps) {
       </div>
       <button
         onClick={onBack}
-        className="w-full px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
+        className="w-full px-4 py-2 text-sm hover:opacity-80 transition-opacity"
+        style={{ fontFamily: 'var(--font-content)', color: '#000000', opacity: 0.7 }}
       >
         ← Back to options
       </button>

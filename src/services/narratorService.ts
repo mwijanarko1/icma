@@ -43,8 +43,7 @@ export function createNarratorService(
   state: HadithAnalyzerState,
   dispatch: Dispatch<HadithAnalyzerAction>,
   actions: typeof import('@/reducers/hadithAnalyzerActions').actions,
-  generateMermaidCode: (chains: Chain[], isDarkMode: boolean) => string,
-  isDarkMode: boolean
+  generateMermaidCode: (chains: Chain[]) => string
 ) {
   const handleDragStart = (event: { active: { id: string | number } }) => {
     const activeId = event.active.id as string;
@@ -220,7 +219,7 @@ export function createNarratorService(
     });
 
     dispatch(actions.setChains(updatedChains));
-    const graphCode = generateMermaidCode(updatedChains, isDarkMode);
+    const graphCode = generateMermaidCode(updatedChains);
     dispatch(actions.setMermaidCode(graphCode));
   };
 
@@ -337,7 +336,7 @@ export function createNarratorService(
       });
 
       dispatch(actions.setChains(updatedChains));
-      const graphCode = generateMermaidCode(updatedChains, isDarkMode);
+      const graphCode = generateMermaidCode(updatedChains);
       dispatch(actions.setMermaidCode(graphCode));
     }
 
@@ -368,7 +367,7 @@ export function createNarratorService(
     });
 
     dispatch(actions.setChains(updatedChains));
-    const graphCode = generateMermaidCode(updatedChains, isDarkMode);
+    const graphCode = generateMermaidCode(updatedChains);
     dispatch(actions.setMermaidCode(graphCode));
   };
 
@@ -387,7 +386,7 @@ export function createNarratorService(
     });
 
     dispatch(actions.setChains(updatedChains));
-    const graphCode = generateMermaidCode(updatedChains, isDarkMode);
+    const graphCode = generateMermaidCode(updatedChains);
     dispatch(actions.setMermaidCode(graphCode));
   };
 
@@ -400,7 +399,7 @@ export function createNarratorService(
     });
 
     dispatch(actions.setChains(updatedChains));
-    const graphCode = generateMermaidCode(updatedChains, isDarkMode);
+    const graphCode = generateMermaidCode(updatedChains);
     dispatch(actions.setMermaidCode(graphCode));
   };
 
@@ -427,7 +426,7 @@ export function createNarratorService(
     dispatch(actions.setChains(updatedChains));
     dispatch(actions.setNewNarrator({ arabicName: '', englishName: '', reputation: [], calculatedGrade: 0 }));
 
-    const graphCode = generateMermaidCode(updatedChains, isDarkMode);
+    const graphCode = generateMermaidCode(updatedChains);
     dispatch(actions.setMermaidCode(graphCode));
   };
 

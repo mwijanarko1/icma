@@ -3,5 +3,6 @@ export { LLMTab } from './LLMTab';
 export { ManualTab } from './ManualTab';
 export { NarratorsTab } from './NarratorsTab';
 export { HadithTab } from './HadithTab';
-export type { InputTabsProps, LLMTabProps, ManualTabProps, NarratorsTabProps, HadithTabProps } from './types';
+export { SettingsTab } from './SettingsTab';
+export type { InputTabsProps, LLMTabProps, ManualTabProps, NarratorsTabProps, HadithTabProps, SettingsTabProps } from './types';
 

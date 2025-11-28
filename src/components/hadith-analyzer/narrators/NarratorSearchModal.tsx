@@ -31,15 +31,16 @@ export function NarratorSearchModal({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={onClose}>
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
+      <div className="bg-white rounded-xl sm:rounded-2xl border-2 border-black max-w-4xl w-full mx-4 max-h-[90vh] overflow-hidden flex flex-col" style={{ boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(0, 0, 0, 0.1)' }} onClick={(e) => e.stopPropagation()}>
         {/* Modal Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+        <div className="flex items-center justify-between p-6 border-b-2 border-black">
+          <h3 className="text-xl font-semibold" style={{ fontFamily: 'var(--font-title)', color: '#000000' }}>
             Search Narrators in Database
           </h3>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+            className="hover:opacity-80 transition-opacity"
+            style={{ color: '#000000', opacity: 0.6 }}
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -48,17 +49,18 @@ export function NarratorSearchModal({
         </div>
 
         {/* Search Input */}
-        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+        <div className="p-6 border-b-2 border-black">
           <div className="relative">
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => onSearchQueryChange(e.target.value)}
               placeholder="Search by Arabic or English name..."
-              className="w-full px-4 py-3 pl-10 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-3 pl-10 border-2 border-black rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-black"
+              style={{ fontFamily: 'var(--font-content)', color: '#000000' }}
               autoFocus
             />
-            <svg className="absolute left-3 top-3.5 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="absolute left-3 top-3.5 w-5 h-5" style={{ color: '#000000', opacity: 0.6 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
             {isSearching && (
@@ -71,7 +73,7 @@ export function NarratorSearchModal({
             )}
           </div>
           {totalResults > 0 && (
-            <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+            <p className="mt-2 text-sm" style={{ fontFamily: 'var(--font-content)', color: '#000000', opacity: 0.7 }}>
               Found {totalResults} narrator{totalResults !== 1 ? 's' : ''}
             </p>
           )}
@@ -80,59 +82,60 @@ export function NarratorSearchModal({
         {/* Results */}
         <div className="flex-1 overflow-y-auto p-6">
           {searchQuery.trim() === '' ? (
-            <div className="text-center py-12 text-gray-500 dark:text-gray-400">
-              <svg className="w-16 h-16 mx-auto mb-4 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="text-center py-12" style={{ color: '#000000', opacity: 0.7 }}>
+              <svg className="w-16 h-16 mx-auto mb-4" style={{ color: '#000000', opacity: 0.4 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
-              <p className="text-lg font-medium">Enter a search query to find narrators</p>
-              <p className="text-sm mt-2">Search by Arabic or English name</p>
+              <p className="text-lg font-medium" style={{ fontFamily: 'var(--font-content)' }}>Enter a search query to find narrators</p>
+              <p className="text-sm mt-2" style={{ fontFamily: 'var(--font-content)' }}>Search by Arabic or English name</p>
             </div>
           ) : searchResults.length === 0 && !isSearching ? (
-            <div className="text-center py-12 text-gray-500 dark:text-gray-400">
-              <p className="text-lg font-medium">No narrators found</p>
-              <p className="text-sm mt-2">Try a different search term</p>
+            <div className="text-center py-12" style={{ color: '#000000', opacity: 0.7 }}>
+              <p className="text-lg font-medium" style={{ fontFamily: 'var(--font-content)' }}>No narrators found</p>
+              <p className="text-sm mt-2" style={{ fontFamily: 'var(--font-content)' }}>Try a different search term</p>
             </div>
           ) : (
             <div className="space-y-3">
               {searchResults.map((narrator) => (
                 <div
                   key={narrator.id}
-                  className="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:bg-gray-100 dark:hover:bg-gray-900 transition-colors"
+                  className="bg-gray-50 border-2 border-black rounded-lg p-4 hover:bg-gray-100 transition-colors"
+                  style={{ fontFamily: 'var(--font-content)' }}
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
-                        <h4 className="text-lg font-semibold text-gray-900 dark:text-white" dir="rtl">
+                        <h4 className="text-lg font-semibold" style={{ color: '#000000' }} dir="rtl">
                           {narrator.primaryArabicName}
                         </h4>
-                        <span className="text-gray-400">•</span>
-                        <h4 className="text-lg font-semibold text-gray-900 dark:text-white">
+                        <span style={{ color: '#000000', opacity: 0.4 }}>•</span>
+                        <h4 className="text-lg font-semibold" style={{ color: '#000000' }}>
                           {narrator.primaryEnglishName}
                         </h4>
                       </div>
                       {'fullNameArabic' in narrator && narrator.fullNameArabic && (
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-1" dir="rtl">
+                        <p className="text-sm mb-1" style={{ color: '#000000', opacity: 0.7 }} dir="rtl">
                           {narrator.fullNameArabic}
                         </p>
                       )}
                       {'fullNameEnglish' in narrator && narrator.fullNameEnglish && (
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+                        <p className="text-sm mb-1" style={{ color: '#000000', opacity: 0.7 }}>
                           {narrator.fullNameEnglish}
                         </p>
                       )}
                       <div className="flex flex-wrap gap-2 mt-2">
                         {narrator.deathYearAH && (
-                          <span className="px-2 py-1 text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 rounded">
+                          <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded border border-black">
                             Died {narrator.deathYearAH} AH
                           </span>
                         )}
                         {narrator.taqribCategory && (
-                          <span className="px-2 py-1 text-xs bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 rounded">
+                          <span className="px-2 py-1 text-xs bg-green-100 text-green-800 rounded border border-black">
                             {narrator.taqribCategory}
                           </span>
                         )}
                         {narrator.ibnHajarRank && (
-                          <span className="px-2 py-1 text-xs bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-200 rounded">
+                          <span className="px-2 py-1 text-xs bg-purple-100 text-purple-800 rounded border border-black">
                             Ibn Hajar: {narrator.ibnHajarRank}
                           </span>
                         )}
@@ -140,7 +143,8 @@ export function NarratorSearchModal({
                     </div>
                     <button
                       onClick={() => onMatchNarrator(narrator)}
-                      className="ml-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium flex items-center gap-2"
+                      className="ml-4 px-4 py-2 rounded-lg transition-colors text-sm font-medium flex items-center gap-2 border-2 border-black"
+                      style={{ fontFamily: 'var(--font-content)', color: '#f2e9dd', backgroundColor: '#000000' }}
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -154,7 +158,8 @@ export function NarratorSearchModal({
                 <button
                   onClick={() => onLoadMore(searchQuery, offset + 20)}
                   disabled={isSearching}
-                  className="w-full py-3 text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 border border-blue-200 dark:border-blue-800 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full py-3 text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed border-2 border-black hover:bg-gray-50"
+                  style={{ fontFamily: 'var(--font-content)', color: '#000000' }}
                 >
                   {isSearching ? 'Loading...' : `Load More (${totalResults - searchResults.length} remaining)`}
                 </button>
@@ -164,10 +169,11 @@ export function NarratorSearchModal({
         </div>
 
         {/* Modal Footer */}
-        <div className="flex justify-end p-6 border-t border-gray-200 dark:border-gray-700">
+        <div className="flex justify-end p-6 border-t-2 border-black">
           <button
             onClick={onClose}
-            className="px-6 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors"
+            className="px-6 py-2 text-sm font-medium rounded-lg transition-colors border-2 border-black hover:bg-gray-50"
+            style={{ fontFamily: 'var(--font-content)', color: '#000000', backgroundColor: '#f2e9dd' }}
           >
             Close
           </button>

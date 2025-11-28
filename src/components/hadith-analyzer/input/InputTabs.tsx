@@ -4,48 +4,44 @@ import type { InputTabsProps } from './types';
 
 export function InputTabs({ activeTab, onTabChange }: InputTabsProps) {
   return (
-    <div className="mb-6">
-      <div className="border-b border-gray-200 dark:border-gray-700">
-        <nav className="-mb-px flex space-x-8">
+    <div className="mb-4 sm:mb-6">
+      <div className="border-b" style={{ borderColor: '#ffffff' }}>
+        <nav className="-mb-px flex space-x-4 sm:space-x-6 md:space-x-8 overflow-x-auto">
           <button
             onClick={() => onTabChange('llm')}
-            className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
-              activeTab === 'llm'
-                ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
-            }`}
+            className="py-2 px-1 border-b-2 font-semibold text-xs sm:text-sm transition-colors whitespace-nowrap"
+            style={{
+              borderColor: activeTab === 'llm' ? '#000000' : 'transparent',
+              color: activeTab === 'llm' ? '#000000' : '#000000',
+              opacity: activeTab === 'llm' ? 1 : 0.6,
+              fontFamily: 'var(--font-content)'
+            }}
           >
             LLM Extraction
           </button>
           <button
             onClick={() => onTabChange('manual')}
-            className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
-              activeTab === 'manual'
-                ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
-            }`}
+            className="py-2 px-1 border-b-2 font-semibold text-xs sm:text-sm transition-colors whitespace-nowrap"
+            style={{
+              borderColor: activeTab === 'manual' ? '#000000' : 'transparent',
+              color: activeTab === 'manual' ? '#000000' : '#000000',
+              opacity: activeTab === 'manual' ? 1 : 0.6,
+              fontFamily: 'var(--font-content)'
+            }}
           >
             Manual Builder
           </button>
           <button
-            onClick={() => onTabChange('narrators')}
-            className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
-              activeTab === 'narrators'
-                ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
-            }`}
+            onClick={() => onTabChange('settings')}
+            className="py-2 px-1 border-b-2 font-semibold text-xs sm:text-sm transition-colors whitespace-nowrap"
+            style={{
+              borderColor: activeTab === 'settings' ? '#000000' : 'transparent',
+              color: activeTab === 'settings' ? '#000000' : '#000000',
+              opacity: activeTab === 'settings' ? 1 : 0.6,
+              fontFamily: 'var(--font-content)'
+            }}
           >
-            Narrators
-          </button>
-          <button
-            onClick={() => onTabChange('hadith')}
-            className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
-              activeTab === 'hadith'
-                ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
-            }`}
-          >
-            Hadith
+            Settings
           </button>
         </nav>
       </div>

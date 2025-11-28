@@ -21,12 +21,45 @@ export function NarratorDetailsModal({
   onClose
 }: NarratorDetailsModalProps) {
   const [showGradeFormulaTooltip, setShowGradeFormulaTooltip] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   if (!show || !narrator) return null;
 
   // Extract grades from scholarly opinions and other sources
   const extractedGrades = extractReputationGrades(narrator);
   const calculatedGrade = extractedGrades.length > 0 ? calculateNarratorGrade(extractedGrades) : null;
+
+  // Function to copy all scholarly opinions to clipboard
+  const copyAllScholarlyOpinions = async () => {
+    if (!narrator.scholarlyOpinions || narrator.scholarlyOpinions.length === 0) return;
+
+    const sortedOpinions = [...narrator.scholarlyOpinions].sort((a, b) => {
+      const getPriority = (type: string) => {
+        if (type === 'jarh') return 0;
+        if (type === 'ta\'dil') return 1;
+        return 2;
+      };
+      return getPriority(a.opinionType || '') - getPriority(b.opinionType || '');
+    });
+
+    const formattedText = sortedOpinions.map((opinion, idx) => {
+      const typeLabel = opinion.opinionType === 'ta\'dil' ? 'Praise' : opinion.opinionType === 'jarh' ? 'Criticism' : 'Neutral';
+      let text = `${idx + 1}. ${opinion.scholarName} [${typeLabel}]\n`;
+      text += `${opinion.opinionText}\n`;
+      if (opinion.sourceReference) {
+        text += `Source: ${opinion.sourceReference}\n`;
+      }
+      return text;
+    }).join('\n');
+
+    try {
+      await navigator.clipboard.writeText(formattedText);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy text:', err);
+    }
+  };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={onClose}>
@@ -63,12 +96,6 @@ export function NarratorDetailsModal({
                     <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
                       <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1.5">English Name</label>
                       <p className="text-sm text-gray-900 dark:text-white font-medium">{narrator.primaryEnglishName}</p>
-                    </div>
-                  )}
-                  {'fullNameEnglish' in narrator && narrator.fullNameEnglish && (
-                    <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
-                      <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1.5">Full English Name</label>
-                      <p className="text-sm text-gray-900 dark:text-white font-medium">{narrator.fullNameEnglish}</p>
                     </div>
                   )}
                   {'fullNameArabic' in narrator && narrator.fullNameArabic && (
@@ -155,9 +182,32 @@ export function NarratorDetailsModal({
               {/* Scholarly Opinions */}
               {narrator.scholarlyOpinions && narrator.scholarlyOpinions.length > 0 && (
                 <div>
-                  <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">
-                    Scholarly Opinions ({narrator.scholarlyOpinions.length})
-                  </h4>
+                  <div className="flex items-center justify-between mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">
+                    <h4 className="text-lg font-semibold text-gray-900 dark:text-white">
+                      Scholarly Opinions ({narrator.scholarlyOpinions.length})
+                    </h4>
+                    <button
+                      onClick={copyAllScholarlyOpinions}
+                      className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors"
+                      title="Copy all scholarly opinions"
+                    >
+                      {copied ? (
+                        <>
+                          <svg className="w-4 h-4 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                          <span>Copied!</span>
+                        </>
+                      ) : (
+                        <>
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                          </svg>
+                          <span>Copy All</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
                   <div className="space-y-3 max-h-64 overflow-y-auto">
                     {[...narrator.scholarlyOpinions].sort((a, b) => {
                       const getPriority = (type: string) => {

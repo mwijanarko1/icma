@@ -2,12 +2,11 @@
 
 "use client";
 
-import { useEffect, useCallback, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { CACHE_KEYS } from '@/lib/cache/constants';
 import type { Chain } from '@/types/hadith';
 import { generateMermaidCode } from '@/components/hadith-analyzer/visualization/utils';
 import { migrateChainsToNewFormat } from '@/lib/chains/chainUtils';
-import { SettingsDropdown } from '@/components/hadith-analyzer/settings/SettingsDropdown';
 import { createChainService } from '@/services/chainService';
 import { createNarratorService } from '@/services/narratorService';
 import { ApiKeyModal } from '@/components/hadith-analyzer/settings/ApiKeyModal';
@@ -17,7 +16,7 @@ import { MatchConfirmationModal } from '@/components/hadith-analyzer/matching/Ma
 import { ImportModal } from '@/components/hadith-analyzer/import/ImportModal';
 import { NarratorDetailsModal } from '@/components/hadith-analyzer/narrators/NarratorDetailsModal';
 import { NarratorSearchModal } from '@/components/hadith-analyzer/narrators/NarratorSearchModal';
-import { InputTabs, LLMTab, ManualTab, NarratorsTab, HadithTab } from '@/components/hadith-analyzer/input';
+import { InputTabs, LLMTab, ManualTab, SettingsTab } from '@/components/hadith-analyzer/input';
 import { useHadithAnalyzer } from '@/hooks/useHadithAnalyzer';
 import { MermaidGraph } from '@/components/hadith-analyzer/visualization/MermaidGraph';
 import {
@@ -34,7 +33,6 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
-import Link from 'next/link';
 
 // All duplicate code removed - using imports from extracted modules
 
@@ -45,7 +43,6 @@ export default function HadithAnalyzer() {
     actions,
     extractNarrators,
     handleNewHadith,
-    isDarkMode
   } = useHadithAnalyzer();
 
   // Destructure state for easier access
@@ -77,13 +74,9 @@ export default function HadithAnalyzer() {
     currentMatchIndex,
     acceptedMatchesCount,
     narratorSearchQuery,
-    narratorSearchResults,
-    isSearchingNarrators,
     selectedNarratorData,
     isLoadingNarratorData,
     showNarratorDetailsModal,
-    narratorSearchOffset,
-    narratorSearchTotal,
     showNarratorSearchModal,
     narratorSearchModalQuery,
     narratorSearchModalResults,
@@ -94,12 +87,12 @@ export default function HadithAnalyzer() {
 
   // Create service instances (memoized to prevent recreation on every render)
   const chainService = useMemo(
-    () => createChainService(state, dispatch, actions, isDarkMode),
-    [state, dispatch, actions, isDarkMode]
+    () => createChainService(state, dispatch, actions),
+    [state, dispatch, actions]
   );
   const narratorService = useMemo(
-    () => createNarratorService(state, dispatch, actions, generateMermaidCode, isDarkMode),
-    [state, dispatch, actions, isDarkMode]
+    () => createNarratorService(state, dispatch, actions, generateMermaidCode),
+    [state, dispatch, actions]
   );
 
   // Wrapper functions for compatibility with file import handler
@@ -126,21 +119,6 @@ export default function HadithAnalyzer() {
 
 
 
-  // Search narrators function
-  const searchNarrators = useCallback(
-    async (query: string, offset: number = 0) => {
-      await narratorService.handleSearchNarrators(query, offset);
-    },
-    [narratorService]
-  );
-
-  // Fetch narrator details
-  const fetchNarratorDetails = useCallback(
-    async (narratorId: string) => {
-      await narratorService.handleFetchNarratorDetails(narratorId);
-    },
-    [narratorService]
-  );
 
   // Debounced search with minimum character requirement
   // Use a ref to track the last query to prevent duplicate searches
@@ -154,7 +132,7 @@ export default function HadithAnalyzer() {
       lastNarratorTabSearchRef.current = trimmedQuery;
       const timeoutId = setTimeout(() => {
         // Create service with current state to avoid stale closures
-        const currentNarratorService = createNarratorService(state, dispatch, actions, generateMermaidCode, isDarkMode);
+        const currentNarratorService = createNarratorService(state, dispatch, actions, generateMermaidCode);
         currentNarratorService.handleSearchNarrators(trimmedQuery, 0);
       }, 300);
 
@@ -210,7 +188,7 @@ export default function HadithAnalyzer() {
       // Use a shorter debounce for initial search, longer for subsequent changes
       const timeoutId = setTimeout(() => {
         // Create service with current state to avoid stale closures
-        const currentNarratorService = createNarratorService(state, dispatch, actions, generateMermaidCode, isDarkMode);
+        const currentNarratorService = createNarratorService(state, dispatch, actions, generateMermaidCode);
         currentNarratorService.handleSearchNarratorsModal(narratorSearchModalQuery, 0);
       }, 100); // Shorter debounce for better UX
       return () => clearTimeout(timeoutId);
@@ -226,17 +204,17 @@ export default function HadithAnalyzer() {
   // Update mermaid code when chains change
   useEffect(() => {
     if (chains.length > 0) {
-      const graphCode = generateMermaidCode(chains, isDarkMode);
+      const graphCode = generateMermaidCode(chains);
       dispatch(actions.setMermaidCode(graphCode));
       dispatch(actions.setShowVisualization(true));
     } else {
       dispatch(actions.setMermaidCode(""));
       dispatch(actions.setShowVisualization(false));
     }
-  }, [chains, isDarkMode, actions, dispatch]);
+  }, [chains, actions, dispatch]);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8 px-4 transition-colors duration-200">
+    <div className="min-h-screen pb-4 sm:pb-8 px-2 sm:px-4 transition-colors duration-200" style={{ backgroundColor: 'transparent' }}>
       <div className="max-w-7xl mx-auto">
         {/* API Key Modal */}
         <ApiKeyModal
@@ -277,27 +255,6 @@ export default function HadithAnalyzer() {
           onRejectAllMatches={chainService.handleRejectAllMatches}
           onSelectMatch={chainService.handleSelectMatch}
         />
-
-        {/* Header with theme toggle */}
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            ICMA - Hadith Chain Analyzer
-          </h1>
-          <SettingsDropdown
-            onClearCache={() => {
-              localStorage.removeItem(CACHE_KEYS.HADITH_TEXT);
-              localStorage.removeItem(CACHE_KEYS.CHAINS);
-              localStorage.removeItem(CACHE_KEYS.SHOW_VISUALIZATION);
-              localStorage.removeItem(CACHE_KEYS.API_KEY);
-              localStorage.removeItem(CACHE_KEYS.ACTIVE_TAB);
-              localStorage.removeItem(CACHE_KEYS.SELECTED_CHAIN);
-              dispatch(actions.resetState());
-            }}
-            apiKey={apiKey}
-            onApiKeyChange={(key) => dispatch(actions.setApiKey(key))}
-            onOpenApiKeyModal={() => dispatch(actions.setShowApiKeyModal(true))}
-          />
-        </div>
 
         {/* Tab Navigation */}
         <InputTabs activeTab={activeTab} onTabChange={(tab) => dispatch(actions.setActiveTab(tab))} />
@@ -341,60 +298,57 @@ export default function HadithAnalyzer() {
             onUpdateNarratorReputation={narratorService.handleUpdateNarratorReputation}
             onRemoveNarrator={narratorService.handleRemoveNarratorManual}
             onClearNarrators={narratorService.handleClearNarrators}
-            isDarkMode={isDarkMode}
           />
         )}
 
-
-        {/* Narrators Tab */}
-        {activeTab === 'narrators' && (
-          <NarratorsTab
-            narratorSearchQuery={narratorSearchQuery}
-            onNarratorSearchQueryChange={(query) => dispatch(actions.setNarratorSearchQuery(query))}
-            narratorSearchResults={narratorSearchResults}
-            isSearchingNarrators={isSearchingNarrators}
-            narratorSearchTotal={narratorSearchTotal}
-            narratorSearchOffset={narratorSearchOffset}
-            onSearchNarrators={searchNarrators}
-            onFetchNarratorDetails={fetchNarratorDetails}
+        {/* Settings Tab */}
+        {activeTab === 'settings' && (
+          <SettingsTab
+            apiKey={apiKey}
+            onOpenApiKeyModal={() => dispatch(actions.setShowApiKeyModal(true))}
+            onClearCache={() => {
+              localStorage.removeItem(CACHE_KEYS.HADITH_TEXT);
+              localStorage.removeItem(CACHE_KEYS.CHAINS);
+              localStorage.removeItem(CACHE_KEYS.SHOW_VISUALIZATION);
+              localStorage.removeItem(CACHE_KEYS.API_KEY);
+              localStorage.removeItem(CACHE_KEYS.ACTIVE_TAB);
+              localStorage.removeItem(CACHE_KEYS.SELECTED_CHAIN);
+              dispatch(actions.resetState());
+            }}
           />
-        )}
-
-        {/* Hadith Tab */}
-        {activeTab === 'hadith' && (
-          <HadithTab />
         )}
 
         {/* Error Section */}
         {error && (
-          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-6">
+          <div className="rounded-lg p-4 mb-6 border-2 border-black" style={{ backgroundColor: '#f2e9dd', boxShadow: '0 10px 30px rgba(0, 0, 0, 0.2)' }}>
             <div className="flex items-center">
-              <svg className="w-5 h-5 text-red-600 dark:text-red-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
+              <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20" style={{ color: '#dc2626' }}>
                 <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
               </svg>
-              <h3 className="text-sm font-medium text-red-800 dark:text-red-200">Analysis Error</h3>
+              <h3 className="text-sm font-medium" style={{ fontFamily: 'var(--font-title)', color: '#dc2626' }}>Analysis Error</h3>
             </div>
-            <p className="mt-2 text-sm text-red-700 dark:text-red-300">{error}</p>
+            <p className="mt-2 text-sm" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>{error}</p>
           </div>
         )}
 
         {/* Results Section */}
-        {chains.length > 0 && activeTab !== 'narrators' && activeTab !== 'hadith' && (
+        {chains.length > 0 && (
           <div className="space-y-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+              <h2 className="text-xl font-semibold" style={{ fontFamily: 'var(--font-title)', color: '#000000' }}>
                 Hadith Chains ({chains.length})
               </h2>
               <div className="flex items-center gap-3">
                 {chains.length > 1 && (
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
+                  <span className="text-sm" style={{ fontFamily: 'var(--font-content)', color: '#000000', opacity: 0.7 }}>
                     Duplicate narrators are automatically merged in the visualization
                   </span>
                 )}
                 <button
                   onClick={chainService.handleMatchAllNarrators}
                   disabled={isLoading}
-                  className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                  className="px-4 py-2 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-black flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-semibold"
+                  style={{ backgroundColor: '#000000', color: '#f2e9dd', fontFamily: 'var(--font-content)' }}
                   title="Match narrators to database for all chains"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -415,7 +369,7 @@ export default function HadithAnalyzer() {
                 items={chains.map(chain => chain.id)}
                 strategy={verticalListSortingStrategy}
               >
-                <div className="space-y-4">
+                <div className="space-y-4 w-full min-w-0 overflow-x-hidden">
                   {chains.map((chain, chainIndex) => (
                     <DraggableChain
                       key={chain.id}
@@ -431,7 +385,6 @@ export default function HadithAnalyzer() {
                         onMatchNarrators: chainService.handleMatchNarrators,
                       }}
                       editingChainId={editingChainId}
-                      isDarkMode={isDarkMode}
                       state={state}
                       dispatch={dispatch}
                       globalActions={actions}
@@ -448,21 +401,22 @@ export default function HadithAnalyzer() {
         )}
 
         {/* Show Visualization Button - when hidden but chains exist */}
-        {chains.length > 0 && !showVisualization && activeTab !== 'narrators' && activeTab !== 'hadith' && (
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mt-4">
+        {chains.length > 0 && !showVisualization && (
+          <div className="rounded-2xl p-6 mt-4 border-2 border-black" style={{ backgroundColor: '#f2e9dd', boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(0, 0, 0, 0.1)' }}>
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+              <h2 className="text-xl font-semibold" style={{ fontFamily: 'var(--font-title)', color: '#000000' }}>
                 Chain Visualization Available
               </h2>
               <button
                 onClick={() => {
                   if (chains.length > 0) {
-                    const graphCode = generateMermaidCode(chains, isDarkMode);
+                    const graphCode = generateMermaidCode(chains);
                     dispatch(actions.setMermaidCode(graphCode));
                     dispatch(actions.setShowVisualization(true));
                   }
                 }}
-                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors flex items-center gap-2 text-sm font-medium"
+                className="px-4 py-2 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-black flex items-center gap-2 text-sm font-semibold"
+                style={{ backgroundColor: '#000000', color: '#f2e9dd', fontFamily: 'var(--font-content)' }}
                 title="Show chain visualization diagram"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -476,11 +430,10 @@ export default function HadithAnalyzer() {
         )}
 
         {/* Visualization Section */}
-        {showVisualization && mermaidCode && activeTab !== 'narrators' && activeTab !== 'hadith' && (
+        {showVisualization && mermaidCode && (
           <MermaidGraph
             chains={chains}
             showVisualization={showVisualization}
-            isDarkMode={isDarkMode}
             onHide={() => dispatch(actions.setShowVisualization(false))}
             onEdgeHover={(chainIndices) => {
               // Only highlight, no scrolling
@@ -511,30 +464,6 @@ export default function HadithAnalyzer() {
           />
         )}
 
-        {/* Footer */}
-        <footer className="mt-16 border-t border-gray-200 dark:border-gray-700">
-          <div className="max-w-7xl mx-auto px-4 py-8">
-            <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-              <div className="text-sm text-gray-600 dark:text-gray-400">
-                © 2025 ICMA - Hadith Chain Analysis. All rights reserved.
-              </div>
-              <div className="flex items-center gap-6">
-                <Link
-                  href="/privacy-policy"
-                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
-                >
-                  Privacy Policy
-                </Link>
-                <Link
-                  href="/terms-of-service"
-                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors"
-                >
-                  Terms of Service
-                </Link>
-              </div>
-            </div>
-          </div>
-        </footer>
       </div>
 
 

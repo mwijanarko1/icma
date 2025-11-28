@@ -25,32 +25,32 @@ export function ManualTab({
   onUpdateChainTitle,
   onUpdateNarratorReputation,
   onRemoveNarrator,
-  onClearNarrators,
-  isDarkMode
+  onClearNarrators
 }: ManualTabProps) {
   return (
     <>
       {/* Manual Chain Builder Section */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
+      <div className="rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 border-2 border-black bg-white mb-6" style={{ boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(0, 0, 0, 0.1)' }}>
         <div className="mb-6">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+          <h2 className="text-xl font-semibold mb-2" style={{ fontFamily: 'var(--font-title)', color: '#000000' }}>
             Manual Chain Builder
           </h2>
-          <p className="text-gray-600 dark:text-gray-400 text-sm">
+          <p className="text-sm" style={{ fontFamily: 'var(--font-content)', color: '#000000', opacity: 0.7 }}>
             Build your hadith chain manually by adding narrators one by one. No API key required.
           </p>
         </div>
 
         {/* Chain Management Section */}
-        <div className="border-t border-gray-200 dark:border-gray-700 pt-6 mb-6">
+        <div className="border-t-2 border-black pt-6 mb-6">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+            <h3 className="text-lg font-medium" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>
               Chain Management
             </h3>
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={onNewHadith}
-                className="bg-red-600 text-white px-3 py-2 rounded-md hover:bg-red-700 transition-colors flex items-center gap-2 text-sm"
+                className="px-3 py-2 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-black flex items-center gap-2 text-sm font-semibold"
+                style={{ backgroundColor: '#000000', color: '#f2e9dd', fontFamily: 'var(--font-content)' }}
                 title="Start a new hadith (this will clear all current chains)"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -60,7 +60,8 @@ export function ManualTab({
               </button>
               <button
                 onClick={onAddNewChain}
-                className="bg-blue-600 text-white px-3 py-2 rounded-md hover:bg-blue-700 transition-colors flex items-center gap-2 text-sm"
+                className="px-3 py-2 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-black flex items-center gap-2 text-sm font-semibold"
+                style={{ backgroundColor: '#000000', color: '#f2e9dd', fontFamily: 'var(--font-content)' }}
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -69,7 +70,8 @@ export function ManualTab({
               </button>
               <button
                 onClick={onShowImportModal}
-                className="bg-green-600 text-white px-3 py-2 rounded-md hover:bg-green-700 transition-colors flex items-center gap-2 text-sm"
+                className="px-3 py-2 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-black flex items-center gap-2 text-sm font-semibold"
+                style={{ backgroundColor: '#000000', color: '#f2e9dd', fontFamily: 'var(--font-content)' }}
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
@@ -79,7 +81,8 @@ export function ManualTab({
               {chains.length > 0 && (
                 <button
                   onClick={onExportChains}
-                  className="bg-indigo-600 text-white px-3 py-2 rounded-md hover:bg-indigo-700 transition-colors flex items-center gap-2 text-sm"
+                  className="px-3 py-2 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-black flex items-center gap-2 text-sm font-semibold"
+                  style={{ backgroundColor: '#000000', color: '#f2e9dd', fontFamily: 'var(--font-content)' }}
                   title="Export all chains and data as JSON"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -94,7 +97,7 @@ export function ManualTab({
           {/* Chain Selection */}
           {chains.length > 1 && (
             <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-sm font-medium mb-2" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>
                 Select Chain to Edit
               </label>
               <div className="flex flex-wrap gap-2">
@@ -102,11 +105,13 @@ export function ManualTab({
                   <button
                     key={chain.id}
                     onClick={() => onSelectChain(index)}
-                    className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                      selectedChainIndex === index
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
-                    }`}
+                    className="px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-200 border-2"
+                    style={{
+                      backgroundColor: selectedChainIndex === index ? '#000000' : '#f2e9dd',
+                      color: selectedChainIndex === index ? '#f2e9dd' : '#000000',
+                      borderColor: '#000000',
+                      fontFamily: 'var(--font-content)'
+                    }}
                   >
                     {chain.title || `Chain ${index + 1}`} ({chain.narrators.length} narrators)
                   </button>
@@ -117,7 +122,7 @@ export function ManualTab({
 
           {/* Chain Title Input */}
           <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-medium mb-2" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>
               Chain Title (Optional)
             </label>
             <input
@@ -130,21 +135,23 @@ export function ManualTab({
                 }
               }}
               placeholder="Enter chain title..."
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+              className="w-full px-3 py-2 border-2 border-black rounded-lg focus:outline-none focus:ring-2 focus:ring-black bg-white text-gray-900 placeholder-gray-500"
+              style={{ fontFamily: 'var(--font-content)' }}
             />
           </div>
         </div>
 
         {/* Add Narrator Section */}
-        <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
-          <h4 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+        <div className="border-t-2 border-black pt-6">
+          <h4 className="text-lg font-medium mb-4" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>
             Add Narrators to {chains.length > 0 ? (chains[selectedChainIndex]?.title || `Chain ${selectedChainIndex + 1}`) : 'New Chain'}
           </h4>
 
           {!showAddNarrator ? (
             <button
               onClick={() => onShowAddNarrator(true)}
-              className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors flex items-center gap-2"
+              className="px-4 py-2 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-black flex items-center gap-2 font-semibold"
+              style={{ backgroundColor: '#000000', color: '#f2e9dd', fontFamily: 'var(--font-content)' }}
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -152,10 +159,10 @@ export function ManualTab({
               Add Narrator
             </button>
           ) : (
-            <div className="space-y-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+            <div className="space-y-4 p-4 bg-gray-50 rounded-lg border-2 border-black">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label className="block text-sm font-medium mb-2" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>
                     Arabic Name *
                   </label>
                   <input
@@ -163,12 +170,13 @@ export function ManualTab({
                     value={newNarrator.arabicName}
                     onChange={(e) => onNewNarratorChange({ ...newNarrator, arabicName: e.target.value })}
                     placeholder="Enter Arabic name..."
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                    className="w-full px-3 py-2 border-2 border-black rounded-lg focus:outline-none focus:ring-2 focus:ring-black bg-white text-gray-900 placeholder-gray-500"
+                    style={{ fontFamily: 'var(--font-content)' }}
                     dir="rtl"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label className="block text-sm font-medium mb-2" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>
                     English Name *
                   </label>
                   <input
@@ -176,13 +184,14 @@ export function ManualTab({
                     value={newNarrator.englishName}
                     onChange={(e) => onNewNarratorChange({ ...newNarrator, englishName: e.target.value })}
                     placeholder="Enter English name..."
-                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+                    className="w-full px-3 py-2 border-2 border-black rounded-lg focus:outline-none focus:ring-2 focus:ring-black bg-white text-gray-900 placeholder-gray-500"
+                    style={{ fontFamily: 'var(--font-content)' }}
                   />
                 </div>
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                <label className="block text-sm font-medium mb-2" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>
                   Reputation
                 </label>
                 <ReputationSelector
@@ -192,14 +201,14 @@ export function ManualTab({
                     reputation, 
                     calculatedGrade: calculateNarratorGrade(reputation) 
                   })}
-                  isDarkMode={isDarkMode}
                 />
               </div>
               <div className="flex gap-2">
                 <button
                   onClick={onAddNarrator}
                   disabled={!newNarrator.arabicName.trim() || !newNarrator.englishName.trim()}
-                  className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed transition-colors"
+                  className="px-4 py-2 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-black font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                  style={{ backgroundColor: '#000000', color: '#f2e9dd', fontFamily: 'var(--font-content)' }}
                 >
                   Add Narrator
                 </button>
@@ -208,7 +217,8 @@ export function ManualTab({
                     onNewNarratorChange({ arabicName: '', englishName: '', reputation: [], calculatedGrade: 0 });
                     onShowAddNarrator(false);
                   }}
-                  className="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 transition-colors"
+                  className="px-4 py-2 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-black font-semibold"
+                  style={{ backgroundColor: '#f2e9dd', color: '#000000', fontFamily: 'var(--font-content)' }}
                 >
                   Cancel
                 </button>
@@ -220,47 +230,48 @@ export function ManualTab({
 
       {/* Current Chain Display */}
       {chains.length > 0 && chains[selectedChainIndex] && (
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
+        <div className="rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 border-2 border-black bg-white mb-6" style={{ boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(0, 0, 0, 0.1)' }}>
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+            <h3 className="text-lg font-medium" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>
               {chains[selectedChainIndex].title || `Chain ${selectedChainIndex + 1}`} ({chains[selectedChainIndex].narrators.length} narrators)
             </h3>
             {chains.length > 1 && (
               <button
                 onClick={() => onRemoveChain(selectedChainIndex)}
-                className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 px-3 py-1 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors text-sm"
+                className="text-red-600 hover:text-red-800 px-3 py-1 rounded-md hover:bg-red-50 transition-colors text-sm"
+                style={{ fontFamily: 'var(--font-content)' }}
               >
                 Remove Chain
               </button>
             )}
           </div>
           <div className="overflow-x-auto">
-            <table className="min-w-full border border-gray-300 dark:border-gray-600">
+            <table className="min-w-full border-2 border-black">
               <thead>
-                <tr className="bg-gray-50 dark:bg-gray-700">
-                  <th className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-700 dark:text-gray-300">#</th>
-                  <th className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-right font-medium text-gray-700 dark:text-gray-300">Arabic Name</th>
-                  <th className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-left font-medium text-gray-700 dark:text-gray-300">English Name</th>
-                  <th className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center font-medium text-gray-700 dark:text-gray-300">Reputation</th>
-                  <th className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center font-medium text-gray-700 dark:text-gray-300">Calculated Grade</th>
-                  <th className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center font-medium text-gray-700 dark:text-gray-300">Actions</th>
+                <tr className="bg-gray-50">
+                  <th className="border-2 border-black px-4 py-2 text-left font-medium" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>#</th>
+                  <th className="border-2 border-black px-4 py-2 text-right font-medium" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>Arabic Name</th>
+                  <th className="border-2 border-black px-4 py-2 text-left font-medium" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>English Name</th>
+                  <th className="border-2 border-black px-4 py-2 text-center font-medium" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>Reputation</th>
+                  <th className="border-2 border-black px-4 py-2 text-center font-medium" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>Calculated Grade</th>
+                  <th className="border-2 border-black px-4 py-2 text-center font-medium" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {chains[selectedChainIndex].narrators.map((narrator, index) => (
-                  <tr key={`table-narrator-${selectedChainIndex}-${index}-${narrator.number}`} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                    <td className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center text-gray-900 dark:text-white">
+                  <tr key={`table-narrator-${selectedChainIndex}-${index}-${narrator.number}`} className="hover:bg-gray-50">
+                    <td className="border-2 border-black px-4 py-2 text-center" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>
                       {narrator.number}
                     </td>
-                    <td className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-right text-gray-900 dark:text-white" dir="rtl">
+                    <td className="border-2 border-black px-4 py-2 text-right" style={{ fontFamily: 'var(--font-content)', color: '#000000' }} dir="rtl">
                       {narrator.arabicName}
                     </td>
-                    <td className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-gray-900 dark:text-white">
+                    <td className="border-2 border-black px-4 py-2" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>
                       {narrator.englishName}
                     </td>
-                    <td className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center">
+                    <td className="border-2 border-black px-4 py-2 text-center">
                       {narrator.arabicName === "رَسُولَ اللَّهِ" ? (
-                        <div className="text-gray-500 dark:text-gray-400 text-sm italic">
+                        <div className="text-sm italic" style={{ fontFamily: 'var(--font-content)', color: '#000000', opacity: 0.6 }}>
                           N/A
                         </div>
                       ) : (
@@ -268,7 +279,6 @@ export function ManualTab({
                           <ReputationSelector
                             selectedReputations={narrator.reputation || []}
                             onReputationChange={(reputation) => onUpdateNarratorReputation(selectedChainIndex, index, reputation)}
-                            isDarkMode={isDarkMode}
                           />
                           {(narrator.reputation || []).length > 0 && (
                             <div className="flex flex-wrap gap-1 justify-center mt-2">
@@ -277,10 +287,10 @@ export function ManualTab({
                                   key={`table-narrator-${narrator.number}-grade-${gradeIdx}-${grade}`}
                                   className={`px-2 py-1 text-xs rounded ${
                                     REPUTATION_GRADES[grade].category === 'high'
-                                      ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                                      ? 'bg-green-100 text-green-800'
                                       : REPUTATION_GRADES[grade].category === 'intermediate'
-                                      ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
-                                      : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                                      ? 'bg-yellow-100 text-yellow-800'
+                                      : 'bg-red-100 text-red-800'
                                   }`}
                                 >
                                   {grade}
@@ -291,9 +301,9 @@ export function ManualTab({
                         </>
                       )}
                     </td>
-                    <td className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center">
+                    <td className="border-2 border-black px-4 py-2 text-center">
                       {narrator.arabicName === "رَسُولَ اللَّهِ" ? (
-                        <div className="text-gray-500 dark:text-gray-400 text-sm italic">
+                        <div className="text-sm italic" style={{ fontFamily: 'var(--font-content)', color: '#000000', opacity: 0.6 }}>
                           N/A
                         </div>
                       ) : (
@@ -301,16 +311,16 @@ export function ManualTab({
                           <div className={`font-semibold ${getGradeColorClass(narrator.calculatedGrade || 0)}`}>
                             {(narrator.calculatedGrade || 0).toFixed(1)}
                           </div>
-                          <div className={`text-xs ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                          <div className="text-xs" style={{ fontFamily: 'var(--font-content)', color: '#000000', opacity: 0.6 }}>
                             {getGradeDescription(narrator.calculatedGrade || 0)}
                           </div>
                         </>
                       )}
                     </td>
-                    <td className="border border-gray-300 dark:border-gray-600 px-4 py-2 text-center">
+                    <td className="border-2 border-black px-4 py-2 text-center">
                       <button
                         onClick={() => onRemoveNarrator(selectedChainIndex, index)}
-                        className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                        className="text-red-600 hover:text-red-800 p-1 rounded hover:bg-red-50 transition-colors"
                         title="Remove narrator"
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -327,7 +337,8 @@ export function ManualTab({
             <div className="mt-4 text-center">
               <button
                 onClick={() => onClearNarrators(selectedChainIndex)}
-                className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors"
+                className="px-4 py-2 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-black font-semibold"
+                style={{ backgroundColor: '#000000', color: '#f2e9dd', fontFamily: 'var(--font-content)' }}
               >
                 Clear Narrators
               </button>

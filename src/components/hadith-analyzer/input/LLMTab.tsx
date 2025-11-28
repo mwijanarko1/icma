@@ -19,8 +19,8 @@ export function LLMTab({
   return (
     <>
       {/* Input Section */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-6">
-        <label htmlFor="hadith-input" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+      <div className="rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 border-2 border-black bg-white mb-6" style={{ boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(0, 0, 0, 0.1)' }}>
+        <label htmlFor="hadith-input" className="block text-sm font-medium mb-2" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>
           Paste Hadith Chain (Arabic)
         </label>
         <textarea
@@ -28,12 +28,13 @@ export function LLMTab({
           value={hadithText}
           onChange={(e) => onHadithTextChange(e.target.value)}
           placeholder="Paste your hadith chain here..."
-          className="w-full h-64 p-4 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-          dir={/[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/.test(hadithText) ? 'rtl' : 'ltr'}
+          className="w-full h-64 p-4 border-2 border-black rounded-lg focus:outline-none focus:ring-2 focus:ring-black resize-none bg-white text-gray-900 placeholder-gray-500"
           style={{
-            color: 'inherit',
+            fontFamily: 'var(--font-content)',
+            color: '#000000',
             textAlign: /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/.test(hadithText) ? 'right' : 'left'
           }}
+          dir={/[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/.test(hadithText) ? 'rtl' : 'ltr'}
         />
         <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 mt-4">
           <button
@@ -45,11 +46,13 @@ export function LLMTab({
               await onExtractNarrators(hadithText);
             }}
             disabled={isLoading}
-            className={`w-full sm:w-auto px-3 sm:px-6 py-2 rounded-md transition-colors flex items-center justify-center gap-2 ${
-              !apiKey
-                ? 'bg-yellow-600 text-white hover:bg-yellow-700 cursor-pointer'
-                : 'bg-blue-600 text-white hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed'
-            }`}
+            className="w-full sm:w-auto px-3 sm:px-6 py-2 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-black flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-semibold"
+            style={{ 
+              backgroundColor: !apiKey ? '#fbbf24' : '#000000', 
+              color: '#f2e9dd', 
+              fontFamily: 'var(--font-content)',
+              ...(!apiKey && { borderColor: '#000000' })
+            }}
             title={!apiKey ? 'Click to add API key' : undefined}
           >
             {!apiKey && (
@@ -72,7 +75,8 @@ export function LLMTab({
           </button>
           <button
             onClick={onTryDemo}
-            className="w-full sm:w-auto px-3 sm:px-6 py-2 rounded-md transition-colors flex items-center justify-center gap-2 bg-purple-600 text-white hover:bg-purple-700"
+            className="w-full sm:w-auto px-3 sm:px-6 py-2 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-black flex items-center justify-center gap-2 text-sm font-semibold"
+            style={{ backgroundColor: '#000000', color: '#f2e9dd', fontFamily: 'var(--font-content)' }}
             title="Load all three hadith chains about intentions with demo results (no API key needed)"
           >
             <svg className="w-4 h-4 hidden xs:inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -83,7 +87,8 @@ export function LLMTab({
           </button>
           <button
             onClick={onShowImportModal}
-            className="w-full sm:w-auto bg-green-600 text-white px-3 sm:px-6 py-2 rounded-md hover:bg-green-700 transition-colors flex items-center justify-center gap-2"
+            className="w-full sm:w-auto px-3 sm:px-6 py-2 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-black flex items-center justify-center gap-2 text-sm font-semibold"
+            style={{ backgroundColor: '#000000', color: '#f2e9dd', fontFamily: 'var(--font-content)' }}
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
@@ -95,7 +100,8 @@ export function LLMTab({
             <div className="flex flex-wrap gap-2 sm:gap-3">
               <button
                 onClick={onNewHadith}
-                className="w-full sm:w-auto bg-blue-600 text-white px-3 sm:px-4 py-2 rounded-md hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 text-sm"
+                className="w-full sm:w-auto px-3 sm:px-4 py-2 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-black flex items-center justify-center gap-2 text-sm font-semibold"
+                style={{ backgroundColor: '#000000', color: '#f2e9dd', fontFamily: 'var(--font-content)' }}
                 title="Start a new hadith (this will clear all current chains)"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -107,7 +113,8 @@ export function LLMTab({
 
               <button
                 onClick={onExportChains}
-                className="w-full sm:w-auto bg-indigo-600 text-white px-3 sm:px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2 text-sm"
+                className="w-full sm:w-auto px-3 sm:px-4 py-2 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-black flex items-center justify-center gap-2 text-sm font-semibold"
+                style={{ backgroundColor: '#000000', color: '#f2e9dd', fontFamily: 'var(--font-content)' }}
                 title="Export all chains and data as JSON"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

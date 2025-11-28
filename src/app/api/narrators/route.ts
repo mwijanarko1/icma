@@ -46,6 +46,7 @@ interface SearchParams {
   deathYearAH?: number;
   limit?: number;
   offset?: number;
+  random?: boolean;
 }
 
 interface NarratorRow {
@@ -274,6 +275,7 @@ export async function GET(request: NextRequest) {
       offset: searchParams.get('offset') 
         ? parseInt(searchParams.get('offset')!) 
         : 0,
+      random: searchParams.get('random') === 'true',
     };
 
     // Parse search terms from query and normalize them
@@ -509,6 +511,52 @@ export async function GET(request: NextRequest) {
         total,
         limit: params.limit,
         offset: params.offset
+      });
+    }
+
+    // Handle random narrators request
+    if (params.random) {
+      const limit = params.limit || 5;
+      // Get random narrators using SQLite's random() function
+      const randomNarrators = db.prepare(`
+        SELECT * FROM narrators 
+        ORDER BY RANDOM() 
+        LIMIT ?
+      `).all(limit) as NarratorRow[];
+
+      // Get total count
+      const totalResult = db.prepare('SELECT COUNT(*) as count FROM narrators').get() as { count: number };
+      const total = totalResult.count;
+
+      // Convert to Narrator format
+      const formattedNarrators: Narrator[] = randomNarrators.map(n => ({
+        id: n.id,
+        primaryArabicName: n.primary_arabic_name,
+        primaryEnglishName: n.primary_english_name,
+        fullNameArabic: n.full_name_arabic || undefined,
+        fullNameEnglish: n.full_name_english || undefined,
+        title: n.title || undefined,
+        kunya: n.kunya || undefined,
+        lineage: n.lineage || undefined,
+        deathYearAH: n.death_year_ah || undefined,
+        deathYearAHAlternative: n.death_year_ah_alternative || undefined,
+        deathYearCE: n.death_year_ce || undefined,
+        placeOfResidence: n.place_of_residence || undefined,
+        placeOfDeath: n.place_of_death || undefined,
+        placesTraveled: n.places_traveled ? JSON.parse(n.places_traveled) : undefined,
+        taqribCategory: n.taqrib_category || undefined,
+        ibnHajarRank: n.ibn_hajar_rank || undefined,
+        dhahabiRank: n.dhahabi_rank || undefined,
+        notes: n.notes || undefined,
+      }));
+
+      return NextResponse.json({
+        success: true,
+        narrators: formattedNarrators,
+        count: formattedNarrators.length,
+        total,
+        limit: params.limit,
+        offset: 0
       });
     }
 

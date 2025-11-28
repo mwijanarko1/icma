@@ -27,7 +27,7 @@ export interface HadithAnalyzerState {
   showVisualization: boolean;
   isLoading: boolean;
   error: string | null;
-  activeTab: 'llm' | 'manual' | 'narrators' | 'hadith';
+  activeTab: 'llm' | 'manual' | 'narrators' | 'hadith' | 'settings';
   selectedChainIndex: number;
   
   // Editing state

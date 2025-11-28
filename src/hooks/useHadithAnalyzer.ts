@@ -1,7 +1,7 @@
 "use client";
 
 import { useReducer, useEffect, useCallback, useRef } from "react";
-import { useTheme } from "@/contexts/ThemeContext";
+import { usePathname } from "next/navigation";
 import { hadithAnalyzerReducer } from "@/reducers/hadithAnalyzerReducer";
 import { initialState } from "@/types/hadithAnalyzerState";
 import { actions } from "@/reducers/hadithAnalyzerActions";
@@ -21,45 +21,42 @@ import {
   saveSelectedChain,
   clearAllCache
 } from "@/lib/cache/storage";
+import { CACHE_KEYS } from "@/lib/cache/constants";
 import type { Narrator } from "@/types/hadith";
+import type { HadithAnalyzerState } from "@/types/hadithAnalyzerState";
+
+// Initialize state with cached data synchronously
+function getInitialState(): HadithAnalyzerState {
+  const cachedHadithText = loadCachedHadithText();
+  const cachedChains = loadCachedChains();
+  const cachedShowViz = loadCachedShowVisualization();
+  const cachedApiKey = loadCachedApiKey();
+  const cachedActiveTab = loadCachedActiveTab();
+  const cachedSelectedChain = loadCachedSelectedChain();
+
+  // Validate activeTab to ensure it matches the state type
+  const validActiveTab = cachedActiveTab && 
+    (cachedActiveTab === 'llm' || cachedActiveTab === 'manual' || cachedActiveTab === 'narrators' || cachedActiveTab === 'hadith' || cachedActiveTab === 'settings')
+    ? cachedActiveTab
+    : initialState.activeTab;
+
+  return {
+    ...initialState,
+    hadithText: cachedHadithText || initialState.hadithText,
+    chains: cachedChains || initialState.chains,
+    showVisualization: cachedShowViz !== null ? cachedShowViz : initialState.showVisualization,
+    apiKey: cachedApiKey || initialState.apiKey,
+    activeTab: validActiveTab,
+    selectedChainIndex: cachedSelectedChain !== null ? cachedSelectedChain : initialState.selectedChainIndex,
+  };
+}
 
 export function useHadithAnalyzer() {
-  const [state, dispatch] = useReducer(hadithAnalyzerReducer, initialState);
-  const { isDarkMode } = useTheme();
+  // Initialize reducer with cached state
+  const [state, dispatch] = useReducer(hadithAnalyzerReducer, undefined, getInitialState);
   const graphRef = useRef<HTMLDivElement>(null);
-
-  // Load cached data on mount
-  useEffect(() => {
-    const cachedHadithText = loadCachedHadithText();
-    if (cachedHadithText) {
-      dispatch(actions.setHadithText(cachedHadithText));
-    }
-
-    const cachedChains = loadCachedChains();
-    if (cachedChains) {
-      dispatch(actions.setChains(cachedChains));
-    }
-
-    const cachedShowViz = loadCachedShowVisualization();
-    if (cachedShowViz !== null) {
-      dispatch(actions.setShowVisualization(cachedShowViz));
-    }
-
-    const cachedApiKey = loadCachedApiKey();
-    if (cachedApiKey) {
-      dispatch(actions.setApiKey(cachedApiKey));
-    }
-
-    const cachedActiveTab = loadCachedActiveTab();
-    if (cachedActiveTab) {
-      dispatch(actions.setActiveTab(cachedActiveTab));
-    }
-
-    const cachedSelectedChain = loadCachedSelectedChain();
-    if (cachedSelectedChain !== null) {
-      dispatch(actions.setSelectedChainIndex(cachedSelectedChain));
-    }
-  }, []);
+  const pathname = usePathname();
+  const prevPathnameRef = useRef<string | null>(null);
 
   // Sync state to localStorage
   useEffect(() => {
@@ -69,6 +66,58 @@ export function useHadithAnalyzer() {
   useEffect(() => {
     saveChains(state.chains);
   }, [state.chains]);
+
+  // Save all critical state before page unload/navigation to ensure persistence
+  useEffect(() => {
+    const saveAllState = () => {
+      try {
+        // Save all critical state synchronously
+        localStorage.setItem(CACHE_KEYS.HADITH_TEXT, state.hadithText);
+        localStorage.setItem(CACHE_KEYS.CHAINS, JSON.stringify(state.chains));
+        localStorage.setItem(CACHE_KEYS.SHOW_VISUALIZATION, JSON.stringify(state.showVisualization));
+        if (state.apiKey) {
+          localStorage.setItem(CACHE_KEYS.API_KEY, state.apiKey);
+        }
+        localStorage.setItem(CACHE_KEYS.ACTIVE_TAB, state.activeTab);
+        localStorage.setItem(CACHE_KEYS.SELECTED_CHAIN, state.selectedChainIndex.toString());
+      } catch (error) {
+        console.warn('Failed to save state on navigation:', error);
+      }
+    };
+
+    const handleBeforeUnload = () => {
+      saveAllState();
+    };
+
+    // Listen for beforeunload (browser navigation/refresh)
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      // Save state on unmount as well
+      saveAllState();
+    };
+  }, [state.hadithText, state.chains, state.showVisualization, state.apiKey, state.activeTab, state.selectedChainIndex]);
+
+  // Save state when route changes (Next.js client-side navigation)
+  useEffect(() => {
+    // If pathname changed and we had a previous pathname, save state before navigation
+    if (prevPathnameRef.current !== null && prevPathnameRef.current !== pathname) {
+      try {
+        localStorage.setItem(CACHE_KEYS.HADITH_TEXT, state.hadithText);
+        localStorage.setItem(CACHE_KEYS.CHAINS, JSON.stringify(state.chains));
+        localStorage.setItem(CACHE_KEYS.SHOW_VISUALIZATION, JSON.stringify(state.showVisualization));
+        if (state.apiKey) {
+          localStorage.setItem(CACHE_KEYS.API_KEY, state.apiKey);
+        }
+        localStorage.setItem(CACHE_KEYS.ACTIVE_TAB, state.activeTab);
+        localStorage.setItem(CACHE_KEYS.SELECTED_CHAIN, state.selectedChainIndex.toString());
+      } catch (error) {
+        console.warn('Failed to save state on route change:', error);
+      }
+    }
+    prevPathnameRef.current = pathname;
+  }, [pathname, state.hadithText, state.chains, state.showVisualization, state.apiKey, state.activeTab, state.selectedChainIndex]);
 
   useEffect(() => {
     saveShowVisualization(state.showVisualization);
@@ -161,8 +210,7 @@ export function useHadithAnalyzer() {
     extractNarrators,
     handleClearCache,
     handleNewHadith,
-    graphRef,
-    isDarkMode
+    graphRef
   };
 }
 

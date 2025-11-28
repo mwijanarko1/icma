@@ -6,6 +6,7 @@ import type { Dispatch } from 'react';
 import type { HadithAnalyzerAction } from '@/reducers/hadithAnalyzerActions';
 import { generateMermaidCode } from '@/components/hadith-analyzer/visualization/utils';
 import { calculateNarratorGrade } from '@/lib/grading/calculator';
+import { saveChains } from '@/lib/cache/storage';
 
 export async function fetchLibraryChains(): Promise<LibraryChain[]> {
   const response = await fetch('/api/chains');
@@ -64,8 +65,7 @@ export async function loadChainFromLibrary(chainPath: string) {
 export function createChainService(
   state: HadithAnalyzerState,
   dispatch: Dispatch<HadithAnalyzerAction>,
-  actions: typeof import('@/reducers/hadithAnalyzerActions').actions,
-  isDarkMode: boolean
+  actions: typeof import('@/reducers/hadithAnalyzerActions').actions
 ) {
   const handleTryDemo = async () => {
     // Clear input text as requested
@@ -204,7 +204,7 @@ export function createChainService(
       dispatch(actions.setShowVisualization(false));
       dispatch(actions.setMermaidCode(""));
     } else {
-      const graphCode = generateMermaidCode(newChains, isDarkMode);
+      const graphCode = generateMermaidCode(newChains);
       dispatch(actions.setMermaidCode(graphCode));
     }
   };
@@ -530,7 +530,7 @@ export function createChainService(
     dispatch(actions.setEditFormData({ title: '', narrators: [], chainText: '', matn: '' }));
 
     // Update visualization
-    const graphCode = generateMermaidCode(updatedChains, isDarkMode);
+    const graphCode = generateMermaidCode(updatedChains);
     dispatch(actions.setMermaidCode(graphCode));
   };
 
@@ -596,8 +596,13 @@ export function createChainService(
         collapsed: false
       };
 
-      dispatch(actions.setChains([...state.chains, newChain]));
+      const updatedChains = [...state.chains, newChain];
+      dispatch(actions.setChains(updatedChains));
       dispatch(actions.setShowVisualization(true));
+      
+      // Explicitly save chains to localStorage immediately after extraction
+      // This ensures persistence even if user navigates away quickly
+      saveChains(updatedChains);
       
       // Automatically trigger matching modal after extraction
       await handleMatchNarrators(newChainId, newChain);
