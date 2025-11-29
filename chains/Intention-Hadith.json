@@ -7,45 +7,53 @@
           {
             "number": 1,
             "arabicName": "رَسُولَ اللَّهِ",
-            "englishName": "Messenger of Allah"
+            "englishName": "Messenger of Allah",
+            "grade": "n/a"
           },
           {
             "number": 2,
             "arabicName": "عُمَرَ بْنَ الْخَطَّابِ",
-            "englishName": "Umar ibn al-Khattab"
+            "englishName": "Umar ibn al-Khattab",
+            "grade": "10"
           },
           {
             "number": 3,
             "arabicName": "عَلْقَمَةَ بْنَ وَقَّاصٍ اللَّيْثِيَّ",
-            "englishName": "Alqamah ibn Waqqas al-Laythi"
+            "englishName": "Alqamah ibn Waqqas al-Laythi",
+            "grade": "9/10"
           },
           {
             "number": 4,
             "arabicName": "مُحَمَّدُ بْنُ إِبْرَاهِيمَ التَّيْمِيُّ",
-            "englishName": "Muhammad ibn Ibrahim al-Taymi"
+            "englishName": "Muhammad ibn Ibrahim al-Taymi",
+            "grade": "9/10"
           },
           {
             "number": 5,
             "arabicName": "يَحْيَى بْنُ سَعِيدٍ الْأَنْصَارِيُّ",
-            "englishName": "Yahya ibn Said al-Ansari"
+            "englishName": "Yahya ibn Said al-Ansari",
+            "grade": "9/10"
           },
           {
             "number": 6,
             "arabicName": "سُفْيَانُ",
-            "englishName": "Sufyan"
+            "englishName": "Sufyan",
+            "grade": "9/10"
           },
           {
             "number": 7,
             "arabicName": "الْحُمَيْدِيُّ عَبْدُ اللَّهِ بْنُ الزُّبَيْرِ",
-            "englishName": "Al-Humaidi Abdullah ibn al-Zubayr"
+            "englishName": "Al-Humaidi Abdullah ibn al-Zubayr",
+            "grade": "9/10"
           },
           {
             "number": 8,
             "arabicName": "الْإِمَامُ الْبُخَارِيُّ",
-            "englishName": "Imam al-Bukhari"
+            "englishName": "Imam al-Bukhari",
+            "grade": "9/10"
           }
         ],
-        "hadithText": "حَدَّثَنَا الْحُمَيْدِيُّ عَبْدُ اللَّهِ بْنُ الزُّبَيْرِ... (Sahih al-Bukhari 1)",
+        "hadithText": "حَدَّثَنَا الْحُمَيْدِيُّ عَبْدُ اللَّهِ بْنُ الزُّبَيْرِ ، قَالَ : حَدَّثَنَا سُفْيَانُ ، قَالَ : حَدَّثَنَا يَحْيَى بْنُ سَعِيدٍ الْأَنْصَارِيُّ ، قَالَ : أَخْبَرَنِي مُحَمَّدُ بْنُ إِبْرَاهِيمَ التَّيْمِيُّ ، أَنَّهُ سَمِعَ عَلْقَمَةَ بْنَ وَقَّاصٍ اللَّيْثِيَّ ، يَقُولُ : سَمِعْتُ عُمَرَ بْنَ الْخَطَّابِ رَضِيَ اللَّهُ عَنْهُ عَلَى الْمِنْبَرِ، قَالَ : سَمِعْتُ رَسُولَ اللَّهِ صَلَّى اللَّهُ عَلَيْهِ وَسَلَّمَ، يَقُولُ",
         "title": "Bukhari 1",
         "collapsed": true
       },
@@ -55,32 +63,38 @@
           {
             "number": 1,
             "arabicName": "رَسُولَ اللَّهِ",
-            "englishName": "Messenger of Allah"
+            "englishName": "Messenger of Allah",
+            "grade": "n/a"
           },
           {
             "number": 2,
             "arabicName": "عُمَرَ بْنَ الْخَطَّابِ",
-            "englishName": "Umar ibn al-Khattab"
+            "englishName": "Umar ibn al-Khattab",
+            "grade": "10"
           },
           {
             "number": 3,
             "arabicName": "عَلْقَمَةَ بْنَ وَقَّاصٍ اللَّيْثِيَّ",
-            "englishName": "Alqamah ibn Waqqas al-Laythi"
+            "englishName": "Alqamah ibn Waqqas al-Laythi",
+            "grade": "9/10"
           },
           {
             "number": 4,
             "arabicName": "مُحَمَّدُ بْنُ إِبْرَاهِيمَ التَّيْمِيُّ",
-            "englishName": "Muhammad ibn Ibrahim al-Taymi"
+            "englishName": "Muhammad ibn Ibrahim al-Taymi",
+            "grade": "9/10"
           },
           {
             "number": 5,
             "arabicName": "يَحْيَى بْنُ سَعِيدٍ الْأَنْصَارِيُّ",
-            "englishName": "Yahya ibn Said al-Ansari"
+            "englishName": "Yahya ibn Said al-Ansari",
+            "grade": "9/10"
           },
           {
             "number": 6,
             "arabicName": "سُفْيَانُ",
-            "englishName": "Sufyan"
+            "englishName": "Sufyan",
+            "grade": "9/10"
           },
           {
             "number": 7,
@@ -90,10 +104,11 @@
           {
             "number": 8,
             "arabicName": "الْإِمَامُ الْبُخَارِيُّ",
-            "englishName": "Imam al-Bukhari"
+            "englishName": "Imam al-Bukhari",
+            "grade": "9/10"
           }
         ],
-        "hadithText": "حَدَّثَنَا مُحَمَّدُ بْنُ كَثِيرٍ... (Sahih al-Bukhari 2529)",
+        "hadithText": "حَدَّثَنَا مُحَمَّدُ بْنُ كَثِيرٍ، عَنْ سُفْيَانَ، حَدَّثَنَا يَحْيَى بْنُ سَعِيدٍ، عَنْ مُحَمَّدِ بْنِ إِبْرَاهِيمَ التَّيْمِيِّ، عَنْ عَلْقَمَةَ بْنِ وَقَّاصٍ اللَّيْثِيِّ، قَالَ سَمِعْتُ عُمَرَ بْنَ الْخَطَّابِ ـ رضى الله عنه ـ عَنِ النَّبِيِّ صلى الله عليه وسلم قَالَ",
         "title": "Bukhari 2529",
         "collapsed": true
       },
@@ -103,32 +118,38 @@
           {
             "number": 1,
             "arabicName": "رَسُولَ اللَّهِ",
-            "englishName": "Messenger of Allah"
+            "englishName": "Messenger of Allah",
+            "grade": "n/a"
           },
           {
             "number": 2,
             "arabicName": "عُمَرَ بْنَ الْخَطَّابِ",
-            "englishName": "Umar ibn al-Khattab"
+            "englishName": "Umar ibn al-Khattab",
+            "grade": "10"
           },
           {
             "number": 3,
             "arabicName": "عَلْقَمَةَ بْنَ وَقَّاصٍ اللَّيْثِيَّ",
-            "englishName": "Alqama ibn Waqqas al-Laythi"
+            "englishName": "Alqama ibn Waqqas al-Laythi",
+            "grade": "9/10"
           },
           {
             "number": 4,
             "arabicName": "مُحَمَّدُ بْنُ إِبْرَاهِيمَ التَّيْمِيُّ",
-            "englishName": "Muhammad ibn Ibrahim al-Taymi"
+            "englishName": "Muhammad ibn Ibrahim al-Taymi",
+            "grade": "9/10"
           },
           {
             "number": 5,
             "arabicName": "يَحْيَى بْنُ سَعِيدٍ الْأَنْصَارِيُّ",
-            "englishName": "Yahya ibn Sa'id"
+            "englishName": "Yahya ibn Sa'id",
+            "grade": "9/10"
           },
           {
             "number": 6,
             "arabicName": "سُفْيَانُ",
-            "englishName": "Sufyan"
+            "englishName": "Sufyan",
+            "grade": "9/10"
           },
           {
             "number": 7,
@@ -138,10 +159,11 @@
           {
             "number": 8,
             "arabicName": "الْإِمَامُ أَبُو دَاوُدَ",
-            "englishName": "Abu Dawud"
+            "englishName": "Abu Dawud",
+            "grade": "9/10"
           }
         ],
-        "hadithText": "حَدَّثَنَا مُحَمَّدُ بْنُ كَثِيرٍ، أَخْبَرَنَا سُفْيَانُ، حَدَّثَنِي يَحْيَى بْنُ سَعِيدٍ، عَنْ مُحَمَّدِ بْنِ إِبْرَاهِيمَ التَّيْمِيِّ، عَنْ عَلْقَمَةَ بْنِ وَقَّاصٍ اللَّيْثِيِّ، قَالَ سَمِعْتُ عُمَرَ بْنَ الْخَطَّابِ، يَقُولُ قَالَ رَسُولُ اللَّهِ صلى الله عليه وسلم ‏ \"‏ إِنَّمَا الأَعْمَالُ بِالنِّيَّاتِ وَإِنَّمَا لِكُلِّ امْرِئٍ مَا نَوَى فَمَنْ كَانَتْ هِجْرَتُهُ إِلَى اللَّهِ وَرَسُولِهِ فَهِجْرَتُهُ إِلَى اللَّهِ وَرَسُولِهِ وَمَنْ كَانَتْ هِجْرَتُهُ لِدُنْيَا يُصِيبُهَا أَوِ امْرَأَةٍ يَتَزَوَّجُهَا فَهِجْرَتُهُ إِلَى مَا هَاجَرَ إِلَيْهِ ‏\"‏ ‏.‏\n\n‘Umar bin Al Khattab reported the Apostle of Allaah(ﷺ) as saying “Actions are to be judged only by intentions and a man will have only what he intended. When one’s emigration is to Allaah and His Apostle, his emigration is to Allaah and His Apostle but his emigration is to a worldly end at which he aims or to a woman whom he marries , his emigration is to that for which he emigrated.\n\nSunan Abi Dawud 2201\nhttps://sunnah.com/abudawud:2201",
+        "hadithText": "حَدَّثَنَا مُحَمَّدُ بْنُ كَثِيرٍ، أَخْبَرَنَا سُفْيَانُ، حَدَّثَنِي يَحْيَى بْنُ سَعِيدٍ، عَنْ مُحَمَّدِ بْنِ إِبْرَاهِيمَ التَّيْمِيِّ، عَنْ عَلْقَمَةَ بْنِ وَقَّاصٍ اللَّيْثِيِّ، قَالَ سَمِعْتُ عُمَرَ بْنَ الْخَطَّابِ، يَقُولُ قَالَ رَسُولُ اللَّهِ صلى الله عليه وسلم",
         "title": "Abu Dawud 2201",
         "collapsed": true
       },
@@ -151,7 +173,8 @@
           {
             "number": 1,
             "arabicName": "رَسُولَ اللَّهِ",
-            "englishName": "Messenger of Allah"
+            "englishName": "Messenger of Allah",
+            "grade": "n/a"
           },
           {
             "number": 2,
@@ -244,7 +267,7 @@
             "englishName": "Imam Muslim"
           }
         ],
-        "hadithText": "حَدَّثَنَا مُحَمَّدُ بْنُ رُمْحِ بْنِ الْمُهَاجِرِ، أَخْبَرَنَا اللَّيْثُ، ح وَحَدَّثَنَا أَبُو الرَّبِيعِ الْعَتَكِيُّ، حَدَّثَنَا حَمَّادُ بْنُ زَيْدٍ، ح وَحَدَّثَنَا مُحَمَّدُ بْنُ الْمُثَنَّى، حَدَّثَنَا عَبْدُ الْوَهَّابِ يَعْنِي الثَّقَفِيَّ، ح وَحَدَّثَنَا إِسْحَاقُ بْنُ إِبْرَاهِيمَ، أَخْبَرَنَا أَبُو خَالِدٍ الأَحْمَرُ، سُلَيْمَانُ بْنُ حَيَّانَ ح وَحَدَّثَنَا مُحَمَّدُ بْنُ عَبْدِ، اللَّهِ بْنِ نُمَيْرٍ حَدَّثَنَا حَفْصٌ، - يَعْنِي ابْنَ غِيَاثٍ - وَيَزِيدُ بْنُ هَارُونَ ح وَحَدَّثَنَا مُحَمَّدُ بْنُ، الْعَلاَءِ الْهَمْدَانِيُّ حَدَّثَنَا ابْنُ الْمُبَارَكِ، ح وَحَدَّثَنَا ابْنُ أَبِي عُمَرَ، حَدَّثَنَا سُفْيَانُ، كُلُّهُمْ عَنْ يَحْيَى، بْنِ سَعِيدٍ بِإِسْنَادِ مَالِكٍ وَمَعْنَى حَدِيثِهِ وَفِي حَدِيثِ سُفْيَانَ سَمِعْتُ عُمَرَ بْنَ الْخَطَّابِ عَلَى الْمِنْبَرِ يُخْبِرُ عَنِ النَّبِيِّ صلى الله عليه وسلم ‏.‏\n\nIt has been narrated through a different chain of transmitters on the authority of Sufyan who said that he heard 'Umar b. al-Khattab relate (this tradition) from the Prophet (ﷺ) while he was delivering a sermon from the pulpit.\n\nSahih Muslim 1907b\nhttps://sunnah.com/muslim:1907b",
+        "hadithText": "حَدَّثَنَا مُحَمَّدُ بْنُ رُمْحِ بْنِ الْمُهَاجِرِ، أَخْبَرَنَا اللَّيْثُ، ح وَحَدَّثَنَا أَبُو الرَّبِيعِ الْعَتَكِيُّ، حَدَّثَنَا حَمَّادُ بْنُ زَيْدٍ، ح وَحَدَّثَنَا مُحَمَّدُ بْنُ الْمُثَنَّى، حَدَّثَنَا عَبْدُ الْوَهَّابِ يَعْنِي الثَّقَفِيَّ، ح وَحَدَّثَنَا إِسْحَاقُ بْنُ إِبْرَاهِيمَ، أَخْبَرَنَا أَبُو خَالِدٍ الأَحْمَرُ، سُلَيْمَانُ بْنُ حَيَّانَ ح وَحَدَّثَنَا مُحَمَّدُ بْنُ عَبْدِ، اللَّهِ بْنِ نُمَيْرٍ حَدَّثَنَا حَفْصٌ، - يَعْنِي ابْنَ غِيَاثٍ - وَيَزِيدُ بْنُ هَارُونَ ح وَحَدَّثَنَا مُحَمَّدُ بْنُ، الْعَلاَءِ الْهَمْدَانِيُّ حَدَّثَنَا ابْنُ الْمُبَارَكِ، ح وَحَدَّثَنَا ابْنُ أَبِي عُمَرَ، حَدَّثَنَا سُفْيَانُ، كُلُّهُمْ عَنْ يَحْيَى، بْنِ سَعِيدٍ بِإِسْنَادِ مَالِكٍ وَمَعْنَى حَدِيثِهِ وَفِي حَدِيثِ سُفْيَانَ سَمِعْتُ عُمَرَ بْنَ الْخَطَّابِ عَلَى الْمِنْبَرِ يُخْبِرُ عَنِ النَّبِيِّ صلى الله عليه وسلم",
         "title": "Muslim 1907b",
         "collapsed": true
       },
@@ -254,27 +277,32 @@
           {
             "number": 1,
             "arabicName": "رَسُولَ اللَّهِ",
-            "englishName": "Messenger of Allah"
+            "englishName": "Messenger of Allah",
+            "grade": "n/a"
           },
           {
             "number": 2,
             "arabicName": "عُمَرَ بْنَ الْخَطَّابِ",
-            "englishName": "Umar ibn al-Khattab"
+            "englishName": "Umar ibn al-Khattab",
+            "grade": "10"
           },
           {
             "number": 3,
             "arabicName": "عَلْقَمَةَ بْنَ وَقَّاصٍ اللَّيْثِيَّ",
-            "englishName": "Alqama ibn Waqqas al-Laythi"
+            "englishName": "Alqama ibn Waqqas al-Laythi",
+            "grade": "9/10"
           },
           {
             "number": 4,
             "arabicName": "مُحَمَّدُ بْنُ إِبْرَاهِيمَ التَّيْمِيُّ",
-            "englishName": "Muhammad ibn Ibrahim"
+            "englishName": "Muhammad ibn Ibrahim",
+            "grade": "9/10"
           },
           {
             "number": 5,
             "arabicName": "يَحْيَى بْنُ سَعِيدٍ الْأَنْصَارِيُّ",
-            "englishName": "Yahya ibn Sa'id"
+            "englishName": "Yahya ibn Sa'id",
+            "grade": "9/10"
           },
           {
             "number": 6,
@@ -292,7 +320,7 @@
             "englishName": "Tirmidhi"
           }
         ],
-        "hadithText": "حَدَّثَنَا مُحَمَّدُ بْنُ الْمُثَنَّى، حَدَّثَنَا عَبْدُ الْوَهَّابِ الثَّقَفِيُّ، عَنْ يَحْيَى بْنِ سَعِيدٍ، عَنْ مُحَمَّدِ بْنِ إِبْرَاهِيمَ، عَنْ عَلْقَمَةَ بْنِ وَقَّاصٍ اللَّيْثِيِّ، عَنْ عُمَرَ بْنِ الْخَطَّابِ، قَالَ قَالَ رَسُولُ اللَّهِ صلى الله عليه وسلم ‏ \"‏ إِنَّمَا الأَعْمَالُ بِالنِّيَّةِ وَإِنَّمَا لاِمْرِئٍ مَا نَوَى فَمَنْ كَانَتْ هِجْرَتُهُ إِلَى اللَّهِ وَإِلَى رَسُولِهِ فَهِجْرَتُهُ إِلَى اللَّهِ وَرَسُولِهِ وَمَنْ كَانَتْ هِجْرَتُهُ إِلَى دُنْيَا يُصِيبُهَا أَوِ امْرَأَةٍ يَتَزَوَّجُهَا فَهِجْرَتُهُ إِلَى مَا هَاجَرَ إِلَيْهِ ‏\"‏",
+        "hadithText": "حَدَّثَنَا مُحَمَّدُ بْنُ الْمُثَنَّى، حَدَّثَنَا عَبْدُ الْوَهَّابِ الثَّقَفِيُّ، عَنْ يَحْيَى بْنِ سَعِيدٍ، عَنْ مُحَمَّدِ بْنِ إِبْرَاهِيمَ، عَنْ عَلْقَمَةَ بْنِ وَقَّاصٍ اللَّيْثِيِّ، عَنْ عُمَرَ بْنِ الْخَطَّابِ، قَالَ قَالَ رَسُولُ اللَّهِ صلى الله عليه وسلم",
         "title": "Tirmidhi 1647",
         "collapsed": true
       },
@@ -302,12 +330,14 @@
           {
             "number": 1,
             "arabicName": "رَسُولَ اللَّهِ",
-            "englishName": "Messenger of Allah"
+            "englishName": "Messenger of Allah",
+            "grade": "n/a"
           },
           {
             "number": 2,
             "arabicName": "عُمَرَ بْنَ الْخَطَّابِ",
-            "englishName": "Umar ibn al-Khattab"
+            "englishName": "Umar ibn al-Khattab",
+            "grade": "10"
           },
           {
             "number": 3,
@@ -337,10 +367,11 @@
           {
             "number": 8,
             "arabicName": "الْإِمَامُ الْبُخَارِيُّ",
-            "englishName": "Imam al-Bukhari"
+            "englishName": "Imam al-Bukhari",
+            "grade": "9/10"
           }
         ],
-        "hadithText": "حَدَّثَنَا عَبْدُ اللَّهِ بْنُ مَسْلَمَةَ... (Sahih al-Bukhari 54)",
+        "hadithText": "حَدَّثَنَا عَبْدُ اللَّهِ بْنُ مَسْلَمَةَ، قَالَ أَخْبَرَنَا مَالِكٌ، عَنْ يَحْيَى بْنِ سَعِيدٍ، عَنْ مُحَمَّدِ بْنِ إِبْرَاهِيمَ، عَنْ عَلْقَمَةَ بْنِ وَقَّاصٍ، عَنْ عُمَرَ، أَنَّ رَسُولَ اللَّهِ صلى الله عليه وسلم قَالَ",
         "title": "Bukhari 54",
         "collapsed": true
       },
@@ -350,27 +381,32 @@
           {
             "number": 1,
             "arabicName": "رَسُولَ اللَّهِ",
-            "englishName": "Messenger of Allah"
+            "englishName": "Messenger of Allah",
+            "grade": "n/a"
           },
           {
             "number": 2,
             "arabicName": "عُمَرَ بْنَ الْخَطَّابِ",
-            "englishName": "Umar ibn al-Khattab"
+            "englishName": "Umar ibn al-Khattab",
+            "grade": "10"
           },
           {
             "number": 3,
             "arabicName": "عَلْقَمَةَ بْنَ وَقَّاصٍ اللَّيْثِيَّ",
-            "englishName": "Alqama ibn Waqqas"
+            "englishName": "Alqama ibn Waqqas",
+            "grade": "9/10"
           },
           {
             "number": 4,
             "arabicName": "مُحَمَّدُ بْنُ إِبْرَاهِيمَ التَّيْمِيُّ",
-            "englishName": "Muhammad ibn Ibrahim"
+            "englishName": "Muhammad ibn Ibrahim",
+            "grade": "9/10"
           },
           {
             "number": 5,
             "arabicName": "يَحْيَى بْنُ سَعِيدٍ الْأَنْصَارِيُّ",
-            "englishName": "Yahya ibn Sa'eed"
+            "englishName": "Yahya ibn Sa'eed",
+            "grade": "9/10"
           },
           {
             "number": 6,
@@ -423,27 +459,32 @@
           {
             "number": 1,
             "arabicName": "رَسُولَ اللَّهِ",
-            "englishName": "Messenger of Allah"
+            "englishName": "Messenger of Allah",
+            "grade": "n/a"
           },
           {
             "number": 2,
             "arabicName": "عُمَرَ بْنَ الْخَطَّابِ",
-            "englishName": "Umar ibn al-Khattab"
+            "englishName": "Umar ibn al-Khattab",
+            "grade": "10"
           },
           {
             "number": 3,
             "arabicName": "عَلْقَمَةَ بْنَ وَقَّاصٍ اللَّيْثِيَّ",
-            "englishName": "Alqama bin Waqqas"
+            "englishName": "Alqama bin Waqqas",
+            "grade": "9/10"
           },
           {
             "number": 4,
             "arabicName": "مُحَمَّدُ بْنُ إِبْرَاهِيمَ التَّيْمِيُّ",
-            "englishName": "Muhammad bin Ibrahim"
+            "englishName": "Muhammad bin Ibrahim",
+            "grade": "9/10"
           },
           {
             "number": 5,
             "arabicName": "يَحْيَى بْنُ سَعِيدٍ الْأَنْصَارِيُّ",
-            "englishName": "Yahya bin Saeed"
+            "englishName": "Yahya bin Saeed",
+            "grade": "9/10"
           },
           {
             "number": 6,
@@ -471,7 +512,7 @@
             "englishName": "Nasai"
           }
         ],
-        "hadithText": "أَخْبَرَنَا عَمْرُو بْنُ مَنْصُورٍ، قَالَ حَدَّثَنَا عَبْدُ اللَّهِ بْنُ مَسْلَمَةَ، قَالَ حَدَّثَنَا مَالِكٌ، وَالْحَارِثُ بْنُ مِسْكِينٍ، قِرَاءَةً عَلَيْهِ وَأَنَا أَسْمَعُ، عَنِ ابْنِ الْقَاسِمِ، قَالَ أَخْبَرَنِي مَالِكٌ، عَنْ يَحْيَى بْنِ سَعِيدٍ، عَنْ مُحَمَّدِ بْنِ إِبْرَاهِيمَ، عَنْ عَلْقَمَةَ بْنِ وَقَّاصٍ، عَنْ عُمَرَ بْنِ الْخَطَّابِ، رضى الله عنه - وَفِي حَدِيثِ الْحَارِثِ أَنَّهُ سَمِعَ عُمَرَ يَقُولُ - قَالَ رَسُولُ اللَّهِ صلى الله عليه وسلم ‏ \"‏ إِنَّمَا الأَعْمَالُ بِالنِّيَّةِ وَإِنَّمَا لاِمْرِئٍ مَا نَوَى فَمَنْ كَانَتْ هِجْرَتُهُ إِلَى اللَّهِ وَرَسُولِهِ فَهِجْرَتُهُ إِلَى اللَّهِ وَرَسُولِهِ وَمَنْ كَانَتْ هِجْرَتُهُ لِدُنْيَا يُصِيبُهَا أَوِ امْرَأَةٍ يَتَزَوَّجُهَا فَهِجْرَتُهُ إِلَى مَا هَاجَرَ إِلَيْهِ ‏\"‏ ‏.",
+        "hadithText": "أَخْبَرَنَا عَمْرُو بْنُ مَنْصُورٍ، قَالَ حَدَّثَنَا عَبْدُ اللَّهِ بْنُ مَسْلَمَةَ، قَالَ حَدَّثَنَا مَالِكٌ، وَالْحَارِثُ بْنُ مِسْكِينٍ، قِرَاءَةً عَلَيْهِ وَأَنَا أَسْمَعُ، عَنِ ابْنِ الْقَاسِمِ، قَالَ أَخْبَرَنِي مَالِكٌ، عَنْ يَحْيَى بْنِ سَعِيدٍ، عَنْ مُحَمَّدِ بْنِ إِبْرَاهِيمَ، عَنْ عَلْقَمَةَ بْنِ وَقَّاصٍ، عَنْ عُمَرَ بْنِ الْخَطَّابِ، رضى الله عنه - وَفِي حَدِيثِ الْحَارِثِ أَنَّهُ سَمِعَ عُمَرَ يَقُولُ - قَالَ رَسُولُ اللَّهِ صلى الله عليه وسلم",
         "title": "Nasai 3437",
         "collapsed": true
       },
@@ -481,7 +522,8 @@
           {
             "number": 1,
             "arabicName": "رَسُولَ اللَّهِ",
-            "englishName": "Messenger of Allah"
+            "englishName": "Messenger of Allah",
+            "grade": "n/a"
           },
           {
             "number": 2,
@@ -516,10 +558,11 @@
           {
             "number": 8,
             "arabicName": "الْإِمَامُ الْبُخَارِيُّ",
-            "englishName": "Imam Bukhari"
+            "englishName": "Imam Bukhari",
+            "grade": "9/10"
           }
         ],
-        "hadithText": "حَدَّثَنَا يَحْيَى بْنُ قَزَعَةَ، حَدَّثَنَا مَالِكٌ، عَنْ يَحْيَى بْنِ سَعِيدٍ، عَنْ مُحَمَّدِ بْنِ إِبْرَاهِيمَ بْنِ الْحَارِثِ، عَنْ عَلْقَمَةَ بْنِ وَقَّاصٍ، عَنْ عُمَرَ بْنِ الْخَطَّابِ ـ رضى الله عنه ـ قَالَ قَالَ النَّبِيُّ صلى الله عليه وسلم ‏ \"‏ الْعَمَلُ بِالنِّيَّةِ، وَإِنَّمَا لاِمْرِئٍ مَا نَوَى، فَمَنْ كَانَتْ هِجْرَتُهُ إِلَى اللَّهِ وَرَسُولِهِ فَهِجْرَتُهُ إِلَى اللَّهِ وَرَسُولِهِ صلى الله عليه وسلم وَمَنْ كَانَتْ هِجْرَتُهُ إِلَى دُنْيَا يُصِيبُهَا أَوِ امْرَأَةٍ يَنْكِحُهَا، فَهِجْرَتُهُ إِلَى مَا هَاجَرَ إِلَيْهِ ‏\"‏‏.‏\n\nNarrated `Umar bin Al-Khattab: The Prophet (ﷺ) said, \"The rewards (of deeds) are according to the intention, and everybody will get the reward for what he has intended. So whoever emigrated for Allah's and His Apostle's sake, his emigration was for Allah and His Apostle; and whoever emigrated for worldly benefits, or to marry a woman, then his emigration was for the thing for what he emigrated for.\" (1)\n\nSahih al-Bukhari 5070\nhttps://sunnah.com/bukhari:5070",
+        "hadithText": "حَدَّثَنَا يَحْيَى بْنُ قَزَعَةَ، حَدَّثَنَا مَالِكٌ، عَنْ يَحْيَى بْنِ سَعِيدٍ، عَنْ مُحَمَّدِ بْنِ إِبْرَاهِيمَ بْنِ الْحَارِثِ، عَنْ عَلْقَمَةَ بْنِ وَقَّاصٍ، عَنْ عُمَرَ بْنِ الْخَطَّابِ ـ رضى الله عنه ـ قَالَ قَالَ النَّبِيُّ صلى الله عليه وسلم",
         "title": "Bukhari 5070",
         "collapsed": true
       },
@@ -529,7 +572,8 @@
           {
             "number": 1,
             "arabicName": "رَسُولَ اللَّهِ",
-            "englishName": "Messenger of Allah"
+            "englishName": "Messenger of Allah",
+            "grade": "n/a"
           },
           {
             "number": 2,
@@ -539,17 +583,20 @@
           {
             "number": 3,
             "arabicName": "عَلْقَمَةَ بْنَ وَقَّاصٍ اللَّيْثِيَّ",
-            "englishName": "Alqama b. Waqqas"
+            "englishName": "Alqama b. Waqqas",
+            "grade": "9/10"
           },
           {
             "number": 4,
             "arabicName": "مُحَمَّدُ بْنُ إِبْرَاهِيمَ التَّيْمِيُّ",
-            "englishName": "Muhammad b. Ibrahim"
+            "englishName": "Muhammad b. Ibrahim",
+            "grade": "9/10"
           },
           {
             "number": 5,
             "arabicName": "يَحْيَى بْنُ سَعِيدٍ الْأَنْصَارِيُّ",
-            "englishName": "Yahya b. Sa'id"
+            "englishName": "Yahya b. Sa'id",
+            "grade": "9/10"
           },
           {
             "number": 6,
@@ -567,7 +614,7 @@
             "englishName": "Imam Muslim"
           }
         ],
-        "hadithText": "حَدَّثَنَا عَبْدُ اللَّهِ بْنُ مَسْلَمَةَ بْنِ قَعْنَبٍ، حَدَّثَنَا مَالِكٌ، عَنْ يَحْيَى بْنِ سَعِيدٍ، عَنْ مُحَمَّدِ، بْنِ إِبْرَاهِيمَ عَنْ عَلْقَمَةَ بْنِ وَقَّاصٍ، عَنْ عُمَرَ بْنِ الْخَطَّابِ، قَالَ قَالَ رَسُولُ اللَّهِ صلى الله عليه وسلم ‏ \"‏ إِنَّمَا الأَعْمَالُ بِالنِّيَّةِ وَإِنَّمَا لاِمْرِئٍ مَا نَوَى فَمَنْ كَانَتْ هِجْرَتُهُ إِلَى اللَّهِ وَرَسُولِهِ فَهِجْرَتُهُ إِلَى اللَّهِ وَرَسُولِهِ وَمَنْ كَانَتْ هِجْرَتُهُ لِدُنْيَا يُصِيبُهَا أَوِ امْرَأَةٍ يَتَزَوَّجُهَا فَهِجْرَتُهُ إِلَى مَا هَاجَرَ إِلَيْهِ ‏\"‏ ‏.‏\n\nIt has been narrated on the authority of Umar b. al-Khattab that the Messenger of Allah (ﷺ) said: (The value of) an action depends on the intention behind it. A man will be rewarded only for what he intended. The emigration of one who emigrates for the sake of Allah and His Messenger (ﷺ) is for the sake of Allah and His Messenger (ﷺ) ; and the emigration of one who emigrates for gaining a worldly advantage or for marrying a woman is for what he has emigrated.\n\nSahih Muslim 1907a\nhttps://sunnah.com/muslim:1907a",
+        "hadithText": "حَدَّثَنَا عَبْدُ اللَّهِ بْنُ مَسْلَمَةَ بْنِ قَعْنَبٍ، حَدَّثَنَا مَالِكٌ، عَنْ يَحْيَى بْنِ سَعِيدٍ، عَنْ مُحَمَّدِ، بْنِ إِبْرَاهِيمَ عَنْ عَلْقَمَةَ بْنِ وَقَّاصٍ، عَنْ عُمَرَ بْنِ الْخَطَّابِ، قَالَ قَالَ رَسُولُ اللَّهِ صلى الله عليه وسلم",
         "title": "Muslim 1907a",
         "collapsed": false
       },
@@ -577,7 +624,8 @@
           {
             "number": 1,
             "arabicName": "رَسُولَ اللَّهِ",
-            "englishName": "Messenger of Allah"
+            "englishName": "Messenger of Allah",
+            "grade": "n/a"
           },
           {
             "number": 2,
@@ -612,10 +660,11 @@
           {
             "number": 8,
             "arabicName": "الْإِمَامُ الْبُخَارِيُّ",
-            "englishName": "Bukhari"
+            "englishName": "Bukhari",
+            "grade": "9/10"
           }
         ],
-        "hadithText": "حَدَّثَنَا مُسَدَّدٌ، حَدَّثَنَا حَمَّادٌ ـ هُوَ ابْنُ زَيْدٍ ـ عَنْ يَحْيَى، عَنْ مُحَمَّدِ بْنِ إِبْرَاهِيمَ، عَنْ عَلْقَمَةَ بْنِ وَقَّاصٍ، قَالَ سَمِعْتُ عُمَرَ ـ رضى الله عنه ـ قَالَ سَمِعْتُ النَّبِيَّ صلى الله عليه وسلم يَقُولُ ‏ \"‏ الأَعْمَالُ بِالنِّيَّةِ، فَمَنْ كَانَتْ هِجْرَتُهُ إِلَى دُنْيَا يُصِيبُهَا أَوِ امْرَأَةٍ يَتَزَوَّجُهَا، فَهِجْرَتُهُ إِلَى مَا هَاجَرَ إِلَيْهِ، وَمَنْ كَانَتْ هِجْرَتُهُ إِلَى اللَّهِ وَرَسُولِهِ، فَهِجْرَتُهُ إِلَى اللَّهِ وَرَسُولِهِ صلى الله عليه وسلم ‏\"‏‏.‏\n\nNarrated `Umar: I heard the Prophet (ﷺ) saying, \"The reward of deeds depends on the intentions, so whoever emigrated for the worldly benefits or to marry a woman, his emigration was for that for which he emigrated, but whoever emigrated for the Sake of Allah and His Apostle, his emigration is for Allah and His Apostle.\"\n\nSahih al-Bukhari 3898\nhttps://sunnah.com/bukhari:3898",
+        "hadithText": "حَدَّثَنَا مُسَدَّدٌ، حَدَّثَنَا حَمَّادٌ ـ هُوَ ابْنُ زَيْدٍ ـ عَنْ يَحْيَى، عَنْ مُحَمَّدِ بْنِ إِبْرَاهِيمَ، عَنْ عَلْقَمَةَ بْنِ وَقَّاصٍ، قَالَ سَمِعْتُ عُمَرَ ـ رضى الله عنه ـ قَالَ سَمِعْتُ النَّبِيَّ صلى الله عليه وسلم يَقُولُ",
         "title": "Bukhari 3898",
         "collapsed": true
       },
@@ -625,7 +674,8 @@
           {
             "number": 1,
             "arabicName": "رَسُولَ اللَّهِ",
-            "englishName": "Messenger of Allah"
+            "englishName": "Messenger of Allah",
+            "grade": "n/a"
           },
           {
             "number": 2,
@@ -660,10 +710,11 @@
           {
             "number": 8,
             "arabicName": "الْإِمَامُ الْبُخَارِيُّ",
-            "englishName": "Imam al-Bukhari"
+            "englishName": "Imam al-Bukhari",
+            "grade": "9/10"
           }
         ],
-        "hadithText": "حَدَّثَنَا أَبُو النُّعْمَانِ، حَدَّثَنَا حَمَّادُ بْنُ زَيْدٍ، عَنْ يَحْيَى بْنِ سَعِيدٍ، عَنْ مُحَمَّدِ بْنِ إِبْرَاهِيمَ، عَنْ عَلْقَمَةَ بْنِ وَقَّاصٍ، قَالَ سَمِعْتُ عُمَرَ بْنَ الْخَطَّابِ ـ رضى الله عنه ـ يَخْطُبُ قَالَ سَمِعْتُ النَّبِيَّ صلى الله عليه وسلم يَقُولُ ‏ \"‏ يَا أَيُّهَا النَّاسُ إِنَّمَا الأَعْمَالُ بِالنِّيَّةِ وَإِنَّمَا لاِمْرِئٍ مَا نَوَى، فَمَنْ كَانَتْ هِجْرَتُهُ إِلَى اللَّهِ وَرَسُولِهِ، فَهِجْرَتُهُ إِلَى اللَّهِ وَرَسُولِهِ، وَمَنْ هَاجَرَ إِلَى دُنْيَا يُصِيبُهَا أَوِ امْرَأَةٍ يَتَزَوَّجُهَا، فَهِجْرَتُهُ إِلَى مَا هَاجَرَ إِلَيْهِ ‏\"‏‏.‏\n\nNarrated `Umar bin Al-Khattab: The Prophet (ﷺ) said, 'O people! The reward of deeds depends upon the intentions, and every person will get the reward according to what he has intended. So, whoever emigrated for Allah and His Apostle, then his emigration was for Allah and His Apostle, and whoever emigrated to take worldly benefit or for a woman to marry, then his emigration was for what he emigrated for.\"\n\nSahih al-Bukhari 6953\nhttps://sunnah.com/bukhari:6953",
+        "hadithText": "حَدَّثَنَا أَبُو النُّعْمَانِ، حَدَّثَنَا حَمَّادُ بْنُ زَيْدٍ، عَنْ يَحْيَى بْنِ سَعِيدٍ، عَنْ مُحَمَّدِ بْنِ إِبْرَاهِيمَ، عَنْ عَلْقَمَةَ بْنِ وَقَّاصٍ، قَالَ سَمِعْتُ عُمَرَ بْنَ الْخَطَّابِ ـ رضى الله عنه ـ يَخْطُبُ قَالَ سَمِعْتُ النَّبِيَّ صلى الله عليه وسلم يَقُولُ",
         "title": "Bukhari 6953",
         "collapsed": true
       },
@@ -673,7 +724,8 @@
           {
             "number": 1,
             "arabicName": "رَسُولَ اللَّهِ",
-            "englishName": "Messenger of Allah"
+            "englishName": "Messenger of Allah",
+            "grade": "n/a"
           },
           {
             "number": 2,
@@ -708,7 +760,8 @@
           {
             "number": 8,
             "arabicName": "الْإِمَامُ الْبُخَارِيُّ",
-            "englishName": "Bukhari"
+            "englishName": "Bukhari",
+            "grade": "9/10"
           }
         ],
         "hadithText": "حَدَّثَنَا قُتَيْبَةُ بْنُ سَعِيدٍ، حَدَّثَنَا عَبْدُ الْوَهَّابِ، قَالَ سَمِعْتُ يَحْيَى بْنَ سَعِيدٍ، يَقُولُ أَخْبَرَنِي مُحَمَّدُ بْنُ إِبْرَاهِيمَ، أَنَّهُ سَمِعَ عَلْقَمَةَ بْنَ وَقَّاصٍ اللَّيْثِيَّ، يَقُولُ سَمِعْتُ عُمَرَ بْنَ الْخَطَّابِ ـ رضى الله عنه ـ يَقُولُ سَمِعْتُ رَسُولَ اللَّهِ صلى الله عليه وسلم يَقُولُ ‏ \"‏ إِنَّمَا الأَعْمَالُ بِالنِّيَّةِ، وَإِنَّمَا لاِمْرِئٍ مَا نَوَى، فَمَنْ كَانَتْ هِجْرَتُهُ إِلَى اللَّهِ وَرَسُولِهِ فَهِجْرَتُهُ إِلَى اللَّهِ وَرَسُولِهِ، وَمَنْ كَانَتْ هِجْرَتُهُ إِلَى دُنْيَا يُصِيبُهَا أَوِ امْرَأَةٍ يَتَزَوَّجُهَا، فَهِجْرَتُهُ إِلَى مَا هَاجَرَ إِلَيْهِ ‏\"‏‏.‏\n\nNarrated `Umar bin Al-Khattab: I heard Allah's Messenger (ﷺ) saying, \"The (reward of) deeds, depend upon the intentions and every person will get the reward according to what he has intended. So whoever emigrated for the sake of Allah and His Apostle, then his emigration will be considered to be for Allah and His Apostle, and whoever emigrated for the sake of worldly gain or for a woman to marry, then his emigration will be considered to be for what he emigrated for.\"\n\nSahih al-Bukhari 6689\nhttps://sunnah.com/bukhari:6689",
@@ -721,7 +774,8 @@
           {
             "number": 1,
             "arabicName": "رَسُولَ اللَّهِ",
-            "englishName": "Messenger of Allah"
+            "englishName": "Messenger of Allah",
+            "grade": "n/a"
           },
           {
             "number": 2,
@@ -731,17 +785,20 @@
           {
             "number": 3,
             "arabicName": "عَلْقَمَةَ بْنَ وَقَّاصٍ اللَّيْثِيَّ",
-            "englishName": "Alqamah bin Waqqas"
+            "englishName": "Alqamah bin Waqqas",
+            "grade": "9/10"
           },
           {
             "number": 4,
             "arabicName": "مُحَمَّدُ بْنُ إِبْرَاهِيمَ التَّيْمِيُّ",
-            "englishName": "Muhammad bin Ibrahim at-Taimi"
+            "englishName": "Muhammad bin Ibrahim at-Taimi",
+            "grade": "9/10"
           },
           {
             "number": 5,
             "arabicName": "يَحْيَى بْنُ سَعِيدٍ الْأَنْصَارِيُّ",
-            "englishName": "Yahya bin Sa'eed"
+            "englishName": "Yahya bin Sa'eed",
+            "grade": "9/10"
           },
           {
             "number": 6,
@@ -779,7 +836,8 @@
           {
             "number": 1,
             "arabicName": "رَسُولَ اللَّهِ",
-            "englishName": "Messenger of Allah"
+            "englishName": "Messenger of Allah",
+            "grade": "n/a"
           },
           {
             "number": 2,
@@ -789,22 +847,26 @@
           {
             "number": 3,
             "arabicName": "عَلْقَمَةَ بْنَ وَقَّاصٍ اللَّيْثِيَّ",
-            "englishName": "Alqama bin Waqqas"
+            "englishName": "Alqama bin Waqqas",
+            "grade": "9/10"
           },
           {
             "number": 4,
             "arabicName": "مُحَمَّدُ بْنُ إِبْرَاهِيمَ التَّيْمِيُّ",
-            "englishName": "Muhammad bin Ibrahim at-Taymi"
+            "englishName": "Muhammad bin Ibrahim at-Taymi",
+            "grade": "9/10"
           },
           {
             "number": 5,
             "arabicName": "يَحْيَى بْنُ سَعِيدٍ الْأَنْصَارِيُّ",
-            "englishName": "Yahya"
+            "englishName": "Yahya",
+            "grade": "9/10"
           },
           {
             "number": 6,
             "arabicName": "سُفْيَانُ",
-            "englishName": "Sufyan"
+            "englishName": "Sufyan",
+            "grade": "9/10"
           },
           {
             "number": 7,
@@ -822,27 +884,32 @@
           {
             "number": 1,
             "arabicName": "رَسُولَ اللَّهِ",
-            "englishName": "Messenger of Allah"
+            "englishName": "Messenger of Allah",
+            "grade": "n/a"
           },
           {
             "number": 2,
             "arabicName": "عُمَرَ بْنَ الْخَطَّابِ",
-            "englishName": "Umar ibn al-Khattab"
+            "englishName": "Umar ibn al-Khattab",
+            "grade": "10"
           },
           {
             "number": 3,
             "arabicName": "عَلْقَمَةَ بْنَ وَقَّاصٍ اللَّيْثِيَّ",
-            "englishName": "Alqama ibn Waqqas al-Laythi"
+            "englishName": "Alqama ibn Waqqas al-Laythi",
+            "grade": "9/10"
           },
           {
             "number": 4,
             "arabicName": "مُحَمَّدُ بْنُ إِبْرَاهِيمَ التَّيْمِيُّ",
-            "englishName": "Muhammad ibn Ibrahim"
+            "englishName": "Muhammad ibn Ibrahim",
+            "grade": "9/10"
           },
           {
             "number": 5,
             "arabicName": "يَحْيَى بْنُ سَعِيدٍ الْأَنْصَارِيُّ",
-            "englishName": "Yahya ibn Sa'id"
+            "englishName": "Yahya ibn Sa'id",
+            "grade": "9/10"
           },
           {
             "number": 6,
@@ -865,27 +932,32 @@
           {
             "number": 1,
             "arabicName": "رَسُولَ اللَّهِ",
-            "englishName": "Messenger of Allah"
+            "englishName": "Messenger of Allah",
+            "grade": "n/a"
           },
           {
             "number": 2,
             "arabicName": "عُمَرَ بْنَ الْخَطَّابِ",
-            "englishName": "Umar ibn al-Khattab"
+            "englishName": "Umar ibn al-Khattab",
+            "grade": "10"
           },
           {
             "number": 3,
             "arabicName": "عَلْقَمَةَ بْنَ وَقَّاصٍ اللَّيْثِيَّ",
-            "englishName": "Alqama bin Waqqas"
+            "englishName": "Alqama bin Waqqas",
+            "grade": "9/10"
           },
           {
             "number": 4,
             "arabicName": "مُحَمَّدُ بْنُ إِبْرَاهِيمَ التَّيْمِيُّ",
-            "englishName": "Muhammad bin Ibrahim"
+            "englishName": "Muhammad bin Ibrahim",
+            "grade": "9/10"
           },
           {
             "number": 5,
             "arabicName": "يَحْيَى بْنُ سَعِيدٍ الْأَنْصَارِيُّ",
-            "englishName": "Yahya bin Saeed"
+            "englishName": "Yahya bin Saeed",
+            "grade": "9/10"
           },
           {
             "number": 6,

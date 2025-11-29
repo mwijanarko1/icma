@@ -63,15 +63,15 @@ export function NarratorDetailsModal({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={onClose}>
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-hidden flex flex-col" onClick={(e) => e.stopPropagation()}>
+      <div className="bg-white rounded-xl sm:rounded-2xl border-2 border-black max-w-4xl w-full mx-4 max-h-[90vh] overflow-hidden flex flex-col" style={{ boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(0, 0, 0, 0.1)' }} onClick={(e) => e.stopPropagation()}>
         {/* Modal Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-white" dir="rtl">
+        <div className="flex items-center justify-between p-6 border-b-2 border-black">
+          <h3 className="text-xl font-semibold text-black" dir="rtl" style={{ fontFamily: 'var(--font-title)' }}>
             {narrator.primaryArabicName}
           </h3>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+            className="text-gray-400 hover:text-gray-600 "
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -84,69 +84,69 @@ export function NarratorDetailsModal({
           {isLoading ? (
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="mt-4 text-gray-600 dark:text-gray-400">Loading narrator details...</p>
+              <p className="mt-4 text-gray-600">Loading narrator details...</p>
             </div>
           ) : (
             <div className="space-y-6">
               {/* Basic Information */}
               <div>
-                <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">Basic Information</h4>
+                <h4 className="text-lg font-semibold text-black mb-4 pb-2 border-b-2 border-black" style={{ fontFamily: 'var(--font-title)' }}>Basic Information</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {narrator.primaryEnglishName && (
-                    <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
-                      <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1.5">English Name</label>
-                      <p className="text-sm text-gray-900 dark:text-white font-medium">{narrator.primaryEnglishName}</p>
+                    <div className="bg-gray-50 rounded-lg p-3 border-2 border-black">
+                      <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">English Name</label>
+                      <p className="text-sm text-black font-medium">{narrator.primaryEnglishName}</p>
                     </div>
                   )}
                   {'fullNameArabic' in narrator && narrator.fullNameArabic && (
-                    <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
-                      <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1.5">Full Arabic Name</label>
-                      <p className="text-base text-gray-900 dark:text-white font-medium" dir="rtl" lang="ar">{narrator.fullNameArabic}</p>
+                    <div className="bg-gray-50 rounded-lg p-3 border-2 border-black">
+                      <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">Full Arabic Name</label>
+                      <p className="text-base text-black font-medium" dir="rtl" lang="ar">{narrator.fullNameArabic}</p>
                     </div>
                   )}
                   {narrator.title && (
-                    <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
-                      <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1.5">Title</label>
-                      <p className="text-base text-gray-900 dark:text-white font-medium" dir="rtl" lang="ar">{narrator.title}</p>
+                    <div className="bg-gray-50 rounded-lg p-3 border-2 border-black">
+                      <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">Title</label>
+                      <p className="text-base text-black font-medium" dir="rtl" lang="ar">{narrator.title}</p>
                     </div>
                   )}
                   {narrator.kunya && (
-                    <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
-                      <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1.5">Kunya</label>
-                      <p className="text-base text-gray-900 dark:text-white font-medium" dir="rtl" lang="ar">{narrator.kunya}</p>
+                    <div className="bg-gray-50 rounded-lg p-3 border-2 border-black">
+                      <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">Kunya</label>
+                      <p className="text-base text-black font-medium" dir="rtl" lang="ar">{narrator.kunya}</p>
                     </div>
                   )}
                   {narrator.lineage && (
-                    <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
-                      <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1.5">Lineage</label>
-                      <p className="text-base text-gray-900 dark:text-white font-medium" dir="rtl" lang="ar">{narrator.lineage}</p>
+                    <div className="bg-gray-50 rounded-lg p-3 border-2 border-black">
+                      <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">Lineage</label>
+                      <p className="text-base text-black font-medium" dir="rtl" lang="ar">{narrator.lineage}</p>
                     </div>
                   )}
                   {narrator.deathYearAH && (
-                    <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
-                      <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1.5">Death Year (AH)</label>
-                      <p className="text-sm text-gray-900 dark:text-white font-medium">
+                    <div className="bg-gray-50 rounded-lg p-3 border-2 border-black">
+                      <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">Death Year (AH)</label>
+                      <p className="text-sm text-black font-medium">
                         {narrator.deathYearAH}
                         {narrator.deathYearAHAlternative && ` or ${narrator.deathYearAHAlternative}`}
                       </p>
                     </div>
                   )}
                   {narrator.deathYearCE && (
-                    <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
-                      <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1.5">Death Year (CE)</label>
-                      <p className="text-sm text-gray-900 dark:text-white font-medium">{narrator.deathYearCE}</p>
+                    <div className="bg-gray-50 rounded-lg p-3 border-2 border-black">
+                      <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">Death Year (CE)</label>
+                      <p className="text-sm text-black font-medium">{narrator.deathYearCE}</p>
                     </div>
                   )}
                   {narrator.placeOfResidence && (
-                    <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
-                      <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1.5">Place of Residence</label>
-                      <p className="text-base text-gray-900 dark:text-white font-medium" dir="rtl" lang="ar">{narrator.placeOfResidence}</p>
+                    <div className="bg-gray-50 rounded-lg p-3 border-2 border-black">
+                      <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">Place of Residence</label>
+                      <p className="text-base text-black font-medium" dir="rtl" lang="ar">{narrator.placeOfResidence}</p>
                     </div>
                   )}
                   {narrator.placeOfDeath && (
-                    <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
-                      <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1.5">Place of Death</label>
-                      <p className="text-base text-gray-900 dark:text-white font-medium" dir="rtl" lang="ar">{narrator.placeOfDeath}</p>
+                    <div className="bg-gray-50 rounded-lg p-3 border-2 border-black">
+                      <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">Place of Death</label>
+                      <p className="text-base text-black font-medium" dir="rtl" lang="ar">{narrator.placeOfDeath}</p>
                     </div>
                   )}
                 </div>
@@ -155,24 +155,24 @@ export function NarratorDetailsModal({
               {/* Scholarly Ranks */}
               {(narrator.ibnHajarRank || narrator.dhahabiRank || narrator.taqribCategory) && (
                 <div>
-                  <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">Scholarly Ranks</h4>
+                  <h4 className="text-lg font-semibold text-black mb-4 pb-2 border-b-2 border-black" style={{ fontFamily: 'var(--font-title)' }}>Scholarly Ranks</h4>
                   <div className="space-y-3">
                     {narrator.ibnHajarRank && (
-                      <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
-                        <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1.5">Ibn Hajar Rank</label>
-                        <p className="text-base text-gray-900 dark:text-white font-medium" dir="rtl" lang="ar">{narrator.ibnHajarRank}</p>
+                      <div className="bg-gray-50 rounded-lg p-3 border-2 border-black">
+                        <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">Ibn Hajar Rank</label>
+                        <p className="text-base text-black font-medium" dir="rtl" lang="ar">{narrator.ibnHajarRank}</p>
                       </div>
                     )}
                     {narrator.dhahabiRank && (
-                      <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
-                        <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1.5">Dhahabi Rank</label>
-                        <p className="text-base text-gray-900 dark:text-white font-medium" dir="rtl" lang="ar">{narrator.dhahabiRank}</p>
+                      <div className="bg-gray-50 rounded-lg p-3 border-2 border-black">
+                        <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">Dhahabi Rank</label>
+                        <p className="text-base text-black font-medium" dir="rtl" lang="ar">{narrator.dhahabiRank}</p>
                       </div>
                     )}
                     {narrator.taqribCategory && (
-                      <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
-                        <label className="block text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase tracking-wide mb-1.5">Taqrib Category</label>
-                        <p className="text-base text-gray-900 dark:text-white font-medium" dir="rtl" lang="ar">{narrator.taqribCategory}</p>
+                      <div className="bg-gray-50 rounded-lg p-3 border-2 border-black">
+                        <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">Taqrib Category</label>
+                        <p className="text-base text-black font-medium" dir="rtl" lang="ar">{narrator.taqribCategory}</p>
                       </div>
                     )}
                   </div>
@@ -182,18 +182,18 @@ export function NarratorDetailsModal({
               {/* Scholarly Opinions */}
               {narrator.scholarlyOpinions && narrator.scholarlyOpinions.length > 0 && (
                 <div>
-                  <div className="flex items-center justify-between mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">
-                    <h4 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  <div className="flex items-center justify-between mb-4 pb-2 border-b-2 border-black">
+                    <h4 className="text-lg font-semibold text-black" style={{ fontFamily: 'var(--font-title)' }}>
                       Scholarly Opinions ({narrator.scholarlyOpinions.length})
                     </h4>
                     <button
                       onClick={copyAllScholarlyOpinions}
-                      className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors"
+                      className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg"
                       title="Copy all scholarly opinions"
                     >
                       {copied ? (
                         <>
-                          <svg className="w-4 h-4 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                           </svg>
                           <span>Copied!</span>
@@ -217,26 +217,26 @@ export function NarratorDetailsModal({
                       };
                       return getPriority(a.opinionType || '') - getPriority(b.opinionType || '');
                     }).map((opinion, idx: number) => (
-                      <div key={`opinion-${opinion.id || idx}-${opinion.scholarName}-${idx}`} className="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                      <div key={`opinion-${opinion.id || idx}-${opinion.scholarName}-${idx}`} className="bg-gray-50 border-2 border-black rounded-lg p-4">
                         <div className="flex items-start justify-between mb-3">
-                          <h5 className="text-base font-semibold text-gray-900 dark:text-white" dir="rtl" lang="ar">
+                          <h5 className="text-base font-semibold text-black" dir="rtl" lang="ar">
                             {opinion.scholarName}
                           </h5>
                           <span className={`text-xs px-2.5 py-1 rounded-full font-medium flex-shrink-0 ml-3 ${
                             opinion.opinionType === 'ta\'dil' 
-                              ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                              : opinion.opinionType === 'jarh'
-                              ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
-                              : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
+                              ? 'bg-green-100 text-green-800'
+                            : opinion.opinionType === 'jarh'
+                            ? 'bg-red-100 text-red-800'
+                            : 'bg-gray-100 text-gray-800'
                           }`}>
                             {opinion.opinionType === 'ta\'dil' ? 'Praise' : opinion.opinionType === 'jarh' ? 'Criticism' : 'Neutral'}
                           </span>
                         </div>
-                        <p className="text-base text-gray-700 dark:text-gray-300 mb-2 leading-relaxed" dir="rtl" lang="ar">
+                        <p className="text-base text-gray-700 mb-2 leading-relaxed" dir="rtl" lang="ar">
                           {opinion.opinionText}
                         </p>
                         {opinion.sourceReference && (
-                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 pt-2 border-t border-gray-200 dark:border-gray-700" dir="rtl" lang="ar">
+                          <p className="text-xs text-gray-500 mt-2 pt-2 border-t border-gray-200" dir="rtl" lang="ar">
                             <span className="font-medium">Source:</span> {opinion.sourceReference}
                           </p>
                         )}
@@ -248,24 +248,24 @@ export function NarratorDetailsModal({
 
               {/* Grading Section */}
               <div>
-                <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">
+                <h4 className="text-lg font-semibold text-black mb-4 pb-2 border-b-2 border-black" style={{ fontFamily: 'var(--font-title)' }}>
                   Grading
                 </h4>
                 <div className="space-y-4">
                   {/* Reputation Grades */}
                   {extractedGrades.length > 0 ? (
                     <div>
-                      <label className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2 block">
+                      <label className="text-xs font-medium text-gray-500 mb-2 block">
                         Reputation Grades ({extractedGrades.length})
                       </label>
                       <div className="flex flex-wrap gap-2">
                         {extractedGrades.map((grade: ReputationGrade, idx: number) => {
                           const gradeInfo = REPUTATION_GRADES[grade];
                           const categoryColor = gradeInfo?.category === 'high' 
-                            ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200'
+                            ? 'bg-green-100 text-green-800'
                             : gradeInfo?.category === 'low'
-                            ? 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200'
-                            : 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200';
+                            ? 'bg-red-100 text-red-800'
+                            : 'bg-yellow-100 text-yellow-800';
                           
                           return (
                             <span key={`extracted-grade-${grade}-${idx}`} className={`px-3 py-1 ${categoryColor} rounded-lg text-sm`}>
@@ -277,10 +277,10 @@ export function NarratorDetailsModal({
                     </div>
                   ) : (
                     <div>
-                      <label className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2 block">
+                      <label className="text-xs font-medium text-gray-500 mb-2 block">
                         Reputation Grades
                       </label>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">No reputation grades could be extracted from available sources</p>
+                      <p className="text-sm text-gray-500">No reputation grades could be extracted from available sources</p>
                     </div>
                   )}
                   
@@ -288,21 +288,21 @@ export function NarratorDetailsModal({
                   {calculatedGrade !== null ? (
                     <div>
                       <div className="flex items-center gap-2 mb-2">
-                        <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                        <label className="text-xs font-medium text-gray-500">
                           Calculated Grade
                         </label>
                         <div className="relative">
                           <button
                             type="button"
                             onClick={() => setShowGradeFormulaTooltip(!showGradeFormulaTooltip)}
-                            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                            className="text-gray-400 hover:text-gray-600 "
                             aria-label="Grade calculation formula info"
                           >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                           </button>
-                          <div className={`absolute left-0 bottom-full mb-2 w-80 p-3 bg-gray-900 dark:bg-gray-800 text-white text-xs rounded-lg shadow-lg transition-all duration-200 z-50 ${showGradeFormulaTooltip ? 'opacity-100 visible' : 'opacity-0 invisible'}`}>
+                          <div className={`absolute left-0 bottom-full mb-2 w-80 p-3 bg-gray-900 text-white text-xs rounded-lg shadow-lg transition-all duration-200 z-50 ${showGradeFormulaTooltip ? 'opacity-100 visible' : 'opacity-0 invisible'}`}>
                             <div className="space-y-2">
                               <p className="font-semibold mb-2">Grade Calculation Formula</p>
                               <div className="space-y-1 text-gray-300">
@@ -320,7 +320,7 @@ export function NarratorDetailsModal({
                                 <p className="text-gray-400 text-xs">Grade range: 0.0 (Very Poor) to 10.0 (Excellent)</p>
                               </div>
                             </div>
-                            <div className="absolute left-4 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900 dark:border-t-gray-800"></div>
+                            <div className="absolute left-4 top-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
                           </div>
                         </div>
                       </div>
@@ -328,17 +328,17 @@ export function NarratorDetailsModal({
                         <div className={`text-2xl font-bold ${getGradeColorClass(calculatedGrade)}`}>
                           {calculatedGrade.toFixed(1)}
                         </div>
-                        <div className="text-sm text-gray-600 dark:text-gray-400">
+                        <div className="text-sm text-gray-600">
                           {getGradeDescription(calculatedGrade)}
                         </div>
                       </div>
                     </div>
                   ) : (
                     <div>
-                      <label className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2 block">
+                      <label className="text-xs font-medium text-gray-500 mb-2 block">
                         Calculated Grade
                       </label>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">No grade calculated</p>
+                      <p className="text-sm text-gray-500">No grade calculated</p>
                     </div>
                   )}
                 </div>
@@ -347,19 +347,19 @@ export function NarratorDetailsModal({
               {/* Relationships */}
               {narrator.relationships && narrator.relationships.length > 0 && (
                 <div>
-                  <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">
+                  <h4 className="text-lg font-semibold text-black mb-4 pb-2 border-b-2 border-black" style={{ fontFamily: 'var(--font-title)' }}>
                     Relationships ({narrator.relationships.length})
                   </h4>
                   <div className="space-y-3">
                     {narrator.relationships.map((rel, idx: number) => (
-                      <div key={`relationship-${rel.relatedNarratorId || idx}-${rel.relationshipType}-${idx}`} className="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg p-3">
-                        <p className="text-sm text-gray-900 dark:text-white">
-                          <span className="font-semibold capitalize text-gray-700 dark:text-gray-300">{rel.relationshipType}</span>
+                      <div key={`relationship-${rel.relatedNarratorId || idx}-${rel.relationshipType}-${idx}`} className="bg-gray-50 border-2 border-black rounded-lg p-3">
+                        <p className="text-sm text-black">
+                          <span className="font-semibold capitalize text-gray-700">{rel.relationshipType}</span>
                           {rel.relationshipDescription && (
-                            <span className="text-gray-600 dark:text-gray-400 ml-2">: {rel.relationshipDescription}</span>
+                            <span className="text-gray-600 ml-2">: {rel.relationshipDescription}</span>
                           )}
                           {'durationYears' in rel && rel.durationYears && (
-                            <span className="text-gray-600 dark:text-gray-400 ml-2">({rel.durationYears} years)</span>
+                            <span className="text-gray-600 ml-2">({rel.durationYears} years)</span>
                           )}
                         </p>
                       </div>
@@ -371,9 +371,9 @@ export function NarratorDetailsModal({
               {/* Notes */}
               {narrator.notes && (
                 <div>
-                  <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 pb-2 border-b border-gray-200 dark:border-gray-700">Notes</h4>
-                  <div className="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-                    <p className="text-base text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap" dir="rtl" lang="ar">
+                  <h4 className="text-lg font-semibold text-black mb-4 pb-2 border-b-2 border-black" style={{ fontFamily: 'var(--font-title)' }}>Notes</h4>
+                  <div className="bg-gray-50 border-2 border-black rounded-lg p-4">
+                    <p className="text-base text-gray-700 leading-relaxed whitespace-pre-wrap" dir="rtl" lang="ar">
                       {narrator.notes}
                     </p>
                   </div>
@@ -384,10 +384,10 @@ export function NarratorDetailsModal({
         </div>
 
         {/* Modal Footer */}
-        <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200 dark:border-gray-700">
+        <div className="flex items-center justify-end gap-3 p-6 border-t-2 border-black">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-colors"
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg"
           >
             Close
           </button>

@@ -52,17 +52,33 @@ export const calculateNarratorGrade = (reputation: ReputationGrade[]): number =>
 // Function to calculate chain grade based on narrator grades
 export const calculateChainGrade = (narrators: Narrator[]): number | null => {
   if (narrators.length === 0) return null;
-  
+
   const grades = narrators
-    .map(n => n.calculatedGrade)
-    .filter((grade): grade is number => grade !== undefined && grade !== null);
-  
+    .map(narrator => {
+      // Handle both calculatedGrade (number) and grade (string) properties
+      if (typeof narrator.calculatedGrade === 'number') {
+        return narrator.calculatedGrade;
+      } else if (typeof narrator.grade === 'string') {
+        // Convert string grades like "9/10" to numbers, skip "n/a"
+        if (narrator.grade === 'n/a') {
+          return null; // Exclude n/a from calculation
+        } else if (narrator.grade.includes('/')) {
+          const [num, den] = narrator.grade.split('/').map(Number);
+          return num / den * 10; // Convert to 0-10 scale
+        } else {
+          return parseFloat(narrator.grade) || null;
+        }
+      }
+      return null;
+    })
+    .filter((grade): grade is number => grade !== null);
+
   // Only calculate if more than 50% of narrators have grades
   const gradedPercentage = (grades.length / narrators.length) * 100;
   if (gradedPercentage <= 50) return null;
-  
+
   if (grades.length === 0) return null;
-  
+
   const sum = grades.reduce((acc, grade) => acc + grade, 0);
   return Math.round((sum / grades.length) * 10) / 10;
 };

@@ -2,7 +2,7 @@
 
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { CACHE_KEYS } from '@/lib/cache/constants';
 import { generateMermaidCode } from '@/components/hadith-analyzer/visualization/utils';
 import { createChainService } from '@/services/chainService';
@@ -32,9 +32,28 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 
+// Client-only component to prevent hydration mismatches
+function ClientOnly({ children }: { children: React.ReactNode }) {
+  const [hasMounted, setHasMounted] = useState(false);
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
+
+  if (!hasMounted) {
+    return null;
+  }
+
+  return <>{children}</>;
+}
+
 // All duplicate code removed - using imports from extracted modules
 
-export default function HadithAnalyzer() {
+interface HadithAnalyzerProps {
+  initialCollection?: string | null;
+}
+
+export default function HadithAnalyzer({ initialCollection }: HadithAnalyzerProps = {}) {
   const {
     state,
     dispatch,
@@ -288,32 +307,34 @@ export default function HadithAnalyzer() {
         <InputTabs activeTab={activeTab} onTabChange={(tab) => dispatch(actions.setActiveTab(tab))} />
         
         {/* New Hadith and Export Buttons - shown when chains exist */}
-        {chains.length > 0 && (
-          <div className="flex justify-center sm:justify-end gap-4 mb-6">
-            <button
-              onClick={handleNewHadith}
-              className="px-6 py-3 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-black flex items-center gap-2 text-sm font-semibold"
-              style={{ backgroundColor: '#000000', color: '#f2e9dd', fontFamily: 'var(--font-content)' }}
-              title="Start a new hadith (this will clear all current chains)"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-              New Hadith
-            </button>
-            <button
-              onClick={chainService.handleExportChains}
-              className="px-6 py-3 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-black flex items-center gap-2 text-sm font-semibold"
-              style={{ backgroundColor: '#000000', color: '#f2e9dd', fontFamily: 'var(--font-content)' }}
-              title="Export all chains and data as JSON"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              Export Chains
-            </button>
-          </div>
-        )}
+        <ClientOnly>
+          {chains.length > 0 && (
+            <div className="flex justify-center sm:justify-end gap-4 mb-6">
+              <button
+                onClick={handleNewHadith}
+                className="px-6 py-3 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-black flex items-center gap-2 text-sm font-semibold"
+                style={{ backgroundColor: '#000000', color: '#f2e9dd', fontFamily: 'var(--font-content)' }}
+                title="Start a new hadith (this will clear all current chains)"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                New Hadith
+              </button>
+              <button
+                onClick={chainService.handleExportChains}
+                className="px-6 py-3 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-black flex items-center gap-2 text-sm font-semibold"
+                style={{ backgroundColor: '#000000', color: '#f2e9dd', fontFamily: 'var(--font-content)' }}
+                title="Export all chains and data as JSON"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Export Chains
+              </button>
+            </div>
+          )}
+        </ClientOnly>
 
         {/* LLM Extraction Tab */}
         {activeTab === 'llm' && (
@@ -390,7 +411,8 @@ export default function HadithAnalyzer() {
         )}
 
         {/* Results Section */}
-        {chains.length > 0 && (
+        <ClientOnly>
+          {chains.length > 0 && (
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold" style={{ fontFamily: 'var(--font-title)', color: '#000000' }}>
@@ -456,10 +478,12 @@ export default function HadithAnalyzer() {
               </DragOverlay>
             </DndContext>
           </div>
-        )}
+          )}
+        </ClientOnly>
 
         {/* Show Visualization Button - when hidden but chains exist */}
-        {chains.length > 0 && !showVisualization && (
+        <ClientOnly>
+          {chains.length > 0 && !showVisualization && (
           <div className="rounded-2xl p-6 mt-4 border-2 border-black" style={{ backgroundColor: '#f2e9dd', boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(0, 0, 0, 0.1)' }}>
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold" style={{ fontFamily: 'var(--font-title)', color: '#000000' }}>
@@ -485,7 +509,8 @@ export default function HadithAnalyzer() {
               </button>
             </div>
           </div>
-        )}
+          )}
+        </ClientOnly>
 
         {/* Visualization Section */}
         {showVisualization && mermaidCode && (

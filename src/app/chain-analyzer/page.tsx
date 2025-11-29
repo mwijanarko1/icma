@@ -3,6 +3,8 @@
 import HadithAnalyzer from "@/components/HadithAnalyzer";
 import Link from "next/link";
 import Header from "@/components/Header";
+import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 
 // Structured data for better SEO
 const structuredData = {
@@ -44,7 +46,10 @@ const structuredData = {
   }
 };
 
-export default function ChainAnalyzer() {
+function ChainAnalyzerContent() {
+  const searchParams = useSearchParams();
+  const collection = searchParams.get('collection');
+
   return (
     <>
       <script
@@ -53,10 +58,10 @@ export default function ChainAnalyzer() {
           __html: JSON.stringify(structuredData),
         }}
       />
-      <div 
-        className="min-h-screen relative" 
-        style={{ 
-          backgroundColor: '#f2e9dd', 
+      <div
+        className="min-h-screen relative"
+        style={{
+          backgroundColor: '#f2e9dd',
           color: '#000000',
         }}
       >
@@ -66,7 +71,7 @@ export default function ChainAnalyzer() {
 
           {/* Main Content */}
           <div className="max-w-7xl mx-auto px-2 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-8">
-            <HadithAnalyzer />
+            <HadithAnalyzer initialCollection={collection} />
           </div>
 
           {/* Footer */}
@@ -168,5 +173,13 @@ export default function ChainAnalyzer() {
         </div>
       </div>
     </>
+  );
+}
+
+export default function ChainAnalyzer() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ChainAnalyzerContent />
+    </Suspense>
   );
 }

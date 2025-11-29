@@ -51,12 +51,38 @@ function getInitialState(): HadithAnalyzerState {
   };
 }
 
-export function useHadithAnalyzer() {
+export function useHadithAnalyzer(initialCollection?: string | null) {
   // Initialize reducer with cached state
   const [state, dispatch] = useReducer(hadithAnalyzerReducer, undefined, getInitialState);
   const graphRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   const prevPathnameRef = useRef<string | null>(null);
+
+  // Load Intention-Hadith collection if specified
+  useEffect(() => {
+    if (initialCollection === 'intention') {
+      const loadIntentionCollection = async () => {
+        try {
+          // Reset state first to clear any existing chains
+          dispatch(actions.resetState());
+
+          const response = await fetch('/chains/Intention-Hadith.json');
+          if (response.ok) {
+            const data = await response.json();
+            if (data.chains && Array.isArray(data.chains)) {
+              dispatch(actions.setChains(data.chains));
+              // Clear any existing hadith text since we're loading a collection
+              dispatch(actions.setHadithText(''));
+            }
+          }
+        } catch (error) {
+          console.error('Failed to load Intention-Hadith collection:', error);
+        }
+      };
+
+      loadIntentionCollection();
+    }
+  }, [initialCollection, dispatch, actions]);
 
   // Sync state to localStorage
   useEffect(() => {

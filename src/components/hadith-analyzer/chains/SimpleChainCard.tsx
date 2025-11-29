@@ -27,7 +27,7 @@ export function SimpleChainCard({
     <div className="rounded-xl sm:rounded-2xl border-2 border-black bg-white" style={{ boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(0, 0, 0, 0.1)' }}>
       {/* Chain Header */}
       <div
-        className="flex items-center justify-between p-4 sm:p-6 border-b-2 border-black cursor-pointer hover:bg-gray-50 transition-colors"
+        className={`flex items-center justify-between p-4 sm:p-6 cursor-pointer ${!isCollapsed ? 'border-b-2 border-black' : ''}`}
         onClick={onToggleCollapse}
         aria-label={isCollapsed ? "Expand chain" : "Collapse chain"}
       >
@@ -116,9 +116,36 @@ export function SimpleChainCard({
                   </tr>
                 ) : (
                   chain.narrators.map((narrator, index) => {
-                    const narratorGrade = narrator.calculatedGrade ?? 0;
-                    const narratorGradeColorClass = getGradeColorClass(narratorGrade);
-                    const narratorGradeDescription = getGradeDescription(narratorGrade);
+                    // Handle both calculatedGrade (number) and grade (string) properties
+                    let narratorGrade: number;
+                    let narratorGradeDescription: string;
+                    let narratorGradeColorClass: string;
+
+                    if (typeof narrator.calculatedGrade === 'number') {
+                      narratorGrade = narrator.calculatedGrade;
+                      narratorGradeColorClass = getGradeColorClass(narratorGrade);
+                      narratorGradeDescription = getGradeDescription(narratorGrade);
+                    } else if (typeof narrator.grade === 'string') {
+                      // Special handling for "n/a" grade
+                      if (narrator.grade === 'n/a') {
+                        narratorGrade = 0; // For chain calculation
+                        narratorGradeColorClass = 'bg-gray-100 text-gray-800';
+                        narratorGradeDescription = 'n/a';
+                      } else if (narrator.grade.includes('/')) {
+                        const [num, den] = narrator.grade.split('/').map(Number);
+                        narratorGrade = num / den * 10; // Convert to 0-10 scale
+                        narratorGradeColorClass = getGradeColorClass(narratorGrade);
+                        narratorGradeDescription = getGradeDescription(narratorGrade);
+                      } else {
+                        narratorGrade = parseFloat(narrator.grade) || 0;
+                        narratorGradeColorClass = getGradeColorClass(narratorGrade);
+                        narratorGradeDescription = getGradeDescription(narratorGrade);
+                      }
+                    } else {
+                      narratorGrade = 0;
+                      narratorGradeColorClass = getGradeColorClass(narratorGrade);
+                      narratorGradeDescription = getGradeDescription(narratorGrade);
+                    }
 
                     return (
                       <tr key={index} className="hover:bg-gray-50">

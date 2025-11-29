@@ -61,6 +61,7 @@ export default function HomePage() {
     loadIntentionChains();
   }, []);
 
+
   // Load featured narrators (5 random narrators)
   useEffect(() => {
     async function loadFeaturedNarrators() {
@@ -219,7 +220,7 @@ export default function HomePage() {
                 ))}
                 <div className="text-center mt-6">
                   <Link
-                    href="/chain-analyzer"
+                    href="/chain-analyzer?collection=intention"
                     className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-base transition-all duration-300 hover:scale-105 border-2 border-black shadow-lg hover:shadow-xl"
                     style={{ backgroundColor: '#000000', color: '#f2e9dd', fontFamily: 'var(--font-content)' }}
                   >

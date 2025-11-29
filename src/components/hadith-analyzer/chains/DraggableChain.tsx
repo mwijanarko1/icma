@@ -95,7 +95,7 @@ export function DraggableChain({
     >
       {/* Chain Header - Always Visible */}
       <div
-        className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 sm:p-6 border-b-2 border-black cursor-pointer hover:bg-gray-50 transition-colors gap-3 sm:gap-0"
+        className={`flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 sm:p-6 cursor-pointer gap-3 sm:gap-0 ${!isCollapsed ? 'border-b-2 border-black' : ''}`}
         onClick={() => actions.onToggleCollapse(chain.id)}
         aria-label={isCollapsed ? "Expand chain" : "Collapse chain"}
       >
@@ -104,10 +104,10 @@ export function DraggableChain({
           <button
             {...attributes}
             {...listeners}
-            className={`p-2 rounded-md border-2 group flex-shrink-0 ${
+            className={`p-2 rounded-md border-2 flex-shrink-0 ${
               isDragging
                 ? 'bg-blue-200 border-blue-400 shadow-md'
-                : 'hover:bg-blue-100 border-black hover:border-blue-300'
+                : 'border-black'
             }`}
             aria-label="Drag to reorder chain"
             title="Drag to reorder chain"
@@ -115,11 +115,9 @@ export function DraggableChain({
             <svg className={`w-4 h-4 ${
               isDragging
                 ? 'text-blue-700'
-                : 'text-gray-500 group-hover:text-blue-600'
+                : 'text-gray-500'
             }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8h16M4 16h16" />
-              <circle cx="9" cy="12" r="1.5" fill="currentColor" />
-              <circle cx="15" cy="12" r="1.5" fill="currentColor" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4 4 4m6 0v12m0 0 4-4m-4 4-4-4" />
             </svg>
           </button>
 
@@ -162,11 +160,7 @@ export function DraggableChain({
               e.stopPropagation();
               dispatch(globalActions.toggleChainVisibility(chain.id));
             }}
-            className={`text-sm font-medium px-3 py-1 rounded-md transition-colors flex items-center gap-1 ${
-              chain.hiddenFromVisualization
-                ? 'hover:bg-gray-50'
-                : 'hover:bg-purple-50'
-            }`}
+            className="text-sm font-medium px-3 py-1 rounded-md flex items-center gap-1"
             style={{ fontFamily: 'var(--font-content)', color: chain.hiddenFromVisualization ? '#000000' : '#000000', opacity: chain.hiddenFromVisualization ? 0.6 : 1 }}
             title={chain.hiddenFromVisualization ? "Show in diagram" : "Hide from diagram"}
           >
@@ -186,7 +180,7 @@ export function DraggableChain({
               e.stopPropagation();
               actions.onEdit(chain.id);
             }}
-            className="text-sm font-medium px-3 py-1 rounded-md hover:bg-blue-50 transition-colors"
+            className="text-sm font-medium px-3 py-1 rounded-md"
             style={{ fontFamily: 'var(--font-content)', color: '#000000' }}
           >
             Edit
@@ -196,7 +190,7 @@ export function DraggableChain({
               e.stopPropagation();
               actions.onMatchNarrators(chain.id);
             }}
-            className="text-sm font-medium px-3 py-1 rounded-md hover:bg-green-50 transition-colors flex items-center gap-1"
+            className="text-sm font-medium px-3 py-1 rounded-md flex items-center gap-1"
             style={{ fontFamily: 'var(--font-content)', color: '#000000' }}
             title="Match narrators to database and auto-assign grades"
           >
@@ -210,7 +204,7 @@ export function DraggableChain({
               e.stopPropagation();
               actions.onRemove(chain.id);
             }}
-            className="text-sm font-medium px-3 py-1 rounded-md hover:bg-red-50 transition-colors"
+            className="text-sm font-medium px-3 py-1 rounded-md"
             style={{ fontFamily: 'var(--font-content)', color: '#000000' }}
           >
             Remove
@@ -224,7 +218,7 @@ export function DraggableChain({
                   e.stopPropagation();
                   chainService.handleSaveEdit();
                 }}
-                className="px-3 py-1 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-black text-sm font-semibold"
+                className="px-3 py-1 rounded-lg shadow-lg border-2 border-black text-sm font-semibold"
                 style={{ backgroundColor: '#000000', color: '#f2e9dd', fontFamily: 'var(--font-content)' }}
               >
                 Save
@@ -234,7 +228,7 @@ export function DraggableChain({
                   e.stopPropagation();
                   chainService.handleCancelEdit();
                 }}
-                className="px-3 py-1 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-black text-sm font-semibold"
+                className="px-3 py-1 rounded-lg shadow-lg border-2 border-black text-sm font-semibold"
                 style={{ backgroundColor: '#f2e9dd', color: '#000000', fontFamily: 'var(--font-content)' }}
               >
                 Cancel
@@ -424,7 +418,7 @@ export function DraggableChain({
                   {!showAddNarrator ? (
                     <button
                       onClick={() => dispatch(globalActions.setShowAddNarrator(true))}
-                      className="px-4 py-2 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-black flex items-center gap-2 font-semibold"
+                      className="px-4 py-2 rounded-lg shadow-lg border-2 border-black flex items-center gap-2 font-semibold"
                       style={{ backgroundColor: '#000000', color: '#f2e9dd', fontFamily: 'var(--font-content)' }}
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -485,14 +479,14 @@ export function DraggableChain({
                         <button
                           onClick={narratorService.handleAddNarrator}
                           disabled={!newNarrator.arabicName.trim() || !newNarrator.englishName.trim()}
-                          className="px-4 py-2 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-black font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="px-4 py-2 rounded-lg shadow-lg border-2 border-black font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                           style={{ backgroundColor: '#000000', color: '#f2e9dd', fontFamily: 'var(--font-content)' }}
                         >
                           Add Narrator
                         </button>
                         <button
                           onClick={narratorService.handleCancelAddNarrator}
-                          className="px-4 py-2 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-black font-semibold"
+                          className="px-4 py-2 rounded-lg shadow-lg border-2 border-black font-semibold"
                           style={{ backgroundColor: '#f2e9dd', color: '#000000', fontFamily: 'var(--font-content)' }}
                         >
                           Cancel

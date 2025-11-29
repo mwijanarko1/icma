@@ -19,6 +19,7 @@ export interface Narrator {
   englishName: string;
   reputation?: ReputationGrade[];
   calculatedGrade?: number;
+  grade?: string; // String grade like "9/10" or "n/a"
   matched?: boolean;
   narratorId?: string;
   confidence?: number;
