@@ -61,7 +61,6 @@ export interface HadithAnalyzerState {
   
   // Import state
   showImportModal: boolean;
-  importMode: 'library' | 'computer' | null;
   libraryChains: LibraryChain[];
   isLoadingLibrary: boolean;
   
@@ -98,6 +97,9 @@ export interface HadithAnalyzerState {
   narratorSearchModalOffset: number;
   narratorSearchModalTotal: number;
   showGradeFormulaTooltip2: boolean;
+
+  // Add hadith modal
+  showAddHadithModal: boolean;
 }
 
 export const initialState: HadithAnalyzerState = {
@@ -129,7 +131,6 @@ export const initialState: HadithAnalyzerState = {
   activeChainId: null,
   highlightedChainIds: [],
   showImportModal: false,
-  importMode: null,
   libraryChains: [],
   isLoadingLibrary: false,
   showNarratorModal: false,
@@ -157,6 +158,7 @@ export const initialState: HadithAnalyzerState = {
   isSearchingModal: false,
   narratorSearchModalOffset: 0,
   narratorSearchModalTotal: 0,
-  showGradeFormulaTooltip2: false
+  showGradeFormulaTooltip2: false,
+  showAddHadithModal: false
 };
 

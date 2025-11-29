@@ -18,12 +18,10 @@ export interface LLMTabProps {
   onHadithTextChange: (text: string) => void;
   apiKey: string;
   isLoading: boolean;
-  chains: Chain[];
   onExtractNarrators: (text: string) => Promise<void>;
   onShowApiKeyModal: () => void;
   onShowImportModal: () => void;
-  onNewHadith: () => void;
-  onExportChains: () => void;
+  onShowAddHadithModal: () => void;
   onTryDemo: () => Promise<void>;
 }
 
@@ -39,10 +37,8 @@ export interface ManualTabProps {
     reputation: ReputationGrade[];
     calculatedGrade: number;
   };
-  onNewHadith: () => void;
   onAddNewChain: () => void;
   onShowImportModal: () => void;
-  onExportChains: () => void;
   onSelectChain: (index: number) => void;
   onShowAddNarrator: (show: boolean) => void;
   onNewNarratorChange: (narrator: {
@@ -92,5 +88,21 @@ export interface HadithTabProps {
     collection: string;
   }>) => void;
   showSelectButton?: boolean;
+}
+
+export interface AddHadithFromDatabaseModalProps {
+  show: boolean;
+  onClose: () => void;
+  onAddHadiths: (hadiths: Array<{
+    hadith_number: number;
+    sub_version?: string;
+    reference: string;
+    english_narrator?: string;
+    english_translation: string;
+    arabic_text: string;
+    in_book_reference?: string;
+    collection: string;
+  }>) => void;
+  isLoading?: boolean;
 }
 

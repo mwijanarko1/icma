@@ -18,7 +18,14 @@ export const REPUTATION_GRADES = {
   'Da\'if': { weight: 1, category: 'low', meaning: 'Weak' },
   'Matruk': { weight: 0, category: 'low', meaning: 'Abandoned' },
   'Muttaham bi al-Kidhb': { weight: 0, category: 'low', meaning: 'Accused of lying' },
-  'Kadhdhab': { weight: 0, category: 'low', meaning: 'Liar / Fabricator' }
+  'Kadhdhab': { weight: 0, category: 'low', meaning: 'Liar / Fabricator' },
+
+  // Theological Differences (Severe Issues - Hadith Generally Rejected)
+  'Shia': { weight: -2, category: 'theological', meaning: 'Associated with Shia theological positions' },
+  'Qadari': { weight: -2, category: 'theological', meaning: 'Associated with Qadari theological positions' },
+  'Khawarij': { weight: -2, category: 'theological', meaning: 'Associated with Khawarij theological positions' },
+  'Rafidi': { weight: -3, category: 'theological', meaning: 'Associated with extreme Shia positions' },
+  'Murji\'i': { weight: -1, category: 'theological', meaning: 'Associated with Murji\'i theological positions' }
 } as const;
 
 export type ReputationGrade = keyof typeof REPUTATION_GRADES;

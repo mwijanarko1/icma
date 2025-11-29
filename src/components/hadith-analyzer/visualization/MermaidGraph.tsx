@@ -64,14 +64,14 @@ const createCytoscapeGraph = (
   const textColor = "#111827";
   const nodeBgColor = "#f3f4f6";
 
-  // Get grade color
+  // Get grade color - improved color palette
   const getGradeColor = (grade: number | null) => {
     if (grade === null) return nodeBgColor;
-    if (grade >= 8) return "#059669";
-    if (grade >= 6) return "#2563eb";
-    if (grade >= 4) return "#d97706";
-    if (grade >= 2) return "#ea580c";
-    return "#dc2626";
+    if (grade >= 8) return "#10b981";  // Emerald - excellent
+    if (grade >= 6) return "#3b82f6";  // Blue - good
+    if (grade >= 4) return "#f59e0b";  // Amber - fair
+    if (grade >= 2) return "#f97316";  // Orange - poor
+    return "#ef4444";  // Red - very poor
   };
 
   // Collect unique narrators and their ranks
@@ -179,46 +179,46 @@ const createCytoscapeGraph = (
   const cy = cytoscape({
     container: container,
     elements: [...nodes, ...edges],
-    style: [
+        style: [
       {
         selector: 'node',
         style: {
           'background-color': 'data(backgroundColor)',
-          'border-color': 'data(borderColor)',
-          'border-width': '3px',
+          'border-color': '#000000',
+          'border-width': '4px',
           'color': textColor,
           'label': 'data(label)',
           'text-wrap': 'wrap',
-          'text-max-width': '250px',
-          'font-size': '14px',
+          'text-max-width': '450px',
+          'font-size': '64px',
           'font-weight': 600,
           'text-valign': 'center',
           'text-halign': 'center',
-          'width': '250px',
-          'height': 'label',
-          'padding': '15px',
+          'width': '450px',
+          'height': '450px',
+          'padding': '25px',
           'shape': 'roundrectangle',
           'text-outline-width': '2px',
           'text-outline-color': bgColor,
           'overlay-opacity': 0,
-          'min-height': '80px'
+          'min-height': '450px'
         }
       },
       {
         selector: 'node:selected',
         style: {
-          'border-width': '8px',
+          'border-width': '6px',
           'border-color': '#2563eb'
         }
       },
       {
         selector: 'edge',
         style: {
-          'width': '5px',
+          'width': '12px',
           'line-color': 'data(color)',
           'target-arrow-color': 'data(color)',
           'target-arrow-shape': 'triangle',
-          'arrow-scale': 1.5,
+          'arrow-scale': 2.0,
           'curve-style': 'bezier',
           'opacity': 0.6,
           'overlay-opacity': 0,
@@ -229,16 +229,16 @@ const createCytoscapeGraph = (
         selector: 'edge:selected',
         style: {
           'opacity': 1,
-          'width': '4px'
+          'width': '16px'
         }
       }
     ],
     layout: {
       name: 'dagre',
       rankdir: 'TB',
-      nodeSep: 125, // Half a card width (250px / 2) for spacing between nodes
+      nodeSep: 225, // Half a card width (450px / 2) for spacing between nodes
       edgeSep: 40,
-      rankSep: 200,
+      rankSep: 300, // Increased vertical spacing for square boxes
       spacingFactor: 1.0,
       ranker: 'network-simplex',
       align: 'UL',
@@ -265,7 +265,7 @@ const createCytoscapeGraph = (
     const node = evt.target;
     
     // Visual hover effect
-    node.style('border-width', '4px');
+    node.style('border-width', '5px');
     
     // Clear any pending edge hover timeout
     if (hoverTimeout) {
@@ -330,7 +330,7 @@ const createCytoscapeGraph = (
     const node = evt.target;
     
     // Reset border width
-    node.style('border-width', '3px');
+    node.style('border-width', '4px');
     
     // Remove tooltip
     const tooltipData = (node as ExtendedNodeSingular)._tooltip;
@@ -342,12 +342,12 @@ const createCytoscapeGraph = (
 
   cy.on('mouseover', 'edge', (evt) => {
     evt.target.style('opacity', '1');
-    evt.target.style('width', '4px');
+    evt.target.style('width', '16px');
   });
 
   cy.on('mouseout', 'edge', (evt) => {
     evt.target.style('opacity', '0.6');
-    evt.target.style('width', '3px');
+    evt.target.style('width', '12px');
   });
 
   // Add click handler for edges
@@ -450,7 +450,7 @@ const createCytoscapeGraph = (
       }
     });
 
-    cy.fit(undefined, 80);
+    cy.fit(undefined, 20);
   });
 
   return cy;
@@ -496,7 +496,7 @@ export function MermaidGraph({
 
   const handleResetZoom = () => {
     if (cyRef.current) {
-      cyRef.current.fit(undefined, 80);
+      cyRef.current.fit(undefined, 20);
     }
   };
 
@@ -534,7 +534,7 @@ export function MermaidGraph({
         cyRef.current = null;
       }
     };
-  }, [showVisualization, chains, highlightedChainIds]);
+  }, [showVisualization, chains]);
 
   // Update highlighting when highlightedChainIds changes
   useEffect(() => {
@@ -548,13 +548,13 @@ export function MermaidGraph({
 
       if (belongsToHighlighted && highlightedChainIds.length > 0) {
         edge.style('opacity', '1');
-        edge.style('width', '4px');
+        edge.style('width', '16px');
         edge.style('line-color', '#2563eb');
         edge.style('target-arrow-color', '#2563eb');
       } else {
         const originalColor = edge.data('color');
         edge.style('opacity', '0.6');
-        edge.style('width', '3px');
+        edge.style('width', '12px');
         edge.style('line-color', originalColor);
         edge.style('target-arrow-color', originalColor);
       }

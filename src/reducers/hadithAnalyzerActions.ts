@@ -31,7 +31,6 @@ export type HadithAnalyzerAction =
   | { type: 'SET_SHOW_API_KEY_MODAL'; payload: boolean }
   | { type: 'SET_ACTIVE_CHAIN_ID'; payload: string | null }
   | { type: 'SET_SHOW_IMPORT_MODAL'; payload: boolean }
-  | { type: 'SET_IMPORT_MODE'; payload: 'library' | 'computer' | null }
   | { type: 'SET_LIBRARY_CHAINS'; payload: LibraryChain[] }
   | { type: 'SET_IS_LOADING_LIBRARY'; payload: boolean }
   | { type: 'SET_SHOW_NARRATOR_MODAL'; payload: boolean }
@@ -61,6 +60,7 @@ export type HadithAnalyzerAction =
   | { type: 'SET_NARRATOR_SEARCH_MODAL_OFFSET'; payload: number }
   | { type: 'SET_NARRATOR_SEARCH_MODAL_TOTAL'; payload: number }
   | { type: 'SET_SHOW_GRADE_FORMULA_TOOLTIP2'; payload: boolean }
+  | { type: 'SET_SHOW_ADD_HADITH_MODAL'; payload: boolean }
   | { type: 'RESET_STATE' }
   | { type: 'RESET_EDIT_FORM' }
   | { type: 'RESET_NEW_NARRATOR' };
@@ -197,10 +197,6 @@ export const actions = {
     payload: show
   }),
   
-  setImportMode: (mode: 'library' | 'computer' | null): HadithAnalyzerAction => ({
-    type: 'SET_IMPORT_MODE',
-    payload: mode
-  }),
   
   setLibraryChains: (chains: LibraryChain[]): HadithAnalyzerAction => ({
     type: 'SET_LIBRARY_CHAINS',
@@ -346,7 +342,12 @@ export const actions = {
     type: 'SET_SHOW_GRADE_FORMULA_TOOLTIP2',
     payload: show
   }),
-  
+
+  setShowAddHadithModal: (show: boolean): HadithAnalyzerAction => ({
+    type: 'SET_SHOW_ADD_HADITH_MODAL',
+    payload: show
+  }),
+
   resetState: (): HadithAnalyzerAction => ({
     type: 'RESET_STATE'
   }),

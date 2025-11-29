@@ -151,7 +151,7 @@ export default function HomePage() {
               </span>
             </div>
             <h1 
-              className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-6 sm:mb-8 leading-tight tracking-tight px-2"
+              className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold mb-6 sm:mb-8 leading-tight tracking-tight px-2"
               style={{ fontFamily: 'var(--font-title)', color: '#000000' }}
                 >
               Isnād-cum-Matn
@@ -167,7 +167,7 @@ export default function HomePage() {
             >
               A sophisticated methodology for dating and authenticating hadith through comprehensive chain and textual analysis
             </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4 px-4">
+            <div className="flex items-center justify-center px-4">
                 <Link
                   href="/analysis"
                 className="group w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-semibold text-base sm:text-lg transition-all duration-300 hover:scale-105 border-2 border-black shadow-lg hover:shadow-xl"
@@ -180,18 +180,6 @@ export default function HomePage() {
                   </svg>
                 </span>
                 </Link>
-              <button
-                onClick={() => {
-                  const nextSection = document.getElementById('featured-section');
-                  if (nextSection) {
-                    nextSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                  }
-                }}
-                className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 rounded-xl font-semibold text-base sm:text-lg transition-all duration-300 hover:scale-105 border-2 border-black"
-                style={{ backgroundColor: 'transparent', color: '#000000', fontFamily: 'var(--font-content)' }}
-              >
-                Explore Featured Content
-              </button>
             </div>
           </div>
         </section>
@@ -257,7 +245,7 @@ export default function HomePage() {
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-8 sm:mb-12">
               <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-4 px-2" style={{ fontFamily: 'var(--font-title)', color: '#000000' }}>
-                Prominent Narrators
+                Explore Narrators
               </h2>
               <p className="text-base sm:text-xl max-w-2xl mx-auto px-4" style={{ fontFamily: 'var(--font-content)', color: '#000000', opacity: 0.8 }}>
                 Explore the biographies and scholarly assessments of key narrators in hadith transmission

@@ -37,6 +37,7 @@ export function ReputationSelector({ selectedReputations, onReputationChange }: 
       case 'high': return 'text-green-600';
       case 'intermediate': return 'text-yellow-600';
       case 'low': return 'text-red-600';
+      case 'theological': return 'text-purple-600';
       default: return 'text-gray-600';
     }
   };
@@ -63,7 +64,9 @@ export function ReputationSelector({ selectedReputations, onReputationChange }: 
             <div key={category} className="p-2">
               <div className="text-xs font-semibold uppercase tracking-wide mb-2 text-gray-500">
                 {category === 'high' ? 'High Reliability' : 
-                 category === 'intermediate' ? 'Intermediate' : 'Low Reliability'}
+                 category === 'intermediate' ? 'Intermediate' :
+                 category === 'low' ? 'Low Reliability' :
+                 category === 'theological' ? 'Theological Issues' : category}
               </div>
               {grades.map(({ grade, meaning }, gradeIdx) => (
                 <label

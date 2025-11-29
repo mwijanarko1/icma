@@ -32,12 +32,18 @@ export const calculateNarratorGrade = (reputation: ReputationGrade[]): number =>
   const hasHigh = uniqueGrades.some(grade => REPUTATION_GRADES[grade].category === 'high');
   const hasLow = uniqueGrades.some(grade => REPUTATION_GRADES[grade].category === 'low');
   const hasIntermediate = uniqueGrades.some(grade => REPUTATION_GRADES[grade].category === 'intermediate');
+  const hasTheological = uniqueGrades.some(grade => REPUTATION_GRADES[grade].category === 'theological');
   
   let penalty = 0;
   if (hasHigh && hasLow) {
     penalty = 2; // Strong penalty for conflicting high and low grades
   } else if ((hasHigh || hasLow) && hasIntermediate) {
     penalty = 1; // Moderate penalty for mixed categories
+  }
+
+  // Apply severe penalty for theological differences
+  if (hasTheological) {
+    penalty += 3; // Heavy penalty for theological issues
   }
   
   return Math.max(0, Math.round((averageWeight - penalty) * 10) / 10);

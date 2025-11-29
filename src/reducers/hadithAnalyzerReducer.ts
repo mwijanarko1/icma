@@ -155,8 +155,6 @@ export const hadithAnalyzerReducer = (
     case 'SET_SHOW_IMPORT_MODAL':
       return { ...state, showImportModal: action.payload };
     
-    case 'SET_IMPORT_MODE':
-      return { ...state, importMode: action.payload };
     
     case 'SET_LIBRARY_CHAINS':
       return { ...state, libraryChains: action.payload };
@@ -253,7 +251,10 @@ export const hadithAnalyzerReducer = (
     
     case 'SET_SHOW_GRADE_FORMULA_TOOLTIP2':
       return { ...state, showGradeFormulaTooltip2: action.payload };
-    
+
+    case 'SET_SHOW_ADD_HADITH_MODAL':
+      return { ...state, showAddHadithModal: action.payload };
+
     case 'RESET_STATE':
       return {
         ...initialState,

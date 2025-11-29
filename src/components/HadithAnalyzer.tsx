@@ -4,19 +4,17 @@
 
 import { useEffect, useMemo, useRef } from "react";
 import { CACHE_KEYS } from '@/lib/cache/constants';
-import type { Chain } from '@/types/hadith';
 import { generateMermaidCode } from '@/components/hadith-analyzer/visualization/utils';
-import { migrateChainsToNewFormat } from '@/lib/chains/chainUtils';
 import { createChainService } from '@/services/chainService';
 import { createNarratorService } from '@/services/narratorService';
 import { ApiKeyModal } from '@/components/hadith-analyzer/settings/ApiKeyModal';
 import { DraggableChain } from '@/components/hadith-analyzer/chains/DraggableChain';
 import { ChainDragOverlay } from '@/components/hadith-analyzer/chains/ChainDragOverlay';
 import { MatchConfirmationModal } from '@/components/hadith-analyzer/matching/MatchConfirmationModal';
-import { ImportModal } from '@/components/hadith-analyzer/import/ImportModal';
+import { ChainCollectionsModal } from '@/components/hadith-analyzer/import/ChainCollectionsModal';
 import { NarratorDetailsModal } from '@/components/hadith-analyzer/narrators/NarratorDetailsModal';
 import { NarratorSearchModal } from '@/components/hadith-analyzer/narrators/NarratorSearchModal';
-import { InputTabs, LLMTab, ManualTab, SettingsTab } from '@/components/hadith-analyzer/input';
+import { InputTabs, LLMTab, ManualTab, SettingsTab, AddHadithFromDatabaseModal } from '@/components/hadith-analyzer/input';
 import { useHadithAnalyzer } from '@/hooks/useHadithAnalyzer';
 import { MermaidGraph } from '@/components/hadith-analyzer/visualization/MermaidGraph';
 import {
@@ -63,7 +61,6 @@ export default function HadithAnalyzer() {
     activeChainId,
     highlightedChainIds,
     showImportModal,
-    importMode,
     libraryChains,
     isLoadingLibrary,
     showNarratorModal,
@@ -82,7 +79,8 @@ export default function HadithAnalyzer() {
     narratorSearchModalResults,
     isSearchingModal,
     narratorSearchModalOffset,
-    narratorSearchModalTotal
+    narratorSearchModalTotal,
+    showAddHadithModal
   } = state;
 
   // Create service instances (memoized to prevent recreation on every render)
@@ -95,12 +93,6 @@ export default function HadithAnalyzer() {
     [state, dispatch, actions]
   );
 
-  // Wrapper functions for compatibility with file import handler
-  // Only keeping setChains as it supports function updates; others use dispatch directly
-  const setChains = (chains: Chain[] | ((prev: Chain[]) => Chain[])) => {
-    const newChains = typeof chains === 'function' ? chains(state.chains) : chains;
-    dispatch(actions.setChains(newChains));
-  };
 
   // Wrapper for extractNarrators that handles the result and returns void
   const handleExtractNarrators = async (text: string): Promise<void> => {
@@ -201,6 +193,42 @@ export default function HadithAnalyzer() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [narratorSearchModalQuery, showNarratorSearchModal]);
 
+  // Handler for adding hadith from database
+  const handleAddHadithsFromDatabase = (hadiths: Array<{
+    hadith_number: number;
+    sub_version?: string;
+    reference: string;
+    english_narrator?: string;
+    english_translation: string;
+    arabic_text: string;
+    in_book_reference?: string;
+    collection: string;
+  }>) => {
+    try {
+      dispatch(actions.setIsLoading(true));
+      dispatch(actions.setError(null));
+
+      if (hadiths.length === 0) {
+        throw new Error('No hadith selected');
+      }
+
+      // Use the first selected hadith's Arabic text
+      const firstHadith = hadiths[0];
+      const hadithText = firstHadith.arabic_text;
+
+      // Set the hadith text and close modal
+      dispatch(actions.setHadithText(hadithText));
+      dispatch(actions.setShowAddHadithModal(false));
+
+      // Clear existing chains to start fresh
+      dispatch(actions.setChains([]));
+    } catch (error) {
+      dispatch(actions.setError(error instanceof Error ? error.message : 'Failed to add hadith'));
+    } finally {
+      dispatch(actions.setIsLoading(false));
+    }
+  };
+
   // Update mermaid code when chains change
   useEffect(() => {
     if (chains.length > 0) {
@@ -259,6 +287,34 @@ export default function HadithAnalyzer() {
         {/* Tab Navigation */}
         <InputTabs activeTab={activeTab} onTabChange={(tab) => dispatch(actions.setActiveTab(tab))} />
         
+        {/* New Hadith and Export Buttons - shown when chains exist */}
+        {chains.length > 0 && (
+          <div className="flex justify-center sm:justify-end gap-4 mb-6">
+            <button
+              onClick={handleNewHadith}
+              className="px-6 py-3 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-black flex items-center gap-2 text-sm font-semibold"
+              style={{ backgroundColor: '#000000', color: '#f2e9dd', fontFamily: 'var(--font-content)' }}
+              title="Start a new hadith (this will clear all current chains)"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              New Hadith
+            </button>
+            <button
+              onClick={chainService.handleExportChains}
+              className="px-6 py-3 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-black flex items-center gap-2 text-sm font-semibold"
+              style={{ backgroundColor: '#000000', color: '#f2e9dd', fontFamily: 'var(--font-content)' }}
+              title="Export all chains and data as JSON"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              Export Chains
+            </button>
+          </div>
+        )}
+
         {/* LLM Extraction Tab */}
         {activeTab === 'llm' && (
           <LLMTab
@@ -266,12 +322,13 @@ export default function HadithAnalyzer() {
             onHadithTextChange={(text) => dispatch(actions.setHadithText(text))}
             apiKey={apiKey}
             isLoading={isLoading}
-            chains={chains}
             onExtractNarrators={handleExtractNarrators}
             onShowApiKeyModal={() => dispatch(actions.setShowApiKeyModal(true))}
-            onShowImportModal={() => dispatch(actions.setShowImportModal(true))}
-            onNewHadith={handleNewHadith}
-            onExportChains={chainService.handleExportChains}
+            onShowImportModal={() => {
+              dispatch(actions.setShowImportModal(true));
+              chainService.handleFetchLibraryChains();
+            }}
+            onShowAddHadithModal={() => dispatch(actions.setShowAddHadithModal(true))}
             onTryDemo={chainService.handleTryDemo}
           />
         )}
@@ -285,10 +342,11 @@ export default function HadithAnalyzer() {
             selectedChainIndex={selectedChainIndex}
             showAddNarrator={showAddNarrator}
             newNarrator={newNarrator}
-            onNewHadith={handleNewHadith}
             onAddNewChain={chainService.handleAddNewChain}
-            onShowImportModal={() => dispatch(actions.setShowImportModal(true))}
-            onExportChains={chainService.handleExportChains}
+            onShowImportModal={() => {
+              dispatch(actions.setShowImportModal(true));
+              chainService.handleFetchLibraryChains();
+            }}
             onSelectChain={chainService.handleSelectChain}
             onShowAddNarrator={(show) => dispatch(actions.setShowAddNarrator(show))}
             onNewNarratorChange={(narrator) => dispatch(actions.setNewNarrator(narrator))}
@@ -480,29 +538,19 @@ export default function HadithAnalyzer() {
         onMatchNarrator={narratorService.handleMatchNarratorFromSearch}
       />
 
-      <ImportModal
-        showImportModal={showImportModal}
-        importMode={importMode}
+      <ChainCollectionsModal
+        show={showImportModal}
         onClose={() => dispatch(actions.setShowImportModal(false))}
-        onSetImportMode={(mode) => {
-          dispatch(actions.setImportMode(mode));
-          if (mode === 'library') {
-            chainService.handleFetchLibraryChains();
-          }
-        }}
         libraryChains={libraryChains}
         isLoadingLibrary={isLoadingLibrary}
         onLoadChain={chainService.handleLoadChainFromLibrary}
-        onFileImport={(data) => {
-          const migratedChains = migrateChainsToNewFormat(data.chains || []);
-          dispatch(actions.setHadithText(data.hadithText || ''));
-          setChains(migratedChains);
-          if (data.activeTab) dispatch(actions.setActiveTab(data.activeTab));
-          if (data.selectedChainIndex !== undefined) dispatch(actions.setSelectedChainIndex(data.selectedChainIndex));
-          if (data.showVisualization !== undefined) dispatch(actions.setShowVisualization(data.showVisualization));
-          dispatch(actions.setShowImportModal(false));
-          dispatch(actions.setImportMode(null));
-        }}
+      />
+
+      <AddHadithFromDatabaseModal
+        show={showAddHadithModal}
+        onClose={() => dispatch(actions.setShowAddHadithModal(false))}
+        onAddHadiths={handleAddHadithsFromDatabase}
+        isLoading={isLoading}
       />
     </div>
   );

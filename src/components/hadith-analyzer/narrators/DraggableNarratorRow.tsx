@@ -200,15 +200,30 @@ export function DraggableNarratorRow({
                 {(narrator.reputation || []).map((grade, gradeIdx) => (
                   <span
                     key={`narrator-${narrator.number}-grade-${gradeIdx}-${grade}`}
-                    className={`px-2 py-1 text-xs rounded ${
+                    className={`inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-full border transition-all ${
                       REPUTATION_GRADES[grade].category === 'high'
-                        ? 'bg-green-100 text-green-800'
+                        ? 'bg-green-100 text-green-800 border-green-300 hover:bg-green-200 hover:border-green-400'
                         : REPUTATION_GRADES[grade].category === 'intermediate'
-                        ? 'bg-yellow-100 text-yellow-800'
-                        : 'bg-red-100 text-red-800'
+                        ? 'bg-yellow-50 text-yellow-700 border-yellow-200 hover:bg-yellow-100 hover:border-yellow-300'
+                        : REPUTATION_GRADES[grade].category === 'theological'
+                        ? 'bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100 hover:border-purple-300'
+                        : 'bg-red-100 text-red-800 border-red-300 hover:bg-red-200 hover:border-red-400'
                     }`}
                   >
-                    {grade}
+                    <span>{grade}</span>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        const newReputation = (narrator.reputation || []).filter((_, idx) => idx !== gradeIdx);
+                        onUpdateReputation(index, newReputation);
+                      }}
+                      className="ml-1.5 flex items-center justify-center w-4 h-4 rounded-full hover:bg-gray-300 hover:bg-opacity-50 transition-colors"
+                      title={`Remove ${grade} grade`}
+                    >
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
                   </span>
                 ))}
               </div>
