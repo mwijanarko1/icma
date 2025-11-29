@@ -60,7 +60,7 @@ export default function HadithAnalyzer({ initialCollection }: HadithAnalyzerProp
     actions,
     extractNarrators,
     handleNewHadith,
-  } = useHadithAnalyzer();
+  } = useHadithAnalyzer(initialCollection);
 
   // Destructure state for easier access
   const {

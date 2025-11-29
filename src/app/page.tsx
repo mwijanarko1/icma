@@ -15,6 +15,15 @@ interface FeaturedNarrator {
   description?: string;
 }
 
+interface RawChain {
+  id: string;
+  narrators: unknown[];
+  hadithText: string;
+  title?: string;
+  collapsed?: boolean;
+  [key: string]: unknown;
+}
+
 export default function HomePage() {
   const [intentionChains, setIntentionChains] = useState<Chain[]>([]);
   const [isLoadingChains, setIsLoadingChains] = useState(true);
@@ -47,7 +56,13 @@ export default function HomePage() {
             
             if (chainResponse.ok) {
               const chainData = await chainResponse.json();
-              setIntentionChains(chainData.data?.chains || []);
+              // Transform chains to match Chain interface
+              const transformedChains = (chainData.data?.chains || []).map((chain: RawChain) => ({
+                ...chain,
+                chainText: chain.hadithText || '', // Map hadithText to chainText
+                matn: '' // For now, leave matn empty as the JSON doesn't separate it
+              }));
+              setIntentionChains(transformedChains);
             }
           }
         }

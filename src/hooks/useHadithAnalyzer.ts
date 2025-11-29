@@ -25,6 +25,15 @@ import { CACHE_KEYS } from "@/lib/cache/constants";
 import type { Narrator } from "@/types/hadith";
 import type { HadithAnalyzerState } from "@/types/hadithAnalyzerState";
 
+interface RawChain {
+  id: string;
+  narrators: unknown[];
+  hadithText: string;
+  title?: string;
+  collapsed?: boolean;
+  [key: string]: unknown;
+}
+
 // Initialize state with cached data synchronously
 function getInitialState(): HadithAnalyzerState {
   const cachedHadithText = loadCachedHadithText();
@@ -70,7 +79,13 @@ export function useHadithAnalyzer(initialCollection?: string | null) {
           if (response.ok) {
             const data = await response.json();
             if (data.chains && Array.isArray(data.chains)) {
-              dispatch(actions.setChains(data.chains));
+              // Transform the chains to match the Chain interface
+              const transformedChains = data.chains.map((chain: RawChain) => ({
+                ...chain,
+                chainText: chain.hadithText || '', // Map hadithText to chainText
+                matn: '' // For now, leave matn empty as the JSON doesn't separate it
+              }));
+              dispatch(actions.setChains(transformedChains));
               // Clear any existing hadith text since we're loading a collection
               dispatch(actions.setHadithText(''));
             }
@@ -82,7 +97,7 @@ export function useHadithAnalyzer(initialCollection?: string | null) {
 
       loadIntentionCollection();
     }
-  }, [initialCollection, dispatch, actions]);
+  }, [initialCollection, dispatch]);
 
   // Sync state to localStorage
   useEffect(() => {
