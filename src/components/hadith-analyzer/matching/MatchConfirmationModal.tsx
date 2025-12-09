@@ -1,6 +1,7 @@
 "use client";
 
 import type { MatchConfirmationModalProps } from './types';
+import BasicModal from "@/components/ui/BasicModal";
 
 export function MatchConfirmationModal({
   showMatchConfirmationModal,
@@ -14,8 +15,6 @@ export function MatchConfirmationModal({
   onRejectAllMatches,
   onSelectMatch
 }: MatchConfirmationModalProps) {
-  if (!showMatchConfirmationModal || pendingMatches.length === 0) return null;
-
   const currentMatch = pendingMatches[currentMatchIndex];
   if (!currentMatch || !currentMatch.matches || currentMatch.matches.length === 0) return null;
 
@@ -27,29 +26,13 @@ export function MatchConfirmationModal({
   const confidencePercent = Math.round((selectedMatch.confidence || 0) * 100);
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={onClose}>
-      <div className="bg-white rounded-xl sm:rounded-2xl border-2 border-black max-w-2xl w-full mx-4 max-h-[90vh] overflow-hidden flex flex-col" style={{ boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(0, 0, 0, 0.1)' }} onClick={(e) => e.stopPropagation()}>
-        {/* Modal Header */}
-        <div className="flex items-center justify-between p-6 border-b-2 border-black">
-          <h3 className="text-lg font-semibold" style={{ fontFamily: 'var(--font-title)', color: '#000000' }}>
-            Confirm Narrator Match
-          </h3>
-          <div className="flex items-center gap-2">
-            <span className="text-sm" style={{ fontFamily: 'var(--font-content)', color: '#000000', opacity: 0.7 }}>
-              {currentMatchIndex + 1} of {pendingMatches.length}
-            </span>
-            <button
-              onClick={onClose}
-              className="hover:opacity-80 transition-opacity"
-              style={{ color: '#000000', opacity: 0.6 }}
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-        </div>
-
+    <BasicModal
+      isOpen={showMatchConfirmationModal && pendingMatches.length > 0}
+      onClose={onClose}
+      title={`Confirm Narrator Match (${currentMatchIndex + 1} of ${pendingMatches.length})`}
+      size="lg"
+    >
+      <div className="flex flex-col">
         {/* Modal Content */}
         <div className="p-6 overflow-y-auto flex-1">
           <div className="space-y-6">
@@ -222,7 +205,7 @@ export function MatchConfirmationModal({
           </div>
         </div>
       </div>
-    </div>
+    </BasicModal>
   );
 }
 

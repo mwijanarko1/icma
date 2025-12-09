@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { HadithTab } from './HadithTab';
+import BasicModal from "@/components/ui/BasicModal";
 
 interface AddHadithFromDatabaseModalProps {
   show: boolean;
@@ -47,33 +48,16 @@ export function AddHadithFromDatabaseModal({
     onClose();
   };
 
-  if (!show) return null;
-
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <div
-        className="w-full max-w-4xl h-[90vh] rounded-2xl border-2 border-black shadow-2xl flex flex-col overflow-hidden"
-        style={{ backgroundColor: '#f2e9dd' }}
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b-2 border-black flex-shrink-0">
-          <h2
-            className="text-xl font-bold"
-            style={{ fontFamily: 'var(--font-title)', color: '#000000' }}
-          >
-            Add Hadith from Database
-          </h2>
-          <button
-            onClick={handleClose}
-            className="p-1 hover:bg-black/10 rounded-lg transition-colors text-xl"
-            disabled={isLoading}
-          >
-            ×
-          </button>
-        </div>
-
+    <BasicModal
+      isOpen={show}
+      onClose={handleClose}
+      title="Add Hadith from Database"
+      size="full"
+    >
+      <div className="flex flex-col h-full">
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6 min-h-0">
+        <div className="flex-1 overflow-y-auto min-h-0">
           <HadithTab
             selectedHadiths={selectedHadiths}
             onSelectedHadithsChange={setSelectedHadiths}
@@ -82,7 +66,7 @@ export function AddHadithFromDatabaseModal({
         </div>
 
         {/* Footer */}
-        <div className="border-t-2 border-black p-6 flex-shrink-0">
+        <div className="border-t-2 border-black pt-6 mt-6">
           <div className="flex justify-between items-center">
             <div className="text-sm" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>
               {selectedHadiths.length > 0
@@ -124,6 +108,6 @@ export function AddHadithFromDatabaseModal({
           </div>
         </div>
       </div>
-    </div>
+    </BasicModal>
   );
 }

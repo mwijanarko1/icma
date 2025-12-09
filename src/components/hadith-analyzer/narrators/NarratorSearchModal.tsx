@@ -1,6 +1,7 @@
 "use client";
 
 import type { Narrator as NarratorType } from '@/data/types';
+import BasicModal from "@/components/ui/BasicModal";
 
 interface NarratorSearchModalProps {
   show: boolean;
@@ -27,29 +28,15 @@ export function NarratorSearchModal({
   onLoadMore,
   onMatchNarrator
 }: NarratorSearchModalProps) {
-  if (!show) return null;
-
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={onClose}>
-      <div className="bg-white rounded-xl sm:rounded-2xl border-2 border-black max-w-4xl w-full mx-4 max-h-[90vh] overflow-hidden flex flex-col" style={{ boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(0, 0, 0, 0.1)' }} onClick={(e) => e.stopPropagation()}>
-        {/* Modal Header */}
-        <div className="flex items-center justify-between p-6 border-b-2 border-black">
-          <h3 className="text-xl font-semibold" style={{ fontFamily: 'var(--font-title)', color: '#000000' }}>
-            Search Narrators in Database
-          </h3>
-          <button
-            onClick={onClose}
-            className="hover:opacity-80 transition-opacity"
-            style={{ color: '#000000', opacity: 0.6 }}
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-
-        {/* Search Input */}
-        <div className="p-6 border-b-2 border-black">
+    <BasicModal
+      isOpen={show}
+      onClose={onClose}
+      title="Search Narrators in Database"
+      size="full"
+    >
+      {/* Search Input */}
+      <div className="mb-6 border-b-2 border-black pb-6">
           <div className="relative">
             <input
               type="text"
@@ -167,19 +154,7 @@ export function NarratorSearchModal({
             </div>
           )}
         </div>
-
-        {/* Modal Footer */}
-        <div className="flex justify-end p-6 border-t-2 border-black">
-          <button
-            onClick={onClose}
-            className="px-6 py-2 text-sm font-medium rounded-lg transition-colors border-2 border-black hover:bg-gray-50"
-            style={{ fontFamily: 'var(--font-content)', color: '#000000', backgroundColor: '#f2e9dd' }}
-          >
-            Close
-          </button>
-        </div>
-      </div>
-    </div>
+    </BasicModal>
   );
 }
 

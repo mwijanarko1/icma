@@ -338,20 +338,22 @@ export default function HadithAnalyzer({ initialCollection }: HadithAnalyzerProp
 
         {/* LLM Extraction Tab */}
         {activeTab === 'llm' && (
-          <LLMTab
-            hadithText={hadithText}
-            onHadithTextChange={(text) => dispatch(actions.setHadithText(text))}
-            apiKey={apiKey}
-            isLoading={isLoading}
-            onExtractNarrators={handleExtractNarrators}
-            onShowApiKeyModal={() => dispatch(actions.setShowApiKeyModal(true))}
-            onShowImportModal={() => {
-              dispatch(actions.setShowImportModal(true));
-              chainService.handleFetchLibraryChains();
-            }}
-            onShowAddHadithModal={() => dispatch(actions.setShowAddHadithModal(true))}
-            onTryDemo={chainService.handleTryDemo}
-          />
+          <ClientOnly>
+            <LLMTab
+              hadithText={hadithText}
+              onHadithTextChange={(text) => dispatch(actions.setHadithText(text))}
+              apiKey={apiKey}
+              isLoading={isLoading}
+              onExtractNarrators={handleExtractNarrators}
+              onShowApiKeyModal={() => dispatch(actions.setShowApiKeyModal(true))}
+              onShowImportModal={() => {
+                dispatch(actions.setShowImportModal(true));
+                chainService.handleFetchLibraryChains();
+              }}
+              onShowAddHadithModal={() => dispatch(actions.setShowAddHadithModal(true))}
+              onTryDemo={chainService.handleTryDemo}
+            />
+          </ClientOnly>
         )}
 
         {/* Manual Chain Builder Tab */}

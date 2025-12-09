@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import {
@@ -19,6 +19,7 @@ import { DraggableNarratorRow } from '@/components/hadith-analyzer/narrators/Dra
 import { createNarratorService } from '@/services/narratorService';
 import { createChainService } from '@/services/chainService';
 import { generateMermaidCode } from '@/components/hadith-analyzer/visualization/utils';
+import BasicModal from '@/components/ui/BasicModal';
 import type { DraggableChainProps } from './types';
 
 export function DraggableChain({
@@ -72,6 +73,7 @@ export function DraggableChain({
   const isEditing = editingChainId === chain.id;
   const isCollapsed = chain.collapsed || false;
   const isHighlighted = state.highlightedChainIds.includes(chain.id);
+  const [showCompilerModal, setShowCompilerModal] = useState(false);
 
   return (
     <div
@@ -415,18 +417,34 @@ export function DraggableChain({
 
                 {/* Add Narrator Section */}
                 <div className="mt-4 border-t-2 border-black pt-4">
-                  {!showAddNarrator ? (
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {!showAddNarrator && (
+                      <button
+                        onClick={() => dispatch(globalActions.setShowAddNarrator(true))}
+                        className="px-4 py-2 rounded-lg shadow-lg border-2 border-black flex items-center gap-2 font-semibold"
+                        style={{ backgroundColor: '#000000', color: '#f2e9dd', fontFamily: 'var(--font-content)' }}
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                        </svg>
+                        Add Narrator
+                      </button>
+                    )}
+
+                    {/* Add Hadith Compiler Button */}
                     <button
-                      onClick={() => dispatch(globalActions.setShowAddNarrator(true))}
+                      onClick={() => setShowCompilerModal(true)}
                       className="px-4 py-2 rounded-lg shadow-lg border-2 border-black flex items-center gap-2 font-semibold"
                       style={{ backgroundColor: '#000000', color: '#f2e9dd', fontFamily: 'var(--font-content)' }}
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                       </svg>
-                      Add Narrator
+                      Add Hadith Compiler
                     </button>
-                  ) : (
+                  </div>
+
+                  {showAddNarrator && (
                     <div className="space-y-3 p-4 bg-gray-50 rounded-lg border-2 border-black">
                       <h4 className="font-medium" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>Add New Narrator</h4>
 
@@ -460,7 +478,7 @@ export function DraggableChain({
                           />
                         </div>
                       </div>
-                      
+
                       <div className="mt-3">
                         <label className="block text-sm font-medium mb-1" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>
                           Reputation
@@ -617,6 +635,83 @@ export function DraggableChain({
           )}
         </div>
       )}
+
+      {/* Compiler Selection Modal */}
+      <BasicModal
+        isOpen={showCompilerModal}
+        onClose={() => setShowCompilerModal(false)}
+        title="Select Hadith Compiler"
+        size="md"
+      >
+        <div className="space-y-2">
+          <button
+            onClick={() => {
+              narratorService.handleAddCompiler('bukhari');
+              setShowCompilerModal(false);
+            }}
+            className="w-full px-4 py-3 text-left rounded-lg border-2 border-black hover:bg-gray-100 transition-colors"
+            style={{ fontFamily: 'var(--font-content)', color: '#000000' }}
+          >
+            <div className="font-medium text-lg">Imam al-Bukhari</div>
+            <div className="text-sm opacity-70 mt-1" dir="rtl">صحيح البخاري</div>
+          </button>
+          <button
+            onClick={() => {
+              narratorService.handleAddCompiler('muslim');
+              setShowCompilerModal(false);
+            }}
+            className="w-full px-4 py-3 text-left rounded-lg border-2 border-black hover:bg-gray-100 transition-colors"
+            style={{ fontFamily: 'var(--font-content)', color: '#000000' }}
+          >
+            <div className="font-medium text-lg">Imam Muslim</div>
+            <div className="text-sm opacity-70 mt-1" dir="rtl">صحيح مسلم</div>
+          </button>
+          <button
+            onClick={() => {
+              narratorService.handleAddCompiler('tirmidhi');
+              setShowCompilerModal(false);
+            }}
+            className="w-full px-4 py-3 text-left rounded-lg border-2 border-black hover:bg-gray-100 transition-colors"
+            style={{ fontFamily: 'var(--font-content)', color: '#000000' }}
+          >
+            <div className="font-medium text-lg">Imam al-Tirmidhi</div>
+            <div className="text-sm opacity-70 mt-1" dir="rtl">جامع الترمذي</div>
+          </button>
+          <button
+            onClick={() => {
+              narratorService.handleAddCompiler('abu_dawood');
+              setShowCompilerModal(false);
+            }}
+            className="w-full px-4 py-3 text-left rounded-lg border-2 border-black hover:bg-gray-100 transition-colors"
+            style={{ fontFamily: 'var(--font-content)', color: '#000000' }}
+          >
+            <div className="font-medium text-lg">Imam Abu Dawood</div>
+            <div className="text-sm opacity-70 mt-1" dir="rtl">سنن أبي داود</div>
+          </button>
+          <button
+            onClick={() => {
+              narratorService.handleAddCompiler('nasai');
+              setShowCompilerModal(false);
+            }}
+            className="w-full px-4 py-3 text-left rounded-lg border-2 border-black hover:bg-gray-100 transition-colors"
+            style={{ fontFamily: 'var(--font-content)', color: '#000000' }}
+          >
+            <div className="font-medium text-lg">Imam al-Nasai</div>
+            <div className="text-sm opacity-70 mt-1" dir="rtl">جامع النسائي</div>
+          </button>
+          <button
+            onClick={() => {
+              narratorService.handleAddCompiler('ibn_majah');
+              setShowCompilerModal(false);
+            }}
+            className="w-full px-4 py-3 text-left rounded-lg border-2 border-black hover:bg-gray-100 transition-colors"
+            style={{ fontFamily: 'var(--font-content)', color: '#000000' }}
+          >
+            <div className="font-medium text-lg">Imam Ibn Majah</div>
+            <div className="text-sm opacity-70 mt-1" dir="rtl">سنن ابن ماجه</div>
+          </button>
+        </div>
+      </BasicModal>
     </div>
   );
 }

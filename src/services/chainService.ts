@@ -547,7 +547,15 @@ export function createChainService(
   const handleAddNewChain = () => {
     const newChain: Chain = {
       id: `chain-${Date.now()}`,
-      narrators: [],
+      narrators: [
+        {
+          number: 1,
+          arabicName: "رَسُولَ اللَّهِ",
+          englishName: "Messenger of Allah",
+          reputation: [],
+          calculatedGrade: undefined
+        }
+      ],
       chainText: '',
       matn: '',
       title: `Chain ${state.chains.length + 1}`,

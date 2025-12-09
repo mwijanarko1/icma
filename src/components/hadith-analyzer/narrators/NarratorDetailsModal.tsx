@@ -6,6 +6,7 @@ import type { Narrator as NarratorType } from '@/data/types';
 import { REPUTATION_GRADES, type ReputationGrade } from '@/lib/grading/constants';
 import { calculateNarratorGrade } from '@/lib/grading/calculator';
 import { getGradeDescription, getGradeColorClass } from '@/lib/grading/utils';
+import BasicModal from "@/components/ui/BasicModal";
 
 interface NarratorDetailsModalProps {
   show: boolean;
@@ -23,15 +24,13 @@ export function NarratorDetailsModal({
   const [showGradeFormulaTooltip, setShowGradeFormulaTooltip] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  if (!show || !narrator) return null;
-
   // Extract grades from scholarly opinions and other sources
-  const extractedGrades = extractReputationGrades(narrator);
+  const extractedGrades = narrator ? extractReputationGrades(narrator) : [];
   const calculatedGrade = extractedGrades.length > 0 ? calculateNarratorGrade(extractedGrades) : null;
 
   // Function to copy all scholarly opinions to clipboard
   const copyAllScholarlyOpinions = async () => {
-    if (!narrator.scholarlyOpinions || narrator.scholarlyOpinions.length === 0) return;
+    if (!narrator?.scholarlyOpinions || narrator.scholarlyOpinions.length === 0) return;
 
     const sortedOpinions = [...narrator.scholarlyOpinions].sort((a, b) => {
       const getPriority = (type: string) => {
@@ -62,32 +61,19 @@ export function NarratorDetailsModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={onClose}>
-      <div className="bg-white rounded-xl sm:rounded-2xl border-2 border-black max-w-4xl w-full mx-4 max-h-[90vh] overflow-hidden flex flex-col" style={{ boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(0, 0, 0, 0.1)' }} onClick={(e) => e.stopPropagation()}>
-        {/* Modal Header */}
-        <div className="flex items-center justify-between p-6 border-b-2 border-black">
-          <h3 className="text-xl font-semibold text-black" dir="rtl" style={{ fontFamily: 'var(--font-title)' }}>
-            {narrator.primaryArabicName}
-          </h3>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 "
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
+    <BasicModal
+      isOpen={show && !!narrator}
+      onClose={onClose}
+      title={narrator?.primaryArabicName}
+      size="full"
+    >
+      {isLoading ? (
+        <div className="text-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading narrator details...</p>
         </div>
-
-        {/* Modal Content - Scrollable */}
-        <div className="p-6 overflow-y-auto flex-1">
-          {isLoading ? (
-            <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="mt-4 text-gray-600">Loading narrator details...</p>
-            </div>
-          ) : (
-            <div className="space-y-6">
+      ) : narrator ? (
+        <div className="space-y-6">
               {/* Basic Information */}
               <div>
                 <h4 className="text-lg font-semibold text-black mb-4 pb-2 border-b-2 border-black" style={{ fontFamily: 'var(--font-title)' }}>Basic Information</h4>
@@ -379,21 +365,9 @@ export function NarratorDetailsModal({
                   </div>
                 </div>
               )}
-            </div>
-          )}
-        </div>
-
-        {/* Modal Footer */}
-        <div className="flex items-center justify-end gap-3 p-6 border-t-2 border-black">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg"
-          >
-            Close
-          </button>
-        </div>
-      </div>
-    </div>
-  );
+          </div>
+        ) : null}
+    </BasicModal>
+    );
 }
 

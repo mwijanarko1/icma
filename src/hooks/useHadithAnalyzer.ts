@@ -36,12 +36,13 @@ interface RawChain {
 
 // Initialize state with cached data synchronously
 function getInitialState(): HadithAnalyzerState {
-  const cachedHadithText = loadCachedHadithText();
-  const cachedChains = loadCachedChains();
-  const cachedShowViz = loadCachedShowVisualization();
-  const cachedApiKey = loadCachedApiKey();
-  const cachedActiveTab = loadCachedActiveTab();
-  const cachedSelectedChain = loadCachedSelectedChain();
+  // Only load from localStorage if we're on the client side
+  const cachedHadithText = typeof window !== 'undefined' ? loadCachedHadithText() : null;
+  const cachedChains = typeof window !== 'undefined' ? loadCachedChains() : null;
+  const cachedShowViz = typeof window !== 'undefined' ? loadCachedShowVisualization() : null;
+  const cachedApiKey = typeof window !== 'undefined' ? loadCachedApiKey() : null;
+  const cachedActiveTab = typeof window !== 'undefined' ? loadCachedActiveTab() : null;
+  const cachedSelectedChain = typeof window !== 'undefined' ? loadCachedSelectedChain() : null;
 
   // Validate activeTab to ensure it matches the state type
   const validActiveTab = cachedActiveTab && 

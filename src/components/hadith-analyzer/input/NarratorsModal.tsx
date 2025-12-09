@@ -9,6 +9,7 @@ import { useReducer } from "react";
 import { hadithAnalyzerReducer } from "@/reducers/hadithAnalyzerReducer";
 import { initialState } from "@/types/hadithAnalyzerState";
 import { actions } from "@/reducers/hadithAnalyzerActions";
+import BasicModal from "@/components/ui/BasicModal";
 
 interface NarratorsModalProps {
   show: boolean;
@@ -17,13 +18,13 @@ interface NarratorsModalProps {
 
 export function NarratorsModal({ show, onClose }: NarratorsModalProps) {
   const [narratorState, narratorDispatch] = useReducer(hadithAnalyzerReducer, initialState);
-  
+
   // Create narrator service
   const narratorService = useMemo(
     () => createNarratorService(narratorState, narratorDispatch, actions, generateMermaidCode),
     [narratorState, narratorDispatch]
   );
-  
+
   // Search narrators function
   const searchNarrators = useCallback(
     async (query: string, offset: number = 0) => {
@@ -39,15 +40,15 @@ export function NarratorsModal({ show, onClose }: NarratorsModalProps) {
     },
     [narratorService]
   );
-  
+
   // Debounced search
   const lastNarratorTabSearchRef = useRef<string>('');
-  
+
   useEffect(() => {
     if (!show) return;
-    
+
     const trimmedQuery = narratorState.narratorSearchQuery.trim();
-    
+
     // Only search if query actually changed
     if (trimmedQuery.length >= 2 && trimmedQuery !== lastNarratorTabSearchRef.current) {
       lastNarratorTabSearchRef.current = trimmedQuery;
@@ -67,55 +68,28 @@ export function NarratorsModal({ show, onClose }: NarratorsModalProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [narratorState.narratorSearchQuery, show]);
 
-  if (!show) return null;
-
   return (
     <>
-      {/* Backdrop */}
-      <div 
-        className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
-        onClick={onClose}
-      />
-      
-      {/* Modal */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4">
-        <div 
-          className="relative w-full max-w-6xl max-h-[95vh] sm:max-h-[90vh] rounded-xl sm:rounded-2xl border-2 border-black bg-white overflow-hidden flex flex-col"
-          style={{ boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(0, 0, 0, 0.1)' }}
-          onClick={(e) => e.stopPropagation()}
-        >
-          {/* Header */}
-          <div className="flex items-center justify-between p-4 sm:p-6 border-b-2 border-black">
-            <h2 className="text-xl sm:text-2xl font-bold" style={{ fontFamily: 'var(--font-title)', color: '#000000' }}>
-              Search Narrators
-            </h2>
-            <button
-              onClick={onClose}
-              className="p-1.5 sm:p-2 hover:bg-gray-100 rounded-lg transition-colors"
-              style={{ color: '#000000' }}
-            >
-              <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-          
-          {/* Content */}
-          <div className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6">
-            <NarratorsTab
-              narratorSearchQuery={narratorState.narratorSearchQuery}
-              onNarratorSearchQueryChange={(query) => narratorDispatch(actions.setNarratorSearchQuery(query))}
-              narratorSearchResults={narratorState.narratorSearchResults}
-              isSearchingNarrators={narratorState.isSearchingNarrators}
-              narratorSearchTotal={narratorState.narratorSearchTotal}
-              narratorSearchOffset={narratorState.narratorSearchOffset}
-              onSearchNarrators={searchNarrators}
-              onFetchNarratorDetails={fetchNarratorDetails}
-            />
-          </div>
+      <BasicModal
+        isOpen={show}
+        onClose={onClose}
+        title="Search Narrators"
+        size="full"
+      >
+        <div className="flex-1 overflow-y-auto">
+          <NarratorsTab
+            narratorSearchQuery={narratorState.narratorSearchQuery}
+            onNarratorSearchQueryChange={(query) => narratorDispatch(actions.setNarratorSearchQuery(query))}
+            narratorSearchResults={narratorState.narratorSearchResults}
+            isSearchingNarrators={narratorState.isSearchingNarrators}
+            narratorSearchTotal={narratorState.narratorSearchTotal}
+            narratorSearchOffset={narratorState.narratorSearchOffset}
+            onSearchNarrators={searchNarrators}
+            onFetchNarratorDetails={fetchNarratorDetails}
+          />
         </div>
-      </div>
-      
+      </BasicModal>
+
       {/* Narrator Details Modal */}
       <NarratorDetailsModal
         show={narratorState.showNarratorDetailsModal}

@@ -472,6 +472,58 @@ export function createNarratorService(
     }
   };
 
+  const handleAddCompiler = (compiler: string) => {
+    const compilers = {
+      bukhari: {
+        arabicName: "الْإِمَامُ الْبُخَارِيُّ",
+        englishName: "Imam al-Bukhari",
+        reputation: ['Thiqah']
+      },
+      muslim: {
+        arabicName: "الْإِمَامُ مُسْلِمٌ",
+        englishName: "Imam Muslim",
+        reputation: ['Thiqah']
+      },
+      tirmidhi: {
+        arabicName: "الْإِمَامُ التِّرْمِذِيُّ",
+        englishName: "Imam al-Tirmidhi",
+        reputation: ['Thiqah']
+      },
+      abu_dawood: {
+        arabicName: "الْإِمَامُ أَبُو دَاوُدَ",
+        englishName: "Imam Abu Dawood",
+        reputation: ['Thiqah']
+      },
+      nasai: {
+        arabicName: "الْإِمَامُ النَّسَائِيُّ",
+        englishName: "Imam al-Nasai",
+        reputation: ['Thiqah']
+      },
+      ibn_majah: {
+        arabicName: "الْإِمَامُ ابْنُ مَاجَهْ",
+        englishName: "Imam Ibn Majah",
+        reputation: ['Thiqah']
+      }
+    };
+
+    const compilerData = compilers[compiler as keyof typeof compilers];
+    if (!compilerData) return;
+
+    const newNarrator: Narrator = {
+      number: state.editFormData.narrators.length + 1,
+      arabicName: compilerData.arabicName,
+      englishName: compilerData.englishName,
+      reputation: compilerData.reputation as ReputationGrade[],
+      calculatedGrade: calculateNarratorGrade(compilerData.reputation as ReputationGrade[]),
+    };
+
+    const updatedNarrators = [...state.editFormData.narrators, newNarrator];
+    dispatch(actions.setEditFormData({
+      ...state.editFormData,
+      narrators: updatedNarrators
+    }));
+  };
+
   return {
     handleDragStart,
     handleDragEnd,
@@ -490,6 +542,7 @@ export function createNarratorService(
     handleRemoveNarratorManual,
     handleClearNarrators,
     handleAddNarratorManual,
+    handleAddCompiler,
     searchNarrators,
     fetchNarratorDetails,
     handleSearchNarrators,
