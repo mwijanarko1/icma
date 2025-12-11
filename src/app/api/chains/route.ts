@@ -19,7 +19,7 @@ export async function GET() {
 
           // Extract metadata from the chain file
           const chainCount = data.chains ? data.chains.length : 0;
-          const title = data.hadithText || file.replace('.json', '').replace(/-/g, ' ');
+          const title = data.title || data.hadithText || file.replace('.json', '').replace(/-/g, ' ');
 
           return {
             name: file.replace('.json', ''),

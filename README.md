@@ -121,7 +121,7 @@ A comprehensive web application for Islamic hadith research featuring ICMA metho
 
 #### **Narrator Biographical Research**
 - Browse **10,000+ narrator database** with full biographical details
-- Search by **name, death year, or scholarly reputation**
+- Search by **name, kunya, lineage, death year, or scholarly reputation**
 - View **detailed profiles** with scholarly opinions and relationships
 - Analyze **narrator networks** and transmission patterns
 

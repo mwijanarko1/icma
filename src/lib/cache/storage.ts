@@ -1,5 +1,6 @@
 import { CACHE_KEYS } from './constants';
 import type { Chain } from '@/types/hadith';
+import type { SelectedHadith, Step } from '@/types/analysis';
 
 // Load cached hadith text
 export const loadCachedHadithText = (): string | null => {
@@ -93,11 +94,11 @@ export const saveApiKey = (apiKey: string): void => {
 };
 
 // Load cached active tab
-export const loadCachedActiveTab = (): 'llm' | 'manual' | 'narrators' | 'hadith' | 'settings' | null => {
+export const loadCachedActiveTab = (): 'llm' | 'manual' | 'narrators' | 'hadith' | null => {
   try {
     const cached = localStorage.getItem(CACHE_KEYS.ACTIVE_TAB);
-    if (cached && (cached === 'llm' || cached === 'manual' || cached === 'narrators' || cached === 'hadith' || cached === 'settings')) {
-      return cached as 'llm' | 'manual' | 'narrators' | 'hadith' | 'settings';
+    if (cached && (cached === 'llm' || cached === 'manual' || cached === 'narrators' || cached === 'hadith')) {
+      return cached as 'llm' | 'manual' | 'narrators' | 'hadith';
     }
     return null;
   } catch (error) {
@@ -107,7 +108,7 @@ export const loadCachedActiveTab = (): 'llm' | 'manual' | 'narrators' | 'hadith'
 };
 
 // Save active tab to cache
-export const saveActiveTab = (tab: 'llm' | 'manual' | 'narrators' | 'hadith' | 'settings'): void => {
+export const saveActiveTab = (tab: 'llm' | 'manual' | 'narrators' | 'hadith'): void => {
   try {
     localStorage.setItem(CACHE_KEYS.ACTIVE_TAB, tab);
   } catch (error) {
@@ -141,6 +142,84 @@ export const saveSelectedChain = (index: number): void => {
   }
 };
 
+// Load cached analysis selected hadiths
+export const loadCachedAnalysisSelectedHadiths = (): SelectedHadith[] | null => {
+  try {
+    const cached = localStorage.getItem(CACHE_KEYS.ANALYSIS_SELECTED_HADITHS);
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      if (Array.isArray(parsed)) {
+        return parsed;
+      }
+    }
+    return null;
+  } catch (error) {
+    console.warn('Failed to load cached analysis selected hadiths:', error);
+    return null;
+  }
+};
+
+// Save analysis selected hadiths to cache
+export const saveAnalysisSelectedHadiths = (hadiths: SelectedHadith[]): void => {
+  try {
+    localStorage.setItem(CACHE_KEYS.ANALYSIS_SELECTED_HADITHS, JSON.stringify(hadiths));
+  } catch (error) {
+    console.warn('Failed to cache analysis selected hadiths:', error);
+  }
+};
+
+// Load cached analysis active step
+export const loadCachedAnalysisActiveStep = (): number | null => {
+  try {
+    const cached = localStorage.getItem(CACHE_KEYS.ANALYSIS_ACTIVE_STEP);
+    if (cached) {
+      const parsed = parseInt(cached);
+      if (!isNaN(parsed) && parsed >= 1 && parsed <= 8) {
+        return parsed;
+      }
+    }
+    return null;
+  } catch (error) {
+    console.warn('Failed to load cached analysis active step:', error);
+    return null;
+  }
+};
+
+// Save analysis active step to cache
+export const saveAnalysisActiveStep = (step: number): void => {
+  try {
+    localStorage.setItem(CACHE_KEYS.ANALYSIS_ACTIVE_STEP, step.toString());
+  } catch (error) {
+    console.warn('Failed to cache analysis active step:', error);
+  }
+};
+
+// Load cached analysis steps status
+export const loadCachedAnalysisStepsStatus = (): Step[] | null => {
+  try {
+    const cached = localStorage.getItem(CACHE_KEYS.ANALYSIS_STEPS_STATUS);
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      if (Array.isArray(parsed) && parsed.length === 8) {
+        return parsed;
+      }
+    }
+    return null;
+  } catch (error) {
+    console.warn('Failed to load cached analysis steps status:', error);
+    return null;
+  }
+};
+
+// Save analysis steps status to cache
+export const saveAnalysisStepsStatus = (steps: Step[]): void => {
+  try {
+    localStorage.setItem(CACHE_KEYS.ANALYSIS_STEPS_STATUS, JSON.stringify(steps));
+  } catch (error) {
+    console.warn('Failed to cache analysis steps status:', error);
+  }
+};
+
 // Clear all cache
 export const clearAllCache = (): void => {
   try {
@@ -149,6 +228,9 @@ export const clearAllCache = (): void => {
     localStorage.removeItem(CACHE_KEYS.SHOW_VISUALIZATION);
     localStorage.removeItem(CACHE_KEYS.ACTIVE_TAB);
     localStorage.removeItem(CACHE_KEYS.SELECTED_CHAIN);
+    localStorage.removeItem(CACHE_KEYS.ANALYSIS_SELECTED_HADITHS);
+    localStorage.removeItem(CACHE_KEYS.ANALYSIS_ACTIVE_STEP);
+    localStorage.removeItem(CACHE_KEYS.ANALYSIS_STEPS_STATUS);
     // Note: API_KEY is intentionally NOT cleared
   } catch (error) {
     console.warn('Failed to clear cache:', error);

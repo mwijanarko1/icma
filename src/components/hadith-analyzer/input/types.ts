@@ -3,8 +3,8 @@ import type { ReputationGrade } from '@/lib/grading/constants';
 import type { Narrator as NarratorType } from '@/data/types';
 
 export interface InputTabsProps {
-  activeTab: 'llm' | 'manual' | 'narrators' | 'hadith' | 'settings';
-  onTabChange: (tab: 'llm' | 'manual' | 'narrators' | 'hadith' | 'settings') => void;
+  activeTab: 'llm' | 'manual' | 'narrators' | 'hadith';
+  onTabChange: (tab: 'llm' | 'manual' | 'narrators' | 'hadith') => void;
 }
 
 export interface SettingsTabProps {

@@ -24,7 +24,7 @@ export default function TermsOfService() {
               Terms of Service
             </h1>
             <p className="text-base sm:text-lg text-center" style={{ fontFamily: 'var(--font-content)', color: '#000000', opacity: 0.8 }}>
-              Last updated: September 2025
+              Last updated: December 2025
             </p>
           </div>
 
@@ -156,17 +156,23 @@ export default function TermsOfService() {
                   </svg>
                   <div>
                     <h3 className="text-lg font-semibold mb-1" style={{ fontFamily: 'var(--font-title)', color: '#000000' }}>
-                      Your Data, Your Control
+                      Data Storage Options
                     </h3>
+                    <p className="text-base sm:text-lg leading-relaxed mb-2" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>
+                      <strong>Without Signing In:</strong> All your data remains stored locally in your browser only. We do not collect, store, or transmit any personal information.
+                    </p>
+                    <p className="text-base sm:text-lg leading-relaxed mb-2" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>
+                      <strong>When You Sign In:</strong> Your analysis sessions and chain analysis data may be automatically saved to our secure database to preserve your work across devices and sessions. This includes hadith text, narrator chains, analysis steps, and generated visualizations.
+                    </p>
                     <p className="text-base sm:text-lg leading-relaxed" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>
-                      All your data is stored locally in your browser. We do not collect, store, or transmit your personal information, API keys, or hadith analysis data.
+                      <strong>API Key Security:</strong> Even when signed in, your API keys are stored only locally in your browser. We never store, transmit, or access your API keys on our servers or database.
                     </p>
                   </div>
                 </div>
               </div>
               <div className="space-y-3">
                 <p className="text-base sm:text-lg leading-relaxed" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>
-                  <strong>API Keys:</strong> Stored securely in your browser&apos;s localStorage. Only transmitted to Google&apos;s servers for processing.
+                  <strong>API Keys:</strong> Always stored locally in your browser only (never on our servers or database, even when signed in). Only transmitted directly to Google&apos;s servers for processing.
                 </p>
                 <p className="text-base sm:text-lg leading-relaxed" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>
                   <strong>Hadith Content:</strong> Processed in real-time and displayed in your browser. Not stored on our servers.
@@ -255,14 +261,34 @@ export default function TermsOfService() {
           <section className="mb-6 sm:mb-8">
             <div className="rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 border-2 border-black bg-white dark:bg-gray-800" style={{ boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(0, 0, 0, 0.1)' }}>
               <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3 sm:mb-4" style={{ fontFamily: 'var(--font-title)', color: '#000000' }}>
-                9. Termination
+                9. GDPR Compliance and Data Processing
               </h2>
-              <p className="text-base sm:text-lg leading-relaxed mb-4" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>
-                We reserve the right to terminate or suspend your access to our service immediately, without prior notice or liability, for any reason whatsoever, including without limitation if you breach the Terms.
-              </p>
-              <p className="text-base sm:text-lg leading-relaxed" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>
-                Upon termination, your right to use the service will cease immediately. If you wish to terminate your account, you may simply stop using the service.
-              </p>
+              <div className="space-y-4">
+                <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border-2 border-blue-200 dark:border-blue-800">
+                  <h3 className="text-base sm:text-lg font-semibold mb-2" style={{ fontFamily: 'var(--font-title)', color: '#000000' }}>
+                    Data Controller Responsibilities
+                  </h3>
+                  <p className="text-sm sm:text-base" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>
+                    ICMA - Hadith Chain Analysis acts as a data controller for any personal data you provide. We are committed to GDPR compliance and implement appropriate technical and organizational measures to ensure the security, confidentiality, and integrity of personal data.
+                  </p>
+                </div>
+                <div className="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 border-2 border-green-200 dark:border-green-800">
+                  <h3 className="text-base sm:text-lg font-semibold mb-2" style={{ fontFamily: 'var(--font-title)', color: '#000000' }}>
+                    Data Processing Agreement
+                  </h3>
+                  <p className="text-sm sm:text-base" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>
+                    By using our service, you enter into a data processing agreement with us. We process your data only for the purposes outlined in our Privacy Policy and with your explicit consent. You can withdraw consent at any time by clearing your API keys and cached data.
+                  </p>
+                </div>
+                <div className="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-4 border-2 border-amber-200 dark:border-amber-800">
+                  <h3 className="text-base sm:text-lg font-semibold mb-2" style={{ fontFamily: 'var(--font-title)', color: '#000000' }}>
+                    International Data Transfers
+                  </h3>
+                  <p className="text-sm sm:text-base" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>
+                    Your data may be transferred to Google&apos;s servers outside the EEA. By providing API keys and using our service, you consent to these transfers, which are protected by adequacy decisions and standard contractual clauses as outlined in our Privacy Policy.
+                  </p>
+                </div>
+              </div>
             </div>
           </section>
 
@@ -270,10 +296,20 @@ export default function TermsOfService() {
           <section className="mb-6 sm:mb-8">
             <div className="rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 border-2 border-black bg-white dark:bg-gray-800" style={{ boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(0, 0, 0, 0.1)' }}>
               <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3 sm:mb-4" style={{ fontFamily: 'var(--font-title)', color: '#000000' }}>
-                10. Governing Law
+                10. Data Breach Notification and Response
               </h2>
-              <p className="text-base sm:text-lg leading-relaxed" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>
-                These Terms shall be interpreted and governed by the laws of the jurisdiction in which our service is operated, without regard to conflict of law provisions. Our failure to enforce any right or provision of these Terms will not be considered a waiver of those rights.
+              <p className="text-base sm:text-lg leading-relaxed mb-4" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>
+                In compliance with GDPR Article 33-34, if a data breach occurs that poses a risk to individuals&apos; rights and freedoms, we will:
+              </p>
+              <ul className="list-disc list-inside space-y-2 text-sm sm:text-base mb-4" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>
+                <li>Notify the relevant supervisory authority within 72 hours</li>
+                <li>Communicate the breach to affected individuals without undue delay</li>
+                <li>Provide information about the breach and mitigation measures</li>
+                <li>Maintain detailed records of all data breaches</li>
+                <li>Cooperate with supervisory authorities during investigations</li>
+              </ul>
+              <p className="text-sm sm:text-base" style={{ fontFamily: 'var(--font-content)', color: '#000000', opacity: 0.8 }}>
+                Our minimal data collection approach significantly reduces the risk of data breaches affecting personal data.
               </p>
             </div>
           </section>
@@ -282,11 +318,21 @@ export default function TermsOfService() {
           <section className="mb-6 sm:mb-8">
             <div className="rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 border-2 border-black bg-white dark:bg-gray-800" style={{ boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(0, 0, 0, 0.1)' }}>
               <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3 sm:mb-4" style={{ fontFamily: 'var(--font-title)', color: '#000000' }}>
-                11. Changes to Terms
+                11. Age Restrictions and Consent
               </h2>
-              <p className="text-base sm:text-lg leading-relaxed" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>
-                We reserve the right, at our sole discretion, to modify or replace these Terms at any time. If a revision is material, we will try to provide at least 30 days notice prior to any new terms taking effect. What constitutes a material change will be determined at our sole discretion.
-              </p>
+              <div className="space-y-4">
+                <div className="bg-red-50 dark:bg-red-900/20 rounded-lg p-4 border-2 border-red-200 dark:border-red-800">
+                  <h3 className="text-base sm:text-lg font-semibold mb-2" style={{ fontFamily: 'var(--font-title)', color: '#000000' }}>
+                    Age Requirements (GDPR Article 8)
+                  </h3>
+                  <p className="text-sm sm:text-base" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>
+                    Our service is not intended for children under 16 years of age without parental consent. We do not knowingly process personal data of children under 16 without verifiable parental consent.
+                  </p>
+                </div>
+                <p className="text-base sm:text-lg leading-relaxed" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>
+                  By using this service, you confirm that you are at least 16 years old or have obtained parental consent. Parents and guardians are responsible for supervising their children&apos;s use of our service.
+                </p>
+              </div>
             </div>
           </section>
 
@@ -294,15 +340,98 @@ export default function TermsOfService() {
           <section className="mb-6 sm:mb-8">
             <div className="rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 border-2 border-black bg-white dark:bg-gray-800" style={{ boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(0, 0, 0, 0.1)' }}>
               <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3 sm:mb-4" style={{ fontFamily: 'var(--font-title)', color: '#000000' }}>
-                12. Contact Information
+                12. Termination
               </h2>
               <p className="text-base sm:text-lg leading-relaxed mb-4" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>
-                If you have any questions about these Terms of Service, please contact us:
+                We reserve the right to terminate or suspend your access to our service immediately, without prior notice or liability, for any reason whatsoever, including without limitation if you breach the Terms.
               </p>
-              <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border-2 border-black/20">
-                <p className="text-lg" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>
-                  <strong>Email:</strong> thedigitalsunnah@gmail.com<br/>
-                  <strong>Subject:</strong> Terms of Service Inquiry
+              <p className="text-base sm:text-lg leading-relaxed" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>
+                Upon termination, your right to use the service will cease immediately. To exercise your GDPR right to erasure, you may clear your browser data and stop using the service.
+              </p>
+            </div>
+          </section>
+
+          {/* Section 13 */}
+          <section className="mb-6 sm:mb-8">
+            <div className="rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 border-2 border-black bg-white dark:bg-gray-800" style={{ boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(0, 0, 0, 0.1)' }}>
+              <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3 sm:mb-4" style={{ fontFamily: 'var(--font-title)', color: '#000000' }}>
+                13. Governing Law and Dispute Resolution
+              </h2>
+              <div className="space-y-4">
+                <p className="text-base sm:text-lg leading-relaxed" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>
+                  These Terms shall be interpreted and governed by the laws of the European Union, with specific reference to the General Data Protection Regulation (GDPR) for data protection matters. For users outside the EEA, applicable local data protection laws will also apply.
+                </p>
+                <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border-2 border-black/20">
+                  <h3 className="text-base sm:text-lg font-semibold mb-2" style={{ fontFamily: 'var(--font-title)', color: '#000000' }}>
+                    Dispute Resolution
+                  </h3>
+                  <p className="text-sm sm:text-base" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>
+                    Any disputes arising from these Terms or GDPR compliance will be resolved through the courts of the European Union. Before initiating legal proceedings, we encourage users to contact our Data Protection Officer for resolution.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* Section 14 */}
+          <section className="mb-6 sm:mb-8">
+            <div className="rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 border-2 border-black bg-white dark:bg-gray-800" style={{ boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(0, 0, 0, 0.1)' }}>
+              <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3 sm:mb-4" style={{ fontFamily: 'var(--font-title)', color: '#000000' }}>
+                14. Changes to Terms
+              </h2>
+              <p className="text-base sm:text-lg leading-relaxed mb-4" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>
+                We reserve the right to modify these Terms at our sole discretion. For GDPR compliance, material changes affecting data processing will require user re-consent. We will provide at least 30 days&apos; notice for material changes and post updates on this page.
+              </p>
+              <div className="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-4 border-2 border-amber-200 dark:border-amber-800">
+                <p className="text-sm sm:text-base" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>
+                  <strong>GDPR Impact:</strong> If changes affect your data subject rights or our data processing practices, we will communicate these changes directly and may require explicit re-consent.
+                </p>
+              </div>
+            </div>
+          </section>
+
+          {/* Section 15 */}
+          <section className="mb-6 sm:mb-8">
+            <div className="rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 border-2 border-black bg-white dark:bg-gray-800" style={{ boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(0, 0, 0, 0.1)' }}>
+              <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-3 sm:mb-4" style={{ fontFamily: 'var(--font-title)', color: '#000000' }}>
+                15. Contact Information and Data Protection Officer
+              </h2>
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border-2 border-black/20">
+                  <h3 className="text-base sm:text-lg font-semibold mb-2" style={{ fontFamily: 'var(--font-title)', color: '#000000' }}>
+                    Data Protection Officer (GDPR)
+                  </h3>
+                  <p className="text-sm sm:text-base mb-2" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>
+                    For GDPR compliance, data subject rights, and privacy inquiries:
+                  </p>
+                  <div>
+                    <p className="text-sm sm:text-base break-all" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>
+                      <strong>Email:</strong> thedigitalsunnah@gmail.com<br/>
+                      <strong>Subject:</strong> GDPR Data Subject Rights Request
+                    </p>
+                  </div>
+                </div>
+                <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border-2 border-black/20">
+                  <h3 className="text-base sm:text-lg font-semibold mb-2" style={{ fontFamily: 'var(--font-title)', color: '#000000' }}>
+                    General Support
+                  </h3>
+                  <p className="text-sm sm:text-base mb-2" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>
+                    For general terms of service and technical support:
+                  </p>
+                  <div>
+                    <p className="text-sm sm:text-base break-all" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>
+                      <strong>Email:</strong> thedigitalsunnah@gmail.com<br/>
+                      <strong>Subject:</strong> Terms of Service Inquiry
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div className="mt-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border-2 border-blue-200 dark:border-blue-800">
+                <h3 className="text-base sm:text-lg font-semibold mb-2" style={{ fontFamily: 'var(--font-title)', color: '#000000' }}>
+                  Supervisory Authority
+                </h3>
+                <p className="text-sm sm:text-base" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>
+                  For GDPR complaints, you may contact your local supervisory authority. A list of European supervisory authorities is available at the <a href="https://edpb.europa.eu/about-edpb/about-edpb/members_en" className="underline hover:no-underline font-semibold break-all" target="_blank" rel="noopener noreferrer">European Data Protection Board website</a>.
                 </p>
               </div>
             </div>

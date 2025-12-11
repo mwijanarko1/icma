@@ -5,20 +5,19 @@ import { HadithTab } from "@/components/hadith-analyzer/input/HadithTab";
 import { NarratorsModal } from "@/components/hadith-analyzer/input/NarratorsModal";
 import { ApiKeyModal } from "@/components/hadith-analyzer/settings/ApiKeyModal";
 import { CACHE_KEYS } from "@/lib/cache/constants";
+import {
+  loadCachedAnalysisSelectedHadiths,
+  loadCachedAnalysisActiveStep,
+  loadCachedAnalysisStepsStatus,
+  saveAnalysisSelectedHadiths,
+  saveAnalysisActiveStep,
+  saveAnalysisStepsStatus
+} from "@/lib/cache/storage";
 import Header from "@/components/Header";
 import HadithAnalyzer from "@/components/HadithAnalyzer";
-
-
-type SelectedHadith = {
-  hadith_number: number;
-  sub_version?: string;
-  reference: string;
-  english_narrator?: string;
-  english_translation: string;
-  arabic_text: string;
-  in_book_reference?: string;
-  collection: string;
-};
+import type { SelectedHadith, Step, StepStatus } from "@/types/analysis";
+import { useAuth } from "@/contexts/AuthContext";
+import { saveAnalysisSession } from "@/lib/firebase/firestore";
 
 const COLLECTIONS: { value: string; label: string }[] = [
   { value: 'bukhari', label: 'Sahih al-Bukhari' },
@@ -29,15 +28,6 @@ const COLLECTIONS: { value: string; label: string }[] = [
   { value: 'ibnmajah', label: 'Sunan Ibn Majah' },
 ];
 
-
-type StepStatus = "pending" | "in-progress" | "completed" | "locked";
-
-interface Step {
-  id: number;
-  title: string;
-  description: string;
-  status: StepStatus;
-}
 
 const STEPS: Step[] = [
   {
@@ -90,16 +80,90 @@ const STEPS: Step[] = [
   }
 ];
 
+// Initialize state with cached data
+function getInitialAnalysisState() {
+  // Check for session to load from sessionStorage first
+  let loadedSession = null;
+  if (typeof window !== 'undefined') {
+    const sessionData = sessionStorage.getItem("loadAnalysisSession");
+    if (sessionData) {
+      try {
+        loadedSession = JSON.parse(sessionData);
+        sessionStorage.removeItem("loadAnalysisSession"); // Clear after loading
+      } catch (e) {
+        console.error("Error parsing session data:", e);
+      }
+    }
+  }
+
+  return {
+    selectedHadiths: loadedSession?.selectedHadiths || (typeof window !== 'undefined' ? loadCachedAnalysisSelectedHadiths() || [] : []),
+    activeStep: loadedSession?.activeStep || (typeof window !== 'undefined' ? loadCachedAnalysisActiveStep() || 1 : 1),
+    steps: loadedSession?.steps || (typeof window !== 'undefined' ? loadCachedAnalysisStepsStatus() || STEPS : STEPS),
+    currentSessionId: loadedSession?.id || null,
+    currentSessionName: loadedSession?.name || null,
+    isSidebarOpen: false,
+    showNarratorsModal: false,
+    expandedSelectedHadith: null,
+    copiedHadithNumber: null,
+    apiKey: '',
+    showApiKeyModal: false,
+  };
+}
+
 export default function AnalysisPage() {
-  const [selectedHadiths, setSelectedHadiths] = useState<SelectedHadith[]>([]);
-  const [activeStep, setActiveStep] = useState<number>(1);
-  const [steps, setSteps] = useState<Step[]>(STEPS);
+  const [selectedHadiths, setSelectedHadiths] = useState<SelectedHadith[]>(getInitialAnalysisState().selectedHadiths);
+  const [activeStep, setActiveStep] = useState<number>(getInitialAnalysisState().activeStep);
+  const [steps, setSteps] = useState<Step[]>(getInitialAnalysisState().steps);
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(getInitialAnalysisState().currentSessionId);
+  const [currentSessionName, setCurrentSessionName] = useState<string | null>(getInitialAnalysisState().currentSessionName);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showNarratorsModal, setShowNarratorsModal] = useState(false);
   const [expandedSelectedHadith, setExpandedSelectedHadith] = useState<string | null>(null);
   const [copiedHadithNumber, setCopiedHadithNumber] = useState<number | null>(null);
   const [apiKey, setApiKey] = useState<string>('');
   const [showApiKeyModal, setShowApiKeyModal] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const { user } = useAuth();
+
+  // Manual save function
+  const handleSaveAnalysis = async () => {
+    if (!user) return;
+
+    // Only save if there's meaningful content
+    const hasContent = selectedHadiths.length > 0 || steps.some((s) => s.status !== "pending");
+    if (!hasContent) return;
+
+    setIsSaving(true);
+    try {
+      const sessionName = currentSessionId
+        ? undefined // Don't update name if we already have a session
+        : `Analysis Session - ${new Date().toLocaleDateString()}`;
+
+      const sessionId = await saveAnalysisSession(
+        user.uid,
+        {
+          name: sessionName || currentSessionName || "Untitled",
+          selectedHadiths,
+          activeStep,
+          steps,
+        },
+        currentSessionId || undefined
+      );
+
+      if (sessionId && sessionId !== currentSessionId) {
+        setCurrentSessionId(sessionId);
+        // Set the session name if this is a new session
+        if (!currentSessionName && sessionName) {
+          setCurrentSessionName(sessionName);
+        }
+      }
+    } catch (error) {
+      console.error("Error saving analysis session:", error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   // Load API key from localStorage on mount
   useEffect(() => {
@@ -156,6 +220,55 @@ export default function AnalysisPage() {
       return updated;
     });
   }, [activeStep]);
+
+  // Save selected hadiths to cache whenever they change
+  useEffect(() => {
+    try {
+      saveAnalysisSelectedHadiths(selectedHadiths);
+    } catch (error) {
+      console.warn('Failed to cache selected hadiths:', error);
+    }
+  }, [selectedHadiths]);
+
+  // Save active step to cache whenever it changes
+  useEffect(() => {
+    try {
+      saveAnalysisActiveStep(activeStep);
+    } catch (error) {
+      console.warn('Failed to cache active step:', error);
+    }
+  }, [activeStep]);
+
+  // Save steps status to cache whenever it changes
+  useEffect(() => {
+    try {
+      saveAnalysisStepsStatus(steps);
+    } catch (error) {
+      console.warn('Failed to cache steps status:', error);
+    }
+  }, [steps]);
+
+  // Save analysis state before page unload/refresh
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      try {
+        // Save all analysis state synchronously
+        saveAnalysisSelectedHadiths(selectedHadiths);
+        saveAnalysisActiveStep(activeStep);
+        saveAnalysisStepsStatus(steps);
+      } catch (error) {
+        console.warn('Failed to save analysis state on unload:', error);
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      // Also save on unmount
+      handleBeforeUnload();
+    };
+  }, [selectedHadiths, activeStep, steps]);
 
   const handleStepClick = (stepId: number) => {
     setActiveStep(stepId);
@@ -421,6 +534,36 @@ export default function AnalysisPage() {
       }}
     >
       <Header />
+      {/* Save Button - Only show if user is logged in and there's content to save */}
+      {user && (selectedHadiths.length > 0 || steps.some((s) => s.status !== "pending")) && (
+        <div className="fixed top-20 right-4 z-50">
+          <button
+            onClick={handleSaveAnalysis}
+            disabled={isSaving}
+            className="flex items-center gap-2 px-4 py-2 rounded-full font-semibold text-sm transition-all duration-200 hover:shadow-lg hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{
+              backgroundColor: '#000000',
+              color: '#f2e9dd',
+              fontFamily: 'var(--font-content)',
+              border: '2px solid #000000'
+            }}
+          >
+            {isSaving ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                Saving...
+              </>
+            ) : (
+              <>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                </svg>
+                Save Analysis
+              </>
+            )}
+          </button>
+        </div>
+      )}
       <div className="flex flex-1 relative">
         {/* Mobile Menu Button */}
         {!isSidebarOpen && (
@@ -436,23 +579,29 @@ export default function AnalysisPage() {
         )}
 
         {/* Sidebar Navigation */}
-        <aside 
+        <aside
             className={`fixed top-[85px] lg:relative lg:top-0 z-40 border-r-2 border-black/20 backdrop-blur-sm transition-all duration-300 ${
-              isSidebarOpen ? 'w-80 translate-x-0' : 'w-0 -translate-x-full lg:w-80 lg:translate-x-0'
+              isSidebarOpen ? 'w-full sm:w-72 md:w-80 translate-x-0' : 'w-0 -translate-x-full lg:w-80 lg:translate-x-0'
             }`}
-            style={{ 
+            style={{
               backgroundColor: 'rgba(242, 233, 221, 0.98)',
-              boxShadow: isSidebarOpen ? '2px 0 10px rgba(0, 0, 0, 0.1)' : 'none',
-              minHeight: 'calc(100vh - 85px)'
+              boxShadow: isSidebarOpen ? '2px 0 10px rgba(0, 0, 0, 0.1)' : 'none'
             }}
           >
-          <div className="h-full overflow-y-auto">
+          <div className="min-h-full overflow-y-auto max-h-[calc(100vh-85px)]">
           {/* Sidebar Header */}
-          <div className="p-4 sm:p-6 border-b-2 border-black/20">
+          <div className="p-3 sm:p-4 border-b-2 border-black/20">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg sm:text-xl font-bold" style={{ fontFamily: 'var(--font-title)', color: '#000000' }}>
-                Analysis Steps
-                  </h2>
+              <div>
+                <h2 className="text-lg sm:text-xl font-bold" style={{ fontFamily: 'var(--font-title)', color: '#000000' }}>
+                  Analysis Steps
+                </h2>
+                {currentSessionName && (
+                  <p className="text-sm opacity-75 mt-1" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>
+                    {currentSessionName}
+                  </p>
+                )}
+              </div>
               <button
                 onClick={() => setIsSidebarOpen(false)}
                 className="lg:hidden p-2 hover:bg-gray-100 rounded-md"
@@ -486,7 +635,7 @@ export default function AnalysisPage() {
             </div>
             
           {/* Steps List */}
-          <nav className="p-2 sm:p-4 space-y-2">
+          <nav className="p-2 sm:p-3 space-y-1.5">
             {steps.map((step) => {
               const isActive = step.id === activeStep;
               return (
@@ -499,7 +648,7 @@ export default function AnalysisPage() {
                       setIsSidebarOpen(false);
                     }
                   }}
-                  className={`w-full text-left p-3 sm:p-4 rounded-lg border-2 transition-all duration-200 flex items-start gap-2 sm:gap-3 ${
+                  className={`w-full text-left p-2 sm:p-3 rounded-lg border-2 transition-all duration-200 flex items-start gap-2 sm:gap-2.5 ${
                     isActive ? 'shadow-lg scale-105' : 'hover:shadow-md'
                   } ${getStepStatusColor(step.status, isActive)}`}
                   style={{ fontFamily: 'var(--font-content)' }}
@@ -508,11 +657,11 @@ export default function AnalysisPage() {
                     {getStepIcon(step.status)}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-xs sm:text-sm font-semibold">Step {step.id}</span>
+                    <div className="flex items-center gap-1.5 mb-0.5">
+                      <span className="text-xs font-semibold">Step {step.id}</span>
                     </div>
-                    <h3 className="font-semibold text-xs sm:text-sm mb-1">{step.title}</h3>
-                    <p className="text-xs opacity-75 line-clamp-2">{step.description}</p>
+                    <h3 className="font-semibold text-xs mb-0.5 leading-tight">{step.title}</h3>
+                    <p className="text-xs opacity-75 line-clamp-2 leading-tight">{step.description}</p>
               </div>
                 </button>
               );

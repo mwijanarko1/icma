@@ -3,10 +3,14 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect } from "react";
+import AuthButton from "@/components/auth/AuthButton";
+import UserMenu from "@/components/auth/UserMenu";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Header() {
   const [scrollY, setScrollY] = useState(0);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { user } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY);
@@ -99,6 +103,7 @@ export default function Header() {
             >
               Start Analysis
             </Link>
+            {user ? <UserMenu /> : <AuthButton />}
           </div>
           {/* Mobile Menu Button */}
           <div className="md:hidden">
@@ -172,14 +177,17 @@ export default function Header() {
               href="/analysis"
               onClick={closeMobileMenu}
               className="px-6 py-4 font-semibold text-base transition-all duration-200 hover:opacity-90 active:opacity-80"
-              style={{ 
-                backgroundColor: '#000000', 
-                color: '#f2e9dd', 
+              style={{
+                backgroundColor: '#000000',
+                color: '#f2e9dd',
                 fontFamily: 'var(--font-content)',
               }}
             >
               Start Analysis
             </Link>
+            <div className="px-6 py-4 border-t border-black/10">
+              {user ? <UserMenu onMobileMenuClose={closeMobileMenu} /> : <AuthButton />}
+            </div>
           </nav>
         </div>
       </div>

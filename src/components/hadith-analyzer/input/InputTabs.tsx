@@ -31,18 +31,6 @@ export function InputTabs({ activeTab, onTabChange }: InputTabsProps) {
           >
             Manual Builder
           </button>
-          <button
-            onClick={() => onTabChange('settings')}
-            className="py-2 px-1 border-b-2 font-semibold text-xs sm:text-sm transition-colors whitespace-nowrap"
-            style={{
-              borderColor: activeTab === 'settings' ? '#000000' : 'transparent',
-              color: activeTab === 'settings' ? '#000000' : '#000000',
-              opacity: activeTab === 'settings' ? 1 : 0.6,
-              fontFamily: 'var(--font-content)'
-            }}
-          >
-            Settings
-          </button>
         </nav>
       </div>
     </div>

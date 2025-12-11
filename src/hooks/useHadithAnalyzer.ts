@@ -1,6 +1,6 @@
 "use client";
 
-import { useReducer, useEffect, useCallback, useRef } from "react";
+import { useReducer, useEffect, useCallback, useRef, useState } from "react";
 import { usePathname } from "next/navigation";
 import { hadithAnalyzerReducer } from "@/reducers/hadithAnalyzerReducer";
 import { initialState } from "@/types/hadithAnalyzerState";
@@ -24,6 +24,9 @@ import {
 import { CACHE_KEYS } from "@/lib/cache/constants";
 import type { Narrator } from "@/types/hadith";
 import type { HadithAnalyzerState } from "@/types/hadithAnalyzerState";
+import { useAuth } from "@/contexts/AuthContext";
+import { saveChainSession } from "@/lib/firebase/firestore";
+import { generateMermaidCode } from "@/components/hadith-analyzer/visualization/utils";
 
 interface RawChain {
   id: string;
@@ -35,22 +38,36 @@ interface RawChain {
 }
 
 // Initialize state with cached data synchronously
-function getInitialState(): HadithAnalyzerState {
-  // Only load from localStorage if we're on the client side
-  const cachedHadithText = typeof window !== 'undefined' ? loadCachedHadithText() : null;
-  const cachedChains = typeof window !== 'undefined' ? loadCachedChains() : null;
+function getInitialState(): { state: HadithAnalyzerState; sessionId: string | null; sessionName: string | null } {
+  // Check for session to load from sessionStorage first
+  let loadedSession = null;
+  if (typeof window !== 'undefined') {
+    const sessionData = sessionStorage.getItem("loadChainSession");
+    if (sessionData) {
+      try {
+        loadedSession = JSON.parse(sessionData);
+        sessionStorage.removeItem("loadChainSession"); // Clear after loading
+      } catch (e) {
+        console.error("Error parsing session data:", e);
+      }
+    }
+  }
+
+  // Only load from localStorage if we're on the client side and no session to load
+  const cachedHadithText = loadedSession?.hadithText || (typeof window !== 'undefined' ? loadCachedHadithText() : null);
+  const cachedChains = loadedSession?.chains || (typeof window !== 'undefined' ? loadCachedChains() : null);
   const cachedShowViz = typeof window !== 'undefined' ? loadCachedShowVisualization() : null;
   const cachedApiKey = typeof window !== 'undefined' ? loadCachedApiKey() : null;
   const cachedActiveTab = typeof window !== 'undefined' ? loadCachedActiveTab() : null;
   const cachedSelectedChain = typeof window !== 'undefined' ? loadCachedSelectedChain() : null;
 
   // Validate activeTab to ensure it matches the state type
-  const validActiveTab = cachedActiveTab && 
-    (cachedActiveTab === 'llm' || cachedActiveTab === 'manual' || cachedActiveTab === 'narrators' || cachedActiveTab === 'hadith' || cachedActiveTab === 'settings')
+  const validActiveTab = cachedActiveTab &&
+    (cachedActiveTab === 'llm' || cachedActiveTab === 'manual' || cachedActiveTab === 'narrators' || cachedActiveTab === 'hadith')
     ? cachedActiveTab
     : initialState.activeTab;
 
-  return {
+  const state = {
     ...initialState,
     hadithText: cachedHadithText || initialState.hadithText,
     chains: cachedChains || initialState.chains,
@@ -59,14 +76,67 @@ function getInitialState(): HadithAnalyzerState {
     activeTab: validActiveTab,
     selectedChainIndex: cachedSelectedChain !== null ? cachedSelectedChain : initialState.selectedChainIndex,
   };
+
+  return {
+    state,
+    sessionId: loadedSession?.id || null,
+    sessionName: loadedSession?.name || null
+  };
 }
 
 export function useHadithAnalyzer(initialCollection?: string | null) {
-  // Initialize reducer with cached state
-  const [state, dispatch] = useReducer(hadithAnalyzerReducer, undefined, getInitialState);
+  // Initialize reducer with cached state and extract session ID
+  const initialStateData = getInitialState();
+  const [state, dispatch] = useReducer(hadithAnalyzerReducer, initialStateData.state);
   const graphRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   const prevPathnameRef = useRef<string | null>(null);
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(initialStateData.sessionId);
+  const [currentSessionName, setCurrentSessionName] = useState<string | null>(initialStateData.sessionName);
+  const [isSaving, setIsSaving] = useState(false);
+  const { user } = useAuth();
+
+  // Manual save function
+  const handleSaveChainAnalysis = async () => {
+    if (!user) return;
+
+    // Only save if there's meaningful content
+    const hasContent = state.hadithText.trim().length > 0 || state.chains.length > 0;
+    if (!hasContent) return;
+
+    setIsSaving(true);
+    try {
+      const mermaidCode = state.chains.length > 0 ? generateMermaidCode(state.chains) : "";
+      
+      // Use existing session name if available, otherwise create a new one
+      const sessionName = currentSessionId && currentSessionName
+        ? currentSessionName  // Keep the existing session name when updating
+        : `Chain Analysis - ${new Date().toLocaleDateString()}`;  // Create a new session with a default name
+
+      const sessionId = await saveChainSession(
+        user.uid,
+        {
+          name: sessionName,
+          hadithText: state.hadithText,
+          chains: state.chains,
+          mermaidCode,
+        },
+        currentSessionId || undefined
+      );
+
+      if (sessionId && sessionId !== currentSessionId) {
+        setCurrentSessionId(sessionId);
+        // If this is a new session, cache the name
+        if (!currentSessionId) {
+          setCurrentSessionName(sessionName);
+        }
+      }
+    } catch (error) {
+      console.error("Error saving chain session:", error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   // Load Intention-Hadith collection if specified
   useEffect(() => {
@@ -228,22 +298,65 @@ export function useHadithAnalyzer(initialCollection?: string | null) {
     dispatch(actions.resetState());
   }, []);
 
-  const handleNewHadith = useCallback(() => {
+  const handleNewHadith = useCallback(async () => {
     const hasChains = state.chains.length > 0;
     const hasHadithText = state.hadithText.trim().length > 0;
 
     if (hasChains || hasHadithText) {
-      const confirmed = window.confirm(
-        'Are you sure you want to start a new hadith? This will delete all current chains and clear all data. This action cannot be undone.'
-      );
+      // If user is authenticated, prompt to save before resetting
+      if (user) {
+        const shouldSave = window.confirm(
+          'Do you want to save this analysis before starting a new hadith?'
+        );
 
-      if (!confirmed) {
-        return;
+        if (shouldSave) {
+          const sessionName = window.prompt(
+            'Enter a name for this analysis:',
+            `Chain Analysis - ${new Date().toLocaleDateString()}`
+          );
+
+          if (sessionName) {
+            try {
+              const mermaidCode = state.chains.length > 0 ? generateMermaidCode(state.chains) : "";
+              await saveChainSession(
+                user.uid,
+                {
+                  name: sessionName,
+                  hadithText: state.hadithText,
+                  chains: state.chains,
+                  mermaidCode,
+                },
+                currentSessionId || undefined
+              );
+            } catch (error) {
+              console.error("Error saving session:", error);
+              alert("Failed to save session. Starting new hadith anyway.");
+            }
+          }
+        }
+
+        const confirmed = window.confirm(
+          'Are you sure you want to start a new hadith? This will delete all current chains and clear all data. This action cannot be undone.'
+        );
+
+        if (!confirmed) {
+          return;
+        }
+      } else {
+        const confirmed = window.confirm(
+          'Are you sure you want to start a new hadith? This will delete all current chains and clear all data. This action cannot be undone.'
+        );
+
+        if (!confirmed) {
+          return;
+        }
       }
     }
 
+    setCurrentSessionId(null);
+    setCurrentSessionName(null);
     dispatch(actions.resetState());
-  }, [state.chains.length, state.hadithText]);
+  }, [state.chains, state.hadithText, user, currentSessionId]);
 
   return {
     state,
@@ -252,7 +365,11 @@ export function useHadithAnalyzer(initialCollection?: string | null) {
     extractNarrators,
     handleClearCache,
     handleNewHadith,
-    graphRef
+    graphRef,
+    currentSessionId,
+    currentSessionName,
+    handleSaveChainAnalysis,
+    isSaving,
   };
 }
 

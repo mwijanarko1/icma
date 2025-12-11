@@ -14,7 +14,7 @@ import { MatchConfirmationModal } from '@/components/hadith-analyzer/matching/Ma
 import { ChainCollectionsModal } from '@/components/hadith-analyzer/import/ChainCollectionsModal';
 import { NarratorDetailsModal } from '@/components/hadith-analyzer/narrators/NarratorDetailsModal';
 import { NarratorSearchModal } from '@/components/hadith-analyzer/narrators/NarratorSearchModal';
-import { InputTabs, LLMTab, ManualTab, SettingsTab, AddHadithFromDatabaseModal } from '@/components/hadith-analyzer/input';
+import { InputTabs, LLMTab, ManualTab, AddHadithFromDatabaseModal } from '@/components/hadith-analyzer/input';
 import { useHadithAnalyzer } from '@/hooks/useHadithAnalyzer';
 import { MermaidGraph } from '@/components/hadith-analyzer/visualization/MermaidGraph';
 import {
@@ -60,6 +60,9 @@ export default function HadithAnalyzer({ initialCollection }: HadithAnalyzerProp
     actions,
     extractNarrators,
     handleNewHadith,
+    handleSaveChainAnalysis,
+    isSaving,
+    currentSessionName,
   } = useHadithAnalyzer(initialCollection);
 
   // Destructure state for easier access
@@ -305,33 +308,120 @@ export default function HadithAnalyzer({ initialCollection }: HadithAnalyzerProp
 
         {/* Tab Navigation */}
         <InputTabs activeTab={activeTab} onTabChange={(tab) => dispatch(actions.setActiveTab(tab))} />
-        
-        {/* New Hadith and Export Buttons - shown when chains exist */}
+
+        {/* Session Name and Action Buttons - shown when chains exist */}
         <ClientOnly>
-          {chains.length > 0 && (
-            <div className="flex justify-center sm:justify-end gap-4 mb-6">
-              <button
-                onClick={handleNewHadith}
-                className="px-6 py-3 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-black flex items-center gap-2 text-sm font-semibold"
-                style={{ backgroundColor: '#000000', color: '#f2e9dd', fontFamily: 'var(--font-content)' }}
-                title="Start a new hadith (this will clear all current chains)"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                </svg>
-                New Hadith
-              </button>
-              <button
-                onClick={chainService.handleExportChains}
-                className="px-6 py-3 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-black flex items-center gap-2 text-sm font-semibold"
-                style={{ backgroundColor: '#000000', color: '#f2e9dd', fontFamily: 'var(--font-content)' }}
-                title="Export all chains and data as JSON"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                Export Chains
-              </button>
+          {(chains.length > 0 || hadithText.trim().length > 0) && (
+            <div className="mb-6">
+              {/* Mobile layout: Session name above buttons */}
+              <div className="block sm:hidden">
+                {chains.length > 0 && currentSessionName && (
+                  <div className="flex justify-center mb-4">
+                    <p className="text-xl font-bold" style={{ fontFamily: 'var(--font-title)', color: '#000000' }}>
+                      {currentSessionName}
+                    </p>
+                  </div>
+                )}
+                <div className="flex justify-center gap-4">
+                  <button
+                    onClick={handleSaveChainAnalysis}
+                    disabled={isSaving}
+                    className="px-6 py-3 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-black flex items-center gap-2 text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                    style={{ backgroundColor: '#000000', color: '#f2e9dd', fontFamily: 'var(--font-content)' }}
+                    title="Save your current chain analysis session"
+                  >
+                    {isSaving ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                        </svg>
+                        Save Session
+                      </>
+                    )}
+                  </button>
+                  <button
+                    onClick={handleNewHadith}
+                    className="px-6 py-3 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-black flex items-center gap-2 text-sm font-semibold"
+                    style={{ backgroundColor: '#000000', color: '#f2e9dd', fontFamily: 'var(--font-content)' }}
+                    title="Start a new hadith (this will clear all current chains)"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                    New Hadith
+                  </button>
+                  <button
+                    onClick={chainService.handleExportChains}
+                    className="px-6 py-3 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-black flex items-center gap-2 text-sm font-semibold"
+                    style={{ backgroundColor: '#000000', color: '#f2e9dd', fontFamily: 'var(--font-content)' }}
+                    title="Export all chains and data as JSON"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Export Chains
+                  </button>
+                </div>
+              </div>
+
+              {/* Desktop layout: Session name and buttons on same row */}
+              <div className="hidden sm:flex sm:items-center sm:justify-between">
+                {chains.length > 0 && currentSessionName && (
+                  <p className="text-xl font-bold" style={{ fontFamily: 'var(--font-title)', color: '#000000' }}>
+                    {currentSessionName}
+                  </p>
+                )}
+                <div className="flex gap-4">
+                  <button
+                    onClick={handleSaveChainAnalysis}
+                    disabled={isSaving}
+                    className="px-6 py-3 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-black flex items-center gap-2 text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                    style={{ backgroundColor: '#000000', color: '#f2e9dd', fontFamily: 'var(--font-content)' }}
+                    title="Save your current chain analysis session"
+                  >
+                    {isSaving ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                        </svg>
+                        Save Session
+                      </>
+                    )}
+                  </button>
+                  <button
+                    onClick={handleNewHadith}
+                    className="px-6 py-3 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-black flex items-center gap-2 text-sm font-semibold"
+                    style={{ backgroundColor: '#000000', color: '#f2e9dd', fontFamily: 'var(--font-content)' }}
+                    title="Start a new hadith (this will clear all current chains)"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                    New Hadith
+                  </button>
+                  <button
+                    onClick={chainService.handleExportChains}
+                    className="px-6 py-3 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-black flex items-center gap-2 text-sm font-semibold"
+                    style={{ backgroundColor: '#000000', color: '#f2e9dd', fontFamily: 'var(--font-content)' }}
+                    title="Export all chains and data as JSON"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Export Chains
+                  </button>
+                </div>
+              </div>
             </div>
           )}
         </ClientOnly>
@@ -382,22 +472,6 @@ export default function HadithAnalyzer({ initialCollection }: HadithAnalyzerProp
           />
         )}
 
-        {/* Settings Tab */}
-        {activeTab === 'settings' && (
-          <SettingsTab
-            apiKey={apiKey}
-            onOpenApiKeyModal={() => dispatch(actions.setShowApiKeyModal(true))}
-            onClearCache={() => {
-              localStorage.removeItem(CACHE_KEYS.HADITH_TEXT);
-              localStorage.removeItem(CACHE_KEYS.CHAINS);
-              localStorage.removeItem(CACHE_KEYS.SHOW_VISUALIZATION);
-              localStorage.removeItem(CACHE_KEYS.API_KEY);
-              localStorage.removeItem(CACHE_KEYS.ACTIVE_TAB);
-              localStorage.removeItem(CACHE_KEYS.SELECTED_CHAIN);
-              dispatch(actions.resetState());
-            }}
-          />
-        )}
 
         {/* Error Section */}
         {error && (
@@ -417,9 +491,11 @@ export default function HadithAnalyzer({ initialCollection }: HadithAnalyzerProp
           {chains.length > 0 && (
           <div className="space-y-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold" style={{ fontFamily: 'var(--font-title)', color: '#000000' }}>
-                Hadith Chains ({chains.length})
-              </h2>
+              <div>
+                <h2 className="text-xl font-semibold" style={{ fontFamily: 'var(--font-title)', color: '#000000' }}>
+                  Hadith Chains ({chains.length})
+                </h2>
+              </div>
               <div className="flex items-center gap-3">
                 {chains.length > 1 && (
                   <span className="text-sm" style={{ fontFamily: 'var(--font-content)', color: '#000000', opacity: 0.7 }}>

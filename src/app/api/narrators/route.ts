@@ -105,33 +105,35 @@ function calculateRelevanceScore(
       }
     }
 
-    // Full Arabic name - use similarity calculation
+    // Full Arabic name - HIGHEST PRIORITY - use similarity calculation
     if (narrator.full_name_arabic) {
       const similarity = calculateSimilarity(narrator.full_name_arabic, normalizedTerm);
-      if (similarity >= 0.8) {
-        score += 60;
+      if (similarity >= 0.95) {
+        score += 100; // Near-exact match - highest priority
+      } else if (similarity >= 0.8) {
+        score += 80; // Very high similarity
+      } else if (similarity >= 0.6) {
+        score += 60; // High similarity
+      } else if (similarity >= 0.4) {
+        score += 40; // Medium similarity
+      } else if (similarity > 0) {
+        score += 20; // Low similarity
+      }
+    }
+
+    // Kunya - SECOND PRIORITY - use similarity calculation
+    if (narrator.kunya) {
+      const similarity = calculateSimilarity(narrator.kunya, normalizedTerm);
+      if (similarity >= 0.95) {
+        score += 70; // High priority but not highest
+      } else if (similarity >= 0.8) {
+        score += 55;
       } else if (similarity >= 0.6) {
         score += 40;
       } else if (similarity >= 0.4) {
         score += 25;
       } else if (similarity > 0) {
-        score += 10;
-      }
-    }
-
-    // Kunya - use similarity calculation (high priority)
-    if (narrator.kunya) {
-      const similarity = calculateSimilarity(narrator.kunya, normalizedTerm);
-      if (similarity >= 0.95) {
-        score += 90; // Exact kunya match gets highest priority
-      } else if (similarity >= 0.8) {
-        score += 70;
-      } else if (similarity >= 0.6) {
-        score += 50;
-      } else if (similarity >= 0.4) {
-        score += 30;
-      } else if (similarity > 0) {
-        score += 15;
+        score += 12;
       }
     }
 
@@ -172,7 +174,7 @@ function calculateRelevanceScore(
     }
 
     if (normalizedLineage.includes(normalizedTerm)) {
-      score += 10;
+      score += 35; // Higher priority for lineage matches
     }
 
     if (normalizedSearchText.includes(normalizedTerm)) {
@@ -185,33 +187,33 @@ function calculateRelevanceScore(
     // Multiple terms - check if full search text matches any field with similarity
     const fullSearchText = normalizedSearchText;
     
-    // Check primary Arabic name
+    // Check primary Arabic name - lower priority than full Arabic name
     if (narrator.primary_arabic_name) {
       const similarity = calculateSimilarity(narrator.primary_arabic_name, fullSearchText);
       if (similarity >= 0.8) {
-        score += 30; // Strong boost for full phrase match
+        score += 20; // Moderate boost for full phrase match
       } else if (similarity >= 0.6) {
-        score += 15;
+        score += 10;
       }
     }
     
-    // Check kunya
+    // Check kunya - SECOND PRIORITY for full phrase
     if (narrator.kunya) {
       const similarity = calculateSimilarity(narrator.kunya, fullSearchText);
       if (similarity >= 0.8) {
-        score += 40; // Even stronger boost for kunya full match
+        score += 35; // Strong boost for kunya full match
       } else if (similarity >= 0.6) {
-        score += 20;
+        score += 18;
       }
     }
     
-    // Check full Arabic name
+    // Check full Arabic name - HIGHEST PRIORITY for full phrase
     if (narrator.full_name_arabic) {
       const similarity = calculateSimilarity(narrator.full_name_arabic, fullSearchText);
       if (similarity >= 0.8) {
-        score += 25;
+        score += 45; // Highest boost for full phrase match
       } else if (similarity >= 0.6) {
-        score += 12;
+        score += 25;
       }
     }
   }

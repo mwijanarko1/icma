@@ -16,7 +16,7 @@ export type HadithAnalyzerAction =
   | { type: 'SET_HIGHLIGHTED_CHAIN_IDS'; payload: string[] }
   | { type: 'SET_IS_LOADING'; payload: boolean }
   | { type: 'SET_ERROR'; payload: string | null }
-  | { type: 'SET_ACTIVE_TAB'; payload: 'llm' | 'manual' | 'narrators' | 'hadith' | 'settings' }
+  | { type: 'SET_ACTIVE_TAB'; payload: 'llm' | 'manual' | 'narrators' | 'hadith' }
   | { type: 'SET_SELECTED_CHAIN_INDEX'; payload: number }
   | { type: 'SET_EDITING_CHAIN_ID'; payload: string | null }
   | { type: 'SET_EDIT_FORM_DATA'; payload: HadithAnalyzerState['editFormData'] }
@@ -117,7 +117,7 @@ export const actions = {
     payload: error
   }),
   
-  setActiveTab: (tab: 'llm' | 'manual' | 'narrators' | 'hadith' | 'settings'): HadithAnalyzerAction => ({
+  setActiveTab: (tab: 'llm' | 'manual' | 'narrators' | 'hadith'): HadithAnalyzerAction => ({
     type: 'SET_ACTIVE_TAB',
     payload: tab
   }),
