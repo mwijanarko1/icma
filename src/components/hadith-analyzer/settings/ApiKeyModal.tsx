@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import type { ApiKeyModalProps } from './types';
 import BasicModal from "@/components/ui/BasicModal";
 
-export function ApiKeyModal({
+export const ApiKeyModal = React.memo(function ApiKeyModal({
   apiKey,
   showApiKeyModal,
   onSave,
@@ -115,5 +115,5 @@ export function ApiKeyModal({
         </div>
     </BasicModal>
   );
-}
+});
 

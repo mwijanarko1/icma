@@ -55,7 +55,7 @@ export default function Header() {
       }}
     >
       <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-5">
-        <nav className="flex items-center justify-between">
+        <nav className="flex items-center justify-between" role="navigation" aria-label="Main navigation">
           <Link 
             href="/" 
             className="flex items-center gap-2 sm:gap-3 text-base sm:text-lg md:text-xl font-bold hover:opacity-80 transition-opacity duration-200" 
@@ -109,9 +109,11 @@ export default function Header() {
           <div className="md:hidden">
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="mobile-menu-button p-2 rounded-lg transition-all duration-200 hover:bg-black/10"
+              className="mobile-menu-button p-2 rounded-lg transition-all duration-200 hover:bg-black/10 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
               style={{ color: '#000000' }}
-              aria-label="Toggle menu"
+              aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
+              aria-expanded={isMobileMenuOpen}
+              aria-controls="mobile-navigation"
             >
               {isMobileMenuOpen ? (
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -132,6 +134,7 @@ export default function Header() {
         <div
           className="fixed inset-0 top-0 md:hidden z-30 bg-black/20"
           onClick={closeMobileMenu}
+          aria-hidden="true"
         />
       )}
 
@@ -140,12 +143,15 @@ export default function Header() {
         className={`mobile-menu fixed left-0 right-0 md:hidden z-40 transition-all duration-300 ease-in-out ${
           isMobileMenuOpen ? 'top-[73px] opacity-100 visible' : '-top-full opacity-0 invisible'
         }`}
-        style={{ 
+        style={{
           backgroundColor: 'rgba(242, 233, 221, 0.98)',
           backdropFilter: 'blur(10px)',
           maxHeight: 'calc(100vh - 73px)',
           overflowY: 'auto',
         }}
+        role="navigation"
+        aria-label="Mobile navigation menu"
+        aria-hidden={!isMobileMenuOpen}
       >
         <div className="border-t-2 border-black/20">
           <nav className="flex flex-col">

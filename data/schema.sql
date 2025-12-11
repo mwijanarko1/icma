@@ -105,6 +105,11 @@ CREATE INDEX idx_narrator_names ON narrator_names(arabic_name);
 CREATE INDEX idx_narrator_relationships ON narrator_relationships(narrator_id, relationship_type);
 CREATE INDEX idx_scholarly_opinions ON scholarly_opinions(narrator_id, scholar_name);
 
+-- Composite indexes for better search performance
+CREATE INDEX idx_narrator_names_composite ON narrator_names(narrator_id, arabic_name);
+CREATE INDEX idx_narrator_death_years ON narrators(death_year_ah, death_year_ah_alternative);
+CREATE INDEX idx_narrator_search_names ON narrators(primary_arabic_name, primary_english_name, full_name_arabic);
+
 -- Full-text search index (if using FTS5)
 CREATE VIRTUAL TABLE narrators_fts USING fts5(
   primary_arabic_name,

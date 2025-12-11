@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDatabase, closeDatabase } from '@/data/db';
 import type { Narrator } from '@/data/types';
+import { validationMiddleware, handleValidationError, extractValidatedParams, createValidationMiddleware } from '@/lib/validation/middleware';
+import { validateString, validateNumeric, validationSchemas } from '@/lib/validation';
+import { withRateLimit, rateLimiters } from '@/lib/rate-limit';
 import { 
   normalizeArabic, 
   normalizeEnglish,
@@ -258,42 +261,178 @@ function calculateRelevanceScore(
 /**
  * GET /api/narrators
  * Search and retrieve narrators from database with relevance ranking
+ *
+ * @swagger
+ * /api/narrators:
+ *   get:
+ *     summary: Search Islamic narrators (muhaddithin)
+ *     description: Search for Islamic hadith narrators by name, with fuzzy matching and relevance ranking
+ *     parameters:
+ *       - name: query
+ *         in: query
+ *         schema:
+ *           type: string
+ *           minLength: 2
+ *           maxLength: 100
+ *         description: Search query (Arabic or English name, minimum 2 characters)
+ *       - name: arabicName
+ *         in: query
+ *         schema:
+ *           type: string
+ *         description: Filter by primary Arabic name
+ *       - name: englishName
+ *         in: query
+ *         schema:
+ *           type: string
+ *         description: Filter by primary English name
+ *       - name: deathYearAH
+ *         in: query
+ *         schema:
+ *           type: integer
+ *         description: Filter by death year in AH (Anno Hegirae)
+ *       - name: limit
+ *         in: query
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 100
+ *           default: 50
+ *         description: Maximum number of results to return
+ *       - name: offset
+ *         in: query
+ *         schema:
+ *           type: integer
+ *           minimum: 0
+ *           default: 0
+ *         description: Number of results to skip for pagination
+ *       - name: random
+ *         in: query
+ *         schema:
+ *           type: boolean
+ *         description: Return random narrators instead of search results
+ *     responses:
+ *       200:
+ *         description: Successful response
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: string
+ *                         description: Unique narrator identifier
+ *                         example: "humaydi-abdullah-zubayr"
+ *                       primaryArabicName:
+ *                         type: string
+ *                         description: Primary Arabic name
+ *                         example: "عبد الله بن الزبير"
+ *                       primaryEnglishName:
+ *                         type: string
+ *                         description: Primary English name
+ *                         example: "Abdullah ibn al-Zubayr"
+ *                       fullNameArabic:
+ *                         type: string
+ *                         description: Complete Arabic name with lineage
+ *                       fullNameEnglish:
+ *                         type: string
+ *                         description: Complete English name
+ *                       title:
+ *                         type: string
+ *                         description: Honorific title (e.g., "Al-Hafiz")
+ *                       kunya:
+ *                         type: string
+ *                         description: Kunya (e.g., "Abu Bakr")
+ *                       lineage:
+ *                         type: string
+ *                         description: Tribal or geographical lineage
+ *                       deathYearAH:
+ *                         type: integer
+ *                         description: Death year in Islamic calendar
+ *                       deathYearCE:
+ *                         type: integer
+ *                         description: Death year in Common Era
+ *                       placeOfDeath:
+ *                         type: string
+ *                         description: Place of death
+ *                       scholarlyOpinions:
+ *                         type: array
+ *                         description: Scholarly opinions about the narrator's reliability
+ *                 total:
+ *                   type: integer
+ *                   description: Total number of results
+ *                 limit:
+ *                   type: integer
+ *                   description: Results per page
+ *                 offset:
+ *                   type: integer
+ *                   description: Results offset
+ *       400:
+ *         description: Bad request - invalid parameters
+ *       429:
+ *         description: Rate limit exceeded
+ *       500:
+ *         description: Internal server error
+ *
+ * @example
+ * // Search by Arabic name
+ * GET /api/narrators?query=عمر
+ *
+ * @example
+ * // Search by English name
+ * GET /api/narrators?query=Umar
+ *
+ * @example
+ * // Filter by death year
+ * GET /api/narrators?deathYearAH=73
+ *
+ * @example
+ * // Get random narrators
+ * GET /api/narrators?random=true&limit=5
  */
-export async function GET(request: NextRequest) {
+const GETHandler = async (request: NextRequest) => {
   const db = getDatabase();
-  
+
   try {
-    const searchParams = request.nextUrl.searchParams;
-    const params: SearchParams = {
-      query: searchParams.get('query') || undefined,
-      arabicName: searchParams.get('arabicName') || undefined,
-      englishName: searchParams.get('englishName') || undefined,
-      deathYearAH: searchParams.get('deathYearAH') 
-        ? parseInt(searchParams.get('deathYearAH')!) 
+    // Use validation middleware for comprehensive parameter validation
+    const validationResult = await createValidationMiddleware(validationSchemas.narratorsSearch)(request);
+
+    if (!validationResult.success) {
+      return handleValidationError(validationResult.error);
+    }
+
+    const { params } = validationResult.data;
+    const validatedParams: SearchParams = {
+      ...params,
+      random: request.nextUrl.searchParams.get('random') === 'true',
+      arabicName: request.nextUrl.searchParams.get('arabicName') || undefined,
+      englishName: request.nextUrl.searchParams.get('englishName') || undefined,
+      deathYearAH: request.nextUrl.searchParams.get('deathYearAH')
+        ? parseInt(request.nextUrl.searchParams.get('deathYearAH')!)
         : undefined,
-      limit: searchParams.get('limit') 
-        ? parseInt(searchParams.get('limit')!) 
-        : 50,
-      offset: searchParams.get('offset') 
-        ? parseInt(searchParams.get('offset')!) 
-        : 0,
-      random: searchParams.get('random') === 'true',
     };
 
     // Parse search terms from query and normalize them
     // Minimum 2 characters per term to avoid too many results
-    const searchTerms = params.query 
-      ? params.query.trim().split(/\s+/).filter(term => term.length >= 2)
+    const searchTerms = validatedParams.query
+      ? validatedParams.query.trim().split(/\s+/).filter(term => term.length >= 2)
       : [];
-    
-    // Validate minimum query length
-    if (params.query && searchTerms.length === 0) {
+
+    // Validate minimum query length (additional check beyond middleware)
+    if (validatedParams.query && searchTerms.length === 0) {
       return NextResponse.json({
         success: false,
         error: 'Search query must contain at least one term with 2 or more characters'
       }, { status: 400 });
     }
-    
+
     // Normalize search terms (use appropriate normalization based on language)
     const normalizedSearchTerms = searchTerms.map(term => normalizeSearchTerm(term));
 
@@ -598,4 +737,7 @@ export async function POST(_request: NextRequest) {
     },
     { status: 400 }
   );
-}
+};
+
+// Export with rate limiting applied
+export const GET = withRateLimit(GETHandler, rateLimiters.api);

@@ -38,17 +38,39 @@ export default function BasicModal({
   setMounted(true);
  }, []);
 
- // Close on Escape key press
- useEffect(() => {
-  const handleKeyDown = (e: KeyboardEvent) => {
-   if (e.key === "Escape" && isOpen) {
-    onClose();
-   }
-  };
+  // Focus management and keyboard navigation
+  useEffect(() => {
+   if (isOpen) {
+    // Store the previously focused element
+    const previouslyFocusedElement = document.activeElement as HTMLElement;
 
-  document.addEventListener("keydown", handleKeyDown);
-  return () => document.removeEventListener("keydown", handleKeyDown);
- }, [isOpen, onClose]);
+    // Focus the modal
+    if (modalRef.current) {
+     modalRef.current.focus();
+    }
+
+    // Restore focus when modal closes
+    return () => {
+     if (previouslyFocusedElement && previouslyFocusedElement.focus) {
+      previouslyFocusedElement.focus();
+     }
+    };
+   }
+  }, [isOpen]);
+
+  // Close on Escape key press
+  useEffect(() => {
+   const handleKeyDown = (e: KeyboardEvent) => {
+    if (e.key === "Escape" && isOpen) {
+     onClose();
+    }
+   };
+
+   if (isOpen) {
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+   }
+  }, [isOpen, onClose]);
 
  // Note: Body scroll locking is handled by the overlay and modal positioning
  // No need to manually set body overflow as it can conflict with other components
@@ -84,6 +106,9 @@ export default function BasicModal({
       }}
       initial={{ scale: 0.9, y: 20, opacity: 0 }}
       transition={{ type: "spring", damping: 25, stiffness: 300 }}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby={title ? "modal-title" : undefined}
      >
       <motion.div
        animate={{ scale: 1, y: 0, opacity: 1 }}
@@ -97,17 +122,19 @@ export default function BasicModal({
        initial={{ scale: 0.9, y: 20, opacity: 0 }}
        ref={modalRef}
        transition={{ type: "spring", damping: 25, stiffness: 300 }}
+       tabIndex={-1}
       >
        {/* Header */}
        <div className="mb-4 flex items-center justify-between">
         {title && (
-         <h3 className="font-medium text-xl leading-6">{title}</h3>
+         <h3 id="modal-title" className="font-medium text-xl leading-6">{title}</h3>
         )}
         <motion.button
-         className="ml-auto rounded-full p-1.5 transition-colors hover:bg-secondary"
+         className="ml-auto rounded-full p-1.5 transition-colors hover:bg-secondary focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
          onClick={onClose}
          transition={{ duration: 0.2 }}
          whileHover={{ rotate: 90 }}
+         aria-label="Close modal"
         >
          <X className="h-5 w-5" />
          <span className="sr-only">Close</span>

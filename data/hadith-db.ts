@@ -15,7 +15,7 @@ export const HADITH_COLLECTIONS = [
 
 export type HadithCollection = typeof HADITH_COLLECTIONS[number];
 
-const SCHEMA_PATH = path.join(process.cwd(), 'data', 'hadith-schema.sql');
+const SCHEMA_PATH = path.join(process.cwd(), 'data', 'hadith-schema-optimized.sql');
 
 /**
  * Get the database path for a specific collection
@@ -37,15 +37,20 @@ export function getHadithDatabase(collection: HadithCollection): Database.Databa
   }
 
   const db = new Database(dbPath);
-  
-  // Enable foreign keys
+
+  // Performance optimizations
+  db.pragma('cache_size = -2000'); // Use 2MB cache
+  db.pragma('temp_store = memory'); // Store temp tables in memory
+  db.pragma('mmap_size = 268435456'); // 256MB memory map
+  db.pragma('synchronous = NORMAL'); // Balance performance and safety
+  db.pragma('journal_mode = WAL'); // Write-Ahead Logging for better concurrency
   db.pragma('foreign_keys = ON');
-  
+
   // Create tables if they don't exist
   if (!tableExists(db, 'hadith')) {
     initializeDatabase(db);
   }
-  
+
   return db;
 }
 

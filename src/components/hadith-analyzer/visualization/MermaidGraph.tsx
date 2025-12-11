@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import cytoscape from 'cytoscape';
 import dagre from 'cytoscape-dagre';
 import type { MermaidGraphProps } from './types';
@@ -46,10 +46,11 @@ cytoscape.use(dagre);
 
 // Function to create Cytoscape graph from chains
 const createCytoscapeGraph = (
-  container: HTMLElement, 
-  chains: Chain[], 
+  container: HTMLElement,
+  chains: Chain[],
   onEdgeClickRef?: { current?: (chainIndices: number[]) => void },
-  onEdgeHoverRef?: { current?: (chainIndices: number[]) => void }
+  onEdgeHoverRef?: { current?: (chainIndices: number[]) => void },
+  cleanupRef?: { current?: () => void }
 ) => {
   // Filter out hidden chains and create mapping from visible chain index to original chain index
   const visibleChains = chains.filter(chain => !chain.hiddenFromVisualization);
@@ -260,6 +261,34 @@ const createCytoscapeGraph = (
   let hoverTimeout: NodeJS.Timeout | null = null;
   let currentHoveredEdge: cytoscape.EdgeSingular | null = null;
 
+  // Cleanup function to clear timeouts and event listeners
+  const cleanup = () => {
+    // Clear any pending hover timeout
+    if (hoverTimeout) {
+      clearTimeout(hoverTimeout);
+      hoverTimeout = null;
+    }
+
+    // Remove all tooltip event listeners and elements
+    cy.nodes().forEach((node: cytoscape.NodeSingular) => {
+      const tooltipData = (node as ExtendedNodeSingular)._tooltip;
+      if (tooltipData) {
+        tooltipData.element.remove();
+        document.removeEventListener('mousemove', tooltipData.updateTooltip);
+        document.removeEventListener('mouseout', tooltipData.removeTooltip);
+        delete (node as ExtendedNodeSingular)._tooltip;
+      }
+    });
+
+    // Destroy cytoscape instance
+    cy.destroy();
+  };
+
+  // Store cleanup function in ref if provided
+  if (cleanupRef) {
+    cleanupRef.current = cleanup;
+  }
+
   // Add hover tooltips and effects for nodes
   cy.on('mouseover', 'node', (evt) => {
     const node = evt.target;
@@ -328,14 +357,17 @@ const createCytoscapeGraph = (
 
   cy.on('mouseout', 'node', (evt) => {
     const node = evt.target;
-    
+
     // Reset border width
     node.style('border-width', '4px');
-    
-    // Remove tooltip
+
+    // Remove tooltip and clean up event listeners
     const tooltipData = (node as ExtendedNodeSingular)._tooltip;
     if (tooltipData) {
       tooltipData.element.remove();
+      // Remove event listeners to prevent memory leaks
+      document.removeEventListener('mousemove', tooltipData.updateTooltip);
+      document.removeEventListener('mouseout', tooltipData.removeTooltip);
       delete (node as ExtendedNodeSingular)._tooltip;
     }
   });
@@ -457,7 +489,7 @@ const createCytoscapeGraph = (
 };
 
 
-export function MermaidGraph({
+export const MermaidGraph = React.memo(function MermaidGraph({
   chains,
   showVisualization,
   onHide,
@@ -467,6 +499,7 @@ export function MermaidGraph({
 }: MermaidGraphProps) {
   const graphRef = useRef<HTMLDivElement>(null);
   const cyRef = useRef<cytoscape.Core | null>(null);
+  const cleanupRef = useRef<(() => void) | undefined>(undefined);
   const onEdgeClickRef = useRef(onEdgeClick);
   const onEdgeHoverRef = useRef(onEdgeHover);
 
@@ -521,15 +554,21 @@ export function MermaidGraph({
 
       // Create new Cytoscape instance
       cyRef.current = createCytoscapeGraph(
-        graphRef.current, 
-        chains, 
+        graphRef.current,
+        chains,
         onEdgeClickRef,
-        onEdgeHoverRef
+        onEdgeHoverRef,
+        cleanupRef
       );
     }
 
     return () => {
-      if (cyRef.current) {
+      // Use the cleanup function that properly handles all resources
+      if (cleanupRef.current) {
+        cleanupRef.current();
+        cleanupRef.current = undefined;
+      } else if (cyRef.current) {
+        // Fallback cleanup if cleanupRef is not available
         cyRef.current.destroy();
         cyRef.current = null;
       }
@@ -622,5 +661,5 @@ export function MermaidGraph({
       </div>
     </div>
   );
-}
+});
 

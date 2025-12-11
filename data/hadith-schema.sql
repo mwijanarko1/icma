@@ -28,6 +28,11 @@ CREATE INDEX idx_hadith_sub_version ON hadith(sub_version);
 CREATE INDEX idx_hadith_english_narrator ON hadith(english_narrator);
 CREATE INDEX idx_hadith_in_book_reference ON hadith(in_book_reference);
 
+-- Composite indexes for better query performance
+CREATE INDEX idx_hadith_number_sub_version ON hadith(hadith_number, sub_version);
+CREATE INDEX idx_hadith_number_reference ON hadith(hadith_number, reference);
+CREATE INDEX idx_hadith_search_fields ON hadith(english_translation, arabic_text, reference, english_narrator);
+
 -- Full-text search index (if using FTS5)
 CREATE VIRTUAL TABLE hadith_fts USING fts5(
   reference,

@@ -1,5 +1,88 @@
+/**
+ * POST /api/extract-narrators
+ * Extract narrator chains from hadith text using AI
+ *
+ * @swagger
+ * /api/extract-narrators:
+ *   post:
+ *     summary: Extract narrators from hadith text
+ *     description: Use AI to extract and identify narrators from Arabic hadith text, separating the chain (sanad) from the content (matn)
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - hadithText
+ *               - apiKey
+ *             properties:
+ *               hadithText:
+ *                 type: string
+ *                 minLength: 10
+ *                 maxLength: 50000
+ *                 description: Complete hadith text in Arabic containing both sanad and matn
+ *                 example: "حَدَّثَنَا عُمَرُ بْنُ الْخَطَّابِ قَالَ: سَمِعْتُ رَسُولَ اللَّهِ صلى الله عليه وسلم يَقُولُ: إِنَّمَا الأَعْمَالُ بِالنِّيَّاتِ..."
+ *               apiKey:
+ *                 type: string
+ *                 minLength: 10
+ *                 maxLength: 200
+ *                 description: Google Gemini API key for AI processing
+ *                 example: "AIzaSy..."
+ *     responses:
+ *       200:
+ *         description: Successful extraction
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 narrators:
+ *                   type: array
+ *                   description: Extracted narrator chain
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       number:
+ *                         type: integer
+ *                         description: Position in the chain
+ *                         example: 1
+ *                       arabicName:
+ *                         type: string
+ *                         description: Arabic name
+ *                         example: "رَسُولَ اللَّهِ"
+ *                       englishName:
+ *                         type: string
+ *                         description: English name
+ *                         example: "Messenger of Allah"
+ *                 chainText:
+ *                   type: string
+ *                   description: Complete chain text (sanad)
+ *                   example: "حَدَّثَنَا عُمَرُ بْنُ الْخَطَّابِ..."
+ *                 matn:
+ *                   type: string
+ *                   description: Hadith content text
+ *                   example: "إِنَّمَا الأَعْمَالُ بِالنِّيَّاتِ..."
+ *       400:
+ *         description: Bad request - missing or invalid parameters
+ *       429:
+ *         description: Rate limit exceeded
+ *       500:
+ *         description: AI processing error or internal server error
+ *
+ * @example
+ * POST /api/extract-narrators
+ * {
+ *   "hadithText": "حَدَّثَنَا عُمَرُ بْنُ الْخَطَّابِ قَالَ: سَمِعْتُ رَسُولَ اللَّهِ صلى الله عليه وسلم يَقُولُ: إِنَّمَا الأَعْمَالُ بِالنِّيَّاتِ",
+ *   "apiKey": "AIzaSy..."
+ * }
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenAI } from "@google/genai";
+import { handleValidationError } from '@/lib/validation/middleware';
+import { validateString } from '@/lib/validation';
+import { withRateLimit, rateLimiters } from '@/lib/rate-limit';
 
 interface Narrator {
   number: number;
@@ -177,26 +260,35 @@ function parseNarratorsJson(text: string): unknown {
   }
 }
 
-export async function POST(request: NextRequest) {
+const POSTHandler = async (request: NextRequest) => {
   try {
-    const { hadithText, apiKey } = await request.json();
+    const body = await request.json();
+    const { hadithText, apiKey } = body;
 
-    if (!hadithText || typeof hadithText !== 'string') {
-      return NextResponse.json(
-        { error: 'Hadith text is required and must be a string' },
-        { status: 400 }
-      );
+    // Validate hadithText parameter
+    const hadithValidation = validateString(hadithText, 'hadithText', {
+      minLength: 10,
+      maxLength: 50000, // Allow for very long hadith texts
+      trim: false // Preserve whitespace in Arabic text
+    });
+
+    if (!hadithValidation.isValid) {
+      return handleValidationError(hadithValidation.error!);
     }
 
-    if (!apiKey || typeof apiKey !== 'string') {
-      return NextResponse.json(
-        { error: 'API key is required and must be a string' },
-        { status: 400 }
-      );
+    // Validate apiKey parameter
+    const apiKeyValidation = validateString(apiKey, 'apiKey', {
+      minLength: 10,
+      maxLength: 200,
+      pattern: /^[A-Za-z0-9_-]+$/
+    });
+
+    if (!apiKeyValidation.isValid) {
+      return handleValidationError(apiKeyValidation.error!);
     }
 
-    const geminiService = new GeminiService(apiKey);
-    const { narrators, chainText, matn } = await geminiService.extractNarratorsFromHadith(hadithText);
+    const geminiService = new GeminiService(apiKeyValidation.sanitizedValue);
+    const { narrators, chainText, matn } = await geminiService.extractNarratorsFromHadith(hadithValidation.sanitizedValue);
 
     // Return narrators and chainText only (matn is empty for chain analyzer focus)
     // Matching will be done via the match modal
@@ -210,4 +302,7 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+};
+
+// Export with rate limiting applied
+export const POST = withRateLimit(POSTHandler, rateLimiters.expensive);

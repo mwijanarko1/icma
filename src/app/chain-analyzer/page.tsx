@@ -5,6 +5,7 @@ import Link from "next/link";
 import Header from "@/components/Header";
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 // Structured data for better SEO
 const structuredData = {
@@ -71,7 +72,30 @@ function ChainAnalyzerContent() {
 
           {/* Main Content */}
           <div className="max-w-7xl mx-auto px-2 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-8">
-            <HadithAnalyzer initialCollection={collection} />
+            <ErrorBoundary
+              fallback={
+                <div className="p-6 bg-red-50 border border-red-200 rounded-lg">
+                  <h3 className="text-lg font-medium text-red-800 mb-2">
+                    Analysis Tool Error
+                  </h3>
+                  <p className="text-red-600 mb-4">
+                    There was a problem loading the Hadith analyzer. Please try refreshing the page.
+                  </p>
+                  <button
+                    onClick={() => window.location.reload()}
+                    className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+                  >
+                    Refresh Page
+                  </button>
+                </div>
+              }
+              onError={(error, errorInfo) => {
+                console.error('HadithAnalyzer Error:', error, errorInfo);
+                // Could send to monitoring service
+              }}
+            >
+              <HadithAnalyzer initialCollection={collection} />
+            </ErrorBoundary>
           </div>
 
           {/* Footer */}

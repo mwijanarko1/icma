@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import {
@@ -22,7 +22,7 @@ import { generateMermaidCode } from '@/components/hadith-analyzer/visualization/
 import BasicModal from '@/components/ui/BasicModal';
 import type { DraggableChainProps } from './types';
 
-export function DraggableChain({
+export const DraggableChain = React.memo(function DraggableChain({
   chain,
   chainIndex = 0,
   sensors,
@@ -76,7 +76,7 @@ export function DraggableChain({
   const [showCompilerModal, setShowCompilerModal] = useState(false);
 
   return (
-    <div
+    <article
       ref={setNodeRef}
       data-chain-id={chain.id}
       style={{
@@ -94,25 +94,38 @@ export function DraggableChain({
           ? 'bg-white rounded-xl sm:rounded-2xl border-2 border-black ring-4 ring-blue-500 w-full min-w-0 max-w-full'
           : 'bg-white rounded-xl sm:rounded-2xl border-2 border-black w-full min-w-0 max-w-full'
       }
+      role="region"
+      aria-label={`Hadith chain: ${chain.title || `Chain ${chainIndex + 1}`}`}
+      aria-expanded={!isCollapsed}
     >
       {/* Chain Header - Always Visible */}
       <div
         className={`flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 sm:p-6 cursor-pointer gap-3 sm:gap-0 ${!isCollapsed ? 'border-b-2 border-black' : ''}`}
         onClick={() => actions.onToggleCollapse(chain.id)}
-        aria-label={isCollapsed ? "Expand chain" : "Collapse chain"}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            actions.onToggleCollapse(chain.id);
+          }
+        }}
+        role="button"
+        tabIndex={0}
+        aria-label={`${isCollapsed ? "Expand" : "Collapse"} chain: ${chain.title || `Chain ${chainIndex + 1}`}`}
+        aria-expanded={!isCollapsed}
       >
         <div className="flex items-center gap-3 min-w-0 flex-1">
           {/* Drag Handle */}
           <button
             {...attributes}
             {...listeners}
-            className={`p-2 rounded-md border-2 flex-shrink-0 ${
+            className={`p-2 rounded-md border-2 flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
               isDragging
                 ? 'bg-blue-200 border-blue-400 shadow-md'
                 : 'border-black'
             }`}
             aria-label="Drag to reorder chain"
             title="Drag to reorder chain"
+            aria-describedby={`chain-${chain.id}-status`}
           >
             <svg className={`w-4 h-4 ${
               isDragging
@@ -712,7 +725,7 @@ export function DraggableChain({
           </button>
         </div>
       </BasicModal>
-    </div>
+    </article>
   );
-}
+});
 

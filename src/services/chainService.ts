@@ -7,58 +7,85 @@ import type { HadithAnalyzerAction } from '@/reducers/hadithAnalyzerActions';
 import { generateMermaidCode } from '@/components/hadith-analyzer/visualization/utils';
 import { calculateNarratorGrade } from '@/lib/grading/calculator';
 import { saveChains } from '@/lib/cache/storage';
+import { apiCall, FetchError, isNetworkError } from '@/lib/fetch-utils';
 
 export async function fetchLibraryChains(): Promise<LibraryChain[]> {
-  const response = await fetch('/api/chains');
-  const data = await response.json();
+  try {
+    const data = await apiCall('/api/chains', {
+      timeout: 10000, // 10 seconds for library fetch
+      retries: 2
+    });
 
-  if (!data.success) {
-    throw new Error(data.error || 'Failed to fetch library chains');
+    if (!data.success) {
+      throw new FetchError(data.error || 'Failed to fetch library chains', 500, 'Server Error', '/api/chains', data);
+    }
+
+    return data.chains as LibraryChain[];
+  } catch (error) {
+    if (error instanceof FetchError) {
+      throw error;
+    }
+    throw new FetchError(
+      `Failed to fetch library chains: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      undefined,
+      undefined,
+      '/api/chains'
+    );
   }
-
-  return data.chains as LibraryChain[];
 }
 
 export async function loadChainFromLibrary(chainPath: string) {
-  const response = await fetch('/api/chains', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ chainPath }),
-  });
+  try {
+    const data = await apiCall('/api/chains', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ chainPath }),
+      timeout: 15000, // 15 seconds for chain loading
+      retries: 2
+    });
 
-  const data = await response.json();
+    if (!data.success) {
+      throw new FetchError(data.error || 'Failed to load chain from library', 500, 'Server Error', '/api/chains', data);
+    }
 
-  if (!data.success) {
-    throw new Error(data.error || 'Failed to load chain from library');
-  }
-
-  // Migrate old chains that have hadithText to new format with chainText and matn
-  const migratedChains = (data.data.chains || []).map((chain: { hadithText?: string; chainText?: string; matn?: string; [key: string]: unknown }) => {
-    if ('hadithText' in chain && !('chainText' in chain)) {
-      // Old format: migrate hadithText to chainText, leave matn empty
+    // Migrate old chains that have hadithText to new format with chainText and matn
+    const migratedChains = (data.data.chains || []).map((chain: { hadithText?: string; chainText?: string; matn?: string; [key: string]: unknown }) => {
+      if ('hadithText' in chain && !('chainText' in chain)) {
+        // Old format: migrate hadithText to chainText, leave matn empty
+        return {
+          ...chain,
+          chainText: chain.hadithText || '',
+          matn: ''
+        };
+      }
+      // New format or already migrated
       return {
         ...chain,
-        chainText: chain.hadithText || '',
-        matn: ''
+        chainText: chain.chainText || '',
+        matn: chain.matn || ''
       };
-    }
-    // New format or already migrated
-    return {
-      ...chain,
-      chainText: chain.chainText || '',
-      matn: chain.matn || ''
-    };
-  }) as Chain[];
+    }) as Chain[];
 
-  return {
-    hadithText: data.data.hadithText || '',
-    chains: migratedChains,
-    activeTab: data.data.activeTab || 'llm',
-    selectedChainIndex: data.data.selectedChainIndex || 0,
-    showVisualization: data.data.showVisualization || false
-  };
+    return {
+      hadithText: data.data.hadithText || '',
+      chains: migratedChains,
+      activeTab: data.data.activeTab || 'llm',
+      selectedChainIndex: data.data.selectedChainIndex || 0,
+      showVisualization: data.data.showVisualization || false
+    };
+  } catch (error) {
+    if (error instanceof FetchError) {
+      throw error;
+    }
+    throw new FetchError(
+      `Failed to load chain from library: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      undefined,
+      undefined,
+      '/api/chains'
+    );
+  }
 }
 
 // Chain handlers
@@ -257,8 +284,8 @@ export function createChainService(
       dispatch(actions.setIsLoading(true));
       dispatch(actions.setError(null));
 
-      // Call the match-narrators API
-      const response = await fetch('/api/match-narrators', {
+      // Call the match-narrators API with robust error handling
+      const data = await apiCall('/api/match-narrators', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -270,14 +297,9 @@ export function createChainService(
             englishName: n.englishName,
           })),
         }),
+        timeout: 20000, // 20 seconds for narrator matching
+        retries: 2
       });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to match narrators');
-      }
-
-      const data = await response.json();
 
       // Collect matches that need user confirmation
       const matchesToConfirm: typeof state.pendingMatches = [];
@@ -308,8 +330,24 @@ export function createChainService(
       }
     } catch (error) {
       console.error('Error matching narrators:', error);
-      dispatch(actions.setError(error instanceof Error ? error.message : 'Failed to match narrators'));
-      alert(`Error matching narrators: ${error instanceof Error ? error.message : 'Unknown error'}`);
+
+      let errorMessage = 'Failed to match narrators';
+      if (error instanceof FetchError) {
+        if (isNetworkError(error)) {
+          errorMessage = `Network error while matching narrators: ${error.message}. Please check your connection and try again.`;
+        } else if (error.status === 400) {
+          errorMessage = `Invalid narrator data: ${error.message}`;
+        } else if (error.status === 429) {
+          errorMessage = 'Too many requests. Please wait a moment and try again.';
+        } else {
+          errorMessage = `Server error: ${error.message}`;
+        }
+      } else if (error instanceof Error) {
+        errorMessage = `Error matching narrators: ${error.message}`;
+      }
+
+      dispatch(actions.setError(errorMessage));
+      alert(errorMessage);
     } finally {
       dispatch(actions.setIsLoading(false));
     }
@@ -422,7 +460,7 @@ export function createChainService(
       // Process all chains sequentially to collect matches
       for (const chain of chainsWithNarrators) {
         try {
-          const response = await fetch('/api/match-narrators', {
+          const data = await apiCall('/api/match-narrators', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -434,14 +472,9 @@ export function createChainService(
                 englishName: n.englishName,
               })),
             }),
+            timeout: 20000, // 20 seconds for narrator matching
+            retries: 1 // Reduce retries for batch operations
           });
-
-          if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Failed to match narrators');
-          }
-
-          const data = await response.json();
 
           // Collect matches that need user confirmation
           for (const match of data.matches || []) {

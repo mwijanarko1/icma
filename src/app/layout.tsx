@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Playfair_Display, Merriweather } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 // Initialize the Geist font with Latin subset
 const geistSans = Geist({
@@ -94,7 +95,9 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} ${titleFont.variable} ${contentFont.variable} antialiased bg-white text-gray-900`}
       >
         <AuthProvider>
-          {children}
+          <ErrorBoundary>
+            {children}
+          </ErrorBoundary>
         </AuthProvider>
       </body>
     </html>

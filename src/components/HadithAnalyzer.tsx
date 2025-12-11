@@ -2,33 +2,31 @@
 
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import { CACHE_KEYS } from '@/lib/cache/constants';
+import { useCallback, useEffect, useMemo, useRef, useState, lazy, Suspense } from "react";
 import { generateMermaidCode } from '@/components/hadith-analyzer/visualization/utils';
 import { createChainService } from '@/services/chainService';
 import { createNarratorService } from '@/services/narratorService';
-import { ApiKeyModal } from '@/components/hadith-analyzer/settings/ApiKeyModal';
 import { DraggableChain } from '@/components/hadith-analyzer/chains/DraggableChain';
 import { ChainDragOverlay } from '@/components/hadith-analyzer/chains/ChainDragOverlay';
-import { MatchConfirmationModal } from '@/components/hadith-analyzer/matching/MatchConfirmationModal';
 import { ChainCollectionsModal } from '@/components/hadith-analyzer/import/ChainCollectionsModal';
-import { NarratorDetailsModal } from '@/components/hadith-analyzer/narrators/NarratorDetailsModal';
-import { NarratorSearchModal } from '@/components/hadith-analyzer/narrators/NarratorSearchModal';
 import { InputTabs, LLMTab, ManualTab, AddHadithFromDatabaseModal } from '@/components/hadith-analyzer/input';
+import { SessionControls } from '@/components/hadith-analyzer/SessionControls';
+import { ModalsContainer } from '@/components/hadith-analyzer/ModalsContainer';
+import { HadithAnalyzerProvider } from '@/contexts/HadithAnalyzerContext';
 import { useHadithAnalyzer } from '@/hooks/useHadithAnalyzer';
-import { MermaidGraph } from '@/components/hadith-analyzer/visualization/MermaidGraph';
+import { useDragAndDrop } from '@/hooks/useDragAndDrop';
+import { useNarratorSearch } from '@/hooks/useNarratorSearch';
+import { useNarratorSearchModal } from '@/hooks/useNarratorSearchModal';
+
+// Lazy load heavy components
+const MermaidGraph = lazy(() => import('@/components/hadith-analyzer/visualization/MermaidGraph').then(module => ({ default: module.MermaidGraph })));
 import {
   DndContext,
   closestCorners,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
   DragOverlay,
 } from '@dnd-kit/core';
 import {
   SortableContext,
-  sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 
@@ -115,51 +113,51 @@ export default function HadithAnalyzer({ initialCollection }: HadithAnalyzerProp
     [state, dispatch, actions]
   );
 
+  // Memoize event handlers to prevent unnecessary re-renders
+  const handleExportChains = useCallback(() => {
+    chainService.handleExportChains();
+  }, [chainService]);
+
+  // Memoize expensive calculations
+  const chainStats = useMemo(() => {
+    return {
+      totalChains: chains.length,
+      totalNarrators: chains.reduce((sum, chain) => sum + chain.narrators.length, 0),
+      hasMatchedNarrators: chains.some(chain =>
+        chain.narrators.some(narrator => narrator.matched)
+      )
+    };
+  }, [chains]);
+
 
   // Wrapper for extractNarrators that handles the result and returns void
-  const handleExtractNarrators = async (text: string): Promise<void> => {
+  const handleExtractNarrators = useCallback(async (text: string): Promise<void> => {
     await chainService.handleExtractNarrators(extractNarrators, text);
-  };
+  }, [chainService, extractNarrators]);
 
   // Drag and drop sensors
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
+  const { sensors } = useDragAndDrop();
 
 
 
 
 
 
-  // Debounced search with minimum character requirement
-  // Use a ref to track the last query to prevent duplicate searches
-  const lastNarratorTabSearchRef = useRef<string>('');
-  
-  useEffect(() => {
-    const trimmedQuery = narratorSearchQuery.trim();
-    
-    // Only search if query actually changed
-    if (trimmedQuery.length >= 2 && trimmedQuery !== lastNarratorTabSearchRef.current) {
-      lastNarratorTabSearchRef.current = trimmedQuery;
-      const timeoutId = setTimeout(() => {
-        // Create service with current state to avoid stale closures
-        const currentNarratorService = createNarratorService(state, dispatch, actions, generateMermaidCode);
-        currentNarratorService.handleSearchNarrators(trimmedQuery, 0);
-      }, 300);
-
-      return () => clearTimeout(timeoutId);
-    } else if (trimmedQuery.length < 2) {
-      lastNarratorTabSearchRef.current = '';
+  // Debounced narrator search
+  useNarratorSearch({
+    query: narratorSearchQuery,
+    onSearch: (query, offset) => {
+      const currentNarratorService = createNarratorService(state, dispatch, actions, generateMermaidCode);
+      currentNarratorService.handleSearchNarrators(query, offset);
+    },
+    onClear: () => {
       dispatch(actions.setNarratorSearchResults([]));
       dispatch(actions.setNarratorSearchTotal(0));
       dispatch(actions.setNarratorSearchOffset(0));
-    }
-    // Only depend on query - state is accessed from closure
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [narratorSearchQuery]);
+    },
+    debounceMs: 300,
+    minLength: 2
+  });
 
 
 
@@ -191,29 +189,21 @@ export default function HadithAnalyzer({ initialCollection }: HadithAnalyzerProp
 
   // Handler to match narrator from search
 
-  // Search narrators when query changes in modal
-  // Use a ref to track the last query to prevent duplicate searches
-  const lastSearchQueryRef = useRef<string>('');
-  
-  useEffect(() => {
-    // Only search if query actually changed and modal is open
-    if (showNarratorSearchModal && narratorSearchModalQuery.trim() && narratorSearchModalQuery !== lastSearchQueryRef.current) {
-      lastSearchQueryRef.current = narratorSearchModalQuery;
-      // Use a shorter debounce for initial search, longer for subsequent changes
-      const timeoutId = setTimeout(() => {
-        // Create service with current state to avoid stale closures
-        const currentNarratorService = createNarratorService(state, dispatch, actions, generateMermaidCode);
-        currentNarratorService.handleSearchNarratorsModal(narratorSearchModalQuery, 0);
-      }, 100); // Shorter debounce for better UX
-      return () => clearTimeout(timeoutId);
-    } else if (showNarratorSearchModal && !narratorSearchModalQuery.trim()) {
-      lastSearchQueryRef.current = '';
+  // Modal narrator search
+  useNarratorSearchModal({
+    showModal: showNarratorSearchModal,
+    query: narratorSearchModalQuery,
+    onSearch: (query, offset) => {
+      const currentNarratorService = createNarratorService(state, dispatch, actions, generateMermaidCode);
+      currentNarratorService.handleSearchNarratorsModal(query, offset);
+    },
+    onClear: () => {
       dispatch(actions.setNarratorSearchModalResults([]));
       dispatch(actions.setNarratorSearchModalTotal(0));
-    }
-    // Only depend on query and modal visibility - state is accessed from closure
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [narratorSearchModalQuery, showNarratorSearchModal]);
+    },
+    debounceMs: 100,
+    minLength: 1
+  });
 
   // Handler for adding hadith from database
   const handleAddHadithsFromDatabase = (hadiths: Array<{
@@ -263,168 +253,38 @@ export default function HadithAnalyzer({ initialCollection }: HadithAnalyzerProp
     }
   }, [chains, actions, dispatch]);
 
+  const contextValue = {
+    state,
+    dispatch,
+    actions,
+    extractNarrators,
+    handleNewHadith,
+    handleSaveChainAnalysis,
+    isSaving,
+    currentSessionName,
+    handleAcceptMatch: chainService.handleAcceptMatch,
+    handleRejectMatch: chainService.handleRejectMatch,
+    handleAcceptAllMatches: chainService.handleAcceptAllMatches,
+    handleRejectAllMatches: chainService.handleRejectAllMatches,
+    handleSelectMatch: chainService.handleSelectMatch,
+    handleNarratorSearch: (query: string, offset: number) => {
+      const currentNarratorService = createNarratorService(state, dispatch, actions, generateMermaidCode);
+      currentNarratorService.handleSearchNarratorsModal(query, offset);
+    },
+  };
+
   return (
-    <div className="min-h-screen pb-4 sm:pb-8 px-2 sm:px-4 transition-colors duration-200" style={{ backgroundColor: 'transparent' }}>
-      <div className="max-w-7xl mx-auto">
-        {/* API Key Modal */}
-        <ApiKeyModal
-          apiKey={apiKey}
-          showApiKeyModal={showApiKeyModal}
-          onSave={(key) => {
-            dispatch(actions.setApiKey(key));
-            dispatch(actions.setShowApiKeyModal(false));
-          }}
-          onClose={() => dispatch(actions.setShowApiKeyModal(false))}
-        />
-
-        {/* Narrator Details Modal - consolidated from two locations */}
-        <NarratorDetailsModal
-          show={showNarratorModal || showNarratorDetailsModal}
-          narrator={showNarratorModal ? selectedNarratorDetails : selectedNarratorData}
-          isLoading={showNarratorModal ? isLoadingNarratorDetails : isLoadingNarratorData}
-          onClose={() => {
-            if (showNarratorModal) {
-              dispatch(actions.setShowNarratorModal(false));
-            }
-            if (showNarratorDetailsModal) {
-              dispatch(actions.setShowNarratorDetailsModal(false));
-            }
-          }}
-        />
-
-        {/* Match Confirmation Modal */}
-        <MatchConfirmationModal
-          showMatchConfirmationModal={showMatchConfirmationModal}
-          pendingMatches={pendingMatches}
-          currentMatchIndex={currentMatchIndex}
-          acceptedMatchesCount={acceptedMatchesCount}
-          onClose={() => dispatch(actions.setShowMatchConfirmationModal(false))}
-          onAcceptMatch={chainService.handleAcceptMatch}
-          onRejectMatch={chainService.handleRejectMatch}
-          onAcceptAllMatches={chainService.handleAcceptAllMatches}
-          onRejectAllMatches={chainService.handleRejectAllMatches}
-          onSelectMatch={chainService.handleSelectMatch}
-        />
+    <HadithAnalyzerProvider value={contextValue}>
+      <div className="min-h-screen pb-4 sm:pb-8 px-2 sm:px-4 transition-colors duration-200" style={{ backgroundColor: 'transparent' }}>
+        <div className="max-w-7xl mx-auto">
+        {/* All Modals */}
+        <ModalsContainer />
 
         {/* Tab Navigation */}
         <InputTabs activeTab={activeTab} onTabChange={(tab) => dispatch(actions.setActiveTab(tab))} />
 
         {/* Session Name and Action Buttons - shown when chains exist */}
-        <ClientOnly>
-          {(chains.length > 0 || hadithText.trim().length > 0) && (
-            <div className="mb-6">
-              {/* Mobile layout: Session name above buttons */}
-              <div className="block sm:hidden">
-                {chains.length > 0 && currentSessionName && (
-                  <div className="flex justify-center mb-4">
-                    <p className="text-xl font-bold" style={{ fontFamily: 'var(--font-title)', color: '#000000' }}>
-                      {currentSessionName}
-                    </p>
-                  </div>
-                )}
-                <div className="flex justify-center gap-4">
-                  <button
-                    onClick={handleSaveChainAnalysis}
-                    disabled={isSaving}
-                    className="px-6 py-3 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-black flex items-center gap-2 text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
-                    style={{ backgroundColor: '#000000', color: '#f2e9dd', fontFamily: 'var(--font-content)' }}
-                    title="Save your current chain analysis session"
-                  >
-                    {isSaving ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                        Saving...
-                      </>
-                    ) : (
-                      <>
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
-                        </svg>
-                        Save Session
-                      </>
-                    )}
-                  </button>
-                  <button
-                    onClick={handleNewHadith}
-                    className="px-6 py-3 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-black flex items-center gap-2 text-sm font-semibold"
-                    style={{ backgroundColor: '#000000', color: '#f2e9dd', fontFamily: 'var(--font-content)' }}
-                    title="Start a new hadith (this will clear all current chains)"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                    </svg>
-                    New Hadith
-                  </button>
-                  <button
-                    onClick={chainService.handleExportChains}
-                    className="px-6 py-3 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-black flex items-center gap-2 text-sm font-semibold"
-                    style={{ backgroundColor: '#000000', color: '#f2e9dd', fontFamily: 'var(--font-content)' }}
-                    title="Export all chains and data as JSON"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    Export Chains
-                  </button>
-                </div>
-              </div>
-
-              {/* Desktop layout: Session name and buttons on same row */}
-              <div className="hidden sm:flex sm:items-center sm:justify-between">
-                {chains.length > 0 && currentSessionName && (
-                  <p className="text-xl font-bold" style={{ fontFamily: 'var(--font-title)', color: '#000000' }}>
-                    {currentSessionName}
-                  </p>
-                )}
-                <div className="flex gap-4">
-                  <button
-                    onClick={handleSaveChainAnalysis}
-                    disabled={isSaving}
-                    className="px-6 py-3 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-black flex items-center gap-2 text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
-                    style={{ backgroundColor: '#000000', color: '#f2e9dd', fontFamily: 'var(--font-content)' }}
-                    title="Save your current chain analysis session"
-                  >
-                    {isSaving ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                        Saving...
-                      </>
-                    ) : (
-                      <>
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
-                        </svg>
-                        Save Session
-                      </>
-                    )}
-                  </button>
-                  <button
-                    onClick={handleNewHadith}
-                    className="px-6 py-3 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-black flex items-center gap-2 text-sm font-semibold"
-                    style={{ backgroundColor: '#000000', color: '#f2e9dd', fontFamily: 'var(--font-content)' }}
-                    title="Start a new hadith (this will clear all current chains)"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                    </svg>
-                    New Hadith
-                  </button>
-                  <button
-                    onClick={chainService.handleExportChains}
-                    className="px-6 py-3 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-black flex items-center gap-2 text-sm font-semibold"
-                    style={{ backgroundColor: '#000000', color: '#f2e9dd', fontFamily: 'var(--font-content)' }}
-                    title="Export all chains and data as JSON"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    Export Chains
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-        </ClientOnly>
+        <SessionControls />
 
         {/* LLM Extraction Tab */}
         {activeTab === 'llm' && (
@@ -592,54 +452,54 @@ export default function HadithAnalyzer({ initialCollection }: HadithAnalyzerProp
 
         {/* Visualization Section */}
         {showVisualization && mermaidCode && (
-          <MermaidGraph
-            chains={chains}
-            showVisualization={showVisualization}
-            onHide={() => dispatch(actions.setShowVisualization(false))}
-            onEdgeHover={(chainIndices) => {
-              // Only highlight, no scrolling
-              const chainIds = chainIndices
-                .map(idx => chains[idx]?.id)
-                .filter((id): id is string => id !== undefined);
-              dispatch(actions.setHighlightedChainIds(chainIds));
-            }}
-            onEdgeClick={(chainIndices) => {
-              // Highlight and scroll to chain cards
-              const chainIds = chainIndices
-                .map(idx => chains[idx]?.id)
-                .filter((id): id is string => id !== undefined);
-              dispatch(actions.setHighlightedChainIds(chainIds));
-              
-              // Scroll to first highlighted chain if any
-              if (chainIds.length > 0) {
-                const firstChainId = chainIds[0];
-                setTimeout(() => {
-                  const chainElement = document.querySelector(`[data-chain-id="${firstChainId}"]`);
-                  if (chainElement) {
-                    chainElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                  }
-                }, 100);
-              }
-            }}
-            highlightedChainIds={highlightedChainIds}
-          />
+          <Suspense fallback={
+            <div className="rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 border-2 border-black bg-white mb-6 mt-6 flex items-center justify-center" style={{ boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(0, 0, 0, 0.1)' }}>
+              <div className="text-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black mx-auto mb-4"></div>
+                <p className="text-lg font-medium" style={{ fontFamily: 'var(--font-title)', color: '#000000' }}>
+                  Loading Visualization...
+                </p>
+                <p className="text-sm opacity-75" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>
+                  Initializing chain diagram
+                </p>
+              </div>
+            </div>
+          }>
+            <MermaidGraph
+              chains={chains}
+              showVisualization={showVisualization}
+              onHide={() => dispatch(actions.setShowVisualization(false))}
+              onEdgeHover={(chainIndices) => {
+                // Only highlight, no scrolling
+                const chainIds = chainIndices
+                  .map(idx => chains[idx]?.id)
+                  .filter((id): id is string => id !== undefined);
+                dispatch(actions.setHighlightedChainIds(chainIds));
+              }}
+              onEdgeClick={(chainIndices) => {
+                // Highlight and scroll to chain cards
+                const chainIds = chainIndices
+                  .map(idx => chains[idx]?.id)
+                  .filter((id): id is string => id !== undefined);
+                dispatch(actions.setHighlightedChainIds(chainIds));
+
+                // Scroll to first highlighted chain if any
+                if (chainIds.length > 0) {
+                  const firstChainId = chainIds[0];
+                  setTimeout(() => {
+                    const chainElement = document.querySelector(`[data-chain-id="${firstChainId}"]`);
+                    if (chainElement) {
+                      chainElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                  }, 100);
+                }
+              }}
+              highlightedChainIds={highlightedChainIds}
+            />
+          </Suspense>
         )}
 
       </div>
-
-
-      <NarratorSearchModal
-        show={showNarratorSearchModal}
-        searchQuery={narratorSearchModalQuery}
-        searchResults={narratorSearchModalResults}
-        totalResults={narratorSearchModalTotal}
-        offset={narratorSearchModalOffset}
-        isSearching={isSearchingModal}
-        onClose={() => dispatch(actions.setShowNarratorSearchModal(false))}
-        onSearchQueryChange={(query) => dispatch(actions.setNarratorSearchModalQuery(query))}
-        onLoadMore={narratorService.handleSearchNarratorsModal}
-        onMatchNarrator={narratorService.handleMatchNarratorFromSearch}
-      />
 
       <ChainCollectionsModal
         show={showImportModal}
@@ -656,5 +516,6 @@ export default function HadithAnalyzer({ initialCollection }: HadithAnalyzerProp
         isLoading={isLoading}
       />
     </div>
+    </HadithAnalyzerProvider>
   );
 }
