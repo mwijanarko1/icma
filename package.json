@@ -20,6 +20,7 @@
     "cytoscape": "^3.33.1",
     "cytoscape-dagre": "^2.5.0",
     "d3": "^7.9.0",
+    "firebase": "^12.6.0",
     "framer-motion": "^12.23.25",
     "glob": "13.0.0",
     "js-yaml": "4.1.1",
