@@ -454,7 +454,7 @@ export default function HomePage() {
           <div className="border-t border-black/10 pt-8">
             <div className="flex flex-col md:flex-row justify-between items-center gap-4">
               <p className="text-sm text-center md:text-left" style={{ fontFamily: 'var(--font-content)', color: '#000000', opacity: 0.7 }}>
-                © {new Date().getFullYear()} ICMA - Hadith Chain Analyzer. All rights reserved.
+                © <span suppressHydrationWarning>{new Date().getFullYear()}</span> ICMA - Hadith Chain Analyzer. All rights reserved.
               </p>
               <div className="flex items-center gap-6">
                 <Link

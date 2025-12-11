@@ -284,7 +284,9 @@ export default function HadithAnalyzer({ initialCollection }: HadithAnalyzerProp
         <InputTabs activeTab={activeTab} onTabChange={(tab) => dispatch(actions.setActiveTab(tab))} />
 
         {/* Session Name and Action Buttons - shown when chains exist */}
-        <SessionControls />
+        <ClientOnly>
+          <SessionControls />
+        </ClientOnly>
 
         {/* LLM Extraction Tab */}
         {activeTab === 'llm' && (
