@@ -142,6 +142,44 @@ export const saveSelectedChain = (index: number): void => {
   }
 };
 
+// Load cached session ID
+export const loadCachedSessionId = (): string | null => {
+  try {
+    return localStorage.getItem(CACHE_KEYS.SESSION_ID);
+  } catch (error) {
+    console.warn('Failed to load cached session ID:', error);
+    return null;
+  }
+};
+
+// Save session ID to cache
+export const saveSessionId = (sessionId: string): void => {
+  try {
+    localStorage.setItem(CACHE_KEYS.SESSION_ID, sessionId);
+  } catch (error) {
+    console.warn('Failed to cache session ID:', error);
+  }
+};
+
+// Load cached session name
+export const loadCachedSessionName = (): string | null => {
+  try {
+    return localStorage.getItem(CACHE_KEYS.SESSION_NAME);
+  } catch (error) {
+    console.warn('Failed to load cached session name:', error);
+    return null;
+  }
+};
+
+// Save session name to cache
+export const saveSessionName = (sessionName: string): void => {
+  try {
+    localStorage.setItem(CACHE_KEYS.SESSION_NAME, sessionName);
+  } catch (error) {
+    console.warn('Failed to cache session name:', error);
+  }
+};
+
 // Load cached analysis selected hadiths
 export const loadCachedAnalysisSelectedHadiths = (): SelectedHadith[] | null => {
   try {
@@ -228,6 +266,8 @@ export const clearAllCache = (): void => {
     localStorage.removeItem(CACHE_KEYS.SHOW_VISUALIZATION);
     localStorage.removeItem(CACHE_KEYS.ACTIVE_TAB);
     localStorage.removeItem(CACHE_KEYS.SELECTED_CHAIN);
+    localStorage.removeItem(CACHE_KEYS.SESSION_ID);
+    localStorage.removeItem(CACHE_KEYS.SESSION_NAME);
     localStorage.removeItem(CACHE_KEYS.ANALYSIS_SELECTED_HADITHS);
     localStorage.removeItem(CACHE_KEYS.ANALYSIS_ACTIVE_STEP);
     localStorage.removeItem(CACHE_KEYS.ANALYSIS_STEPS_STATUS);

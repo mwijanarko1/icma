@@ -18,6 +18,7 @@ export const ModalsContainer = React.memo(function ModalsContainer() {
     handleRejectAllMatches,
     handleSelectMatch,
     handleNarratorSearch,
+    handleMatchNarratorFromSearch,
   } = useHadithAnalyzerContext();
 
   const {
@@ -93,10 +94,7 @@ export const ModalsContainer = React.memo(function ModalsContainer() {
         onClose={() => dispatch(actions.setShowNarratorSearchModal(false))}
         onSearchQueryChange={(query) => dispatch(actions.setNarratorSearchModalQuery(query))}
         onLoadMore={handleNarratorSearch}
-        onMatchNarrator={(narrator) => {
-          // Handle narrator matching - could be improved with proper service call
-          console.log('Match narrator:', narrator);
-        }}
+        onMatchNarrator={handleMatchNarratorFromSearch}
       />
     </>
   );

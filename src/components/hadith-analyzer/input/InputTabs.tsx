@@ -5,15 +5,24 @@ import { useAuth } from '@/contexts/AuthContext';
 import type { InputTabsProps } from './types';
 
 export function InputTabs({ activeTab, onTabChange }: InputTabsProps) {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const tabsRef = useRef<HTMLDivElement>(null);
 
   // Define available tabs based on authentication status
-  const tabs = user ? (['llm', 'manual'] as const) : (['llm', 'manual', 'settings'] as const);
+  // Show settings tab only when user is not authenticated (and not loading)
+  const showSettingsTab = !loading && !user;
+  const tabs = showSettingsTab ? (['llm', 'manual', 'settings'] as const) : (['llm', 'manual'] as const);
 
   // Ensure activeTab is valid for current authentication state
   const isValidTab = tabs.includes(activeTab as any);
   const effectiveActiveTab = (isValidTab ? activeTab : tabs[0]) as typeof tabs[number];
+
+  // If settings tab is hidden but activeTab is 'settings', switch to 'llm'
+  useEffect(() => {
+    if (!showSettingsTab && activeTab === 'settings') {
+      onTabChange('llm');
+    }
+  }, [showSettingsTab, activeTab, onTabChange]);
 
   // Keyboard navigation
   useEffect(() => {
@@ -92,7 +101,7 @@ export function InputTabs({ activeTab, onTabChange }: InputTabsProps) {
           >
             Manual Builder
           </button>
-          {!user && (
+          {showSettingsTab && (
             <button
               onClick={() => onTabChange('settings')}
               className={`py-2 px-1 border-b-2 font-semibold text-xs sm:text-sm transition-colors whitespace-nowrap focus:outline-none ${activeTab !== 'settings' ? 'focus:ring-2 focus:ring-blue-500 focus:ring-offset-2' : ''}`}

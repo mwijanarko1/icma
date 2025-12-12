@@ -272,6 +272,10 @@ export default function HadithAnalyzer({ initialCollection }: HadithAnalyzerProp
       const currentNarratorService = createNarratorService(state, dispatch, actions, generateMermaidCode);
       currentNarratorService.handleSearchNarratorsModal(query, offset);
     },
+    handleMatchNarratorFromSearch: (narrator: any) => {
+      const currentNarratorService = createNarratorService(state, dispatch, actions, generateMermaidCode);
+      return currentNarratorService.handleMatchNarratorFromSearch(narrator);
+    },
   };
 
   return (

@@ -138,3 +138,5 @@ END;
 -- PRAGMA temp_store = memory; -- Store temp tables in memory
 -- PRAGMA mmap_size = 268435456; -- 256MB memory map
 -- PRAGMA synchronous = NORMAL; -- Balance performance and safety
+
+

@@ -21,6 +21,7 @@ interface HadithAnalyzerContextType {
   handleRejectAllMatches: () => void;
   handleSelectMatch: (matchIndex: number, selectedIndex: number) => void;
   handleNarratorSearch: (query: string, offset: number) => void;
+  handleMatchNarratorFromSearch: (narrator: any) => Promise<void>;
 }
 
 // Create the context

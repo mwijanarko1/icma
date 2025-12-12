@@ -6,6 +6,8 @@ export const CACHE_KEYS = {
   API_KEY: 'hadith-analyzer-api-key',
   ACTIVE_TAB: 'hadith-analyzer-active-tab',
   SELECTED_CHAIN: 'hadith-analyzer-selected-chain',
+  SESSION_ID: 'hadith-analyzer-session-id',
+  SESSION_NAME: 'hadith-analyzer-session-name',
   ANALYSIS_SELECTED_HADITHS: 'analysis-selected-hadiths',
   ANALYSIS_ACTIVE_STEP: 'analysis-active-step',
   ANALYSIS_STEPS_STATUS: 'analysis-steps-status'

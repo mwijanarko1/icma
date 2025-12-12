@@ -13,12 +13,16 @@ import {
   loadCachedApiKey,
   loadCachedActiveTab,
   loadCachedSelectedChain,
+  loadCachedSessionId,
+  loadCachedSessionName,
   saveHadithText,
   saveChains,
   saveShowVisualization,
   saveApiKey,
   saveActiveTab,
   saveSelectedChain,
+  saveSessionId,
+  saveSessionName,
   clearAllCache
 } from "@/lib/cache/storage";
 import { CACHE_KEYS } from "@/lib/cache/constants";
@@ -60,6 +64,8 @@ function getInitialState(): { state: HadithAnalyzerState; sessionId: string | nu
   const cachedApiKey = typeof window !== 'undefined' ? loadCachedApiKey() : null;
   const cachedActiveTab = typeof window !== 'undefined' ? loadCachedActiveTab() : null;
   const cachedSelectedChain = typeof window !== 'undefined' ? loadCachedSelectedChain() : null;
+  const cachedSessionId = loadedSession?.id || (typeof window !== 'undefined' ? loadCachedSessionId() : null);
+  const cachedSessionName = loadedSession?.name || (typeof window !== 'undefined' ? loadCachedSessionName() : null);
 
   // Validate activeTab to ensure it matches the state type
   const validActiveTab = cachedActiveTab &&
@@ -79,8 +85,8 @@ function getInitialState(): { state: HadithAnalyzerState; sessionId: string | nu
 
   return {
     state,
-    sessionId: loadedSession?.id || null,
-    sessionName: loadedSession?.name || null
+    sessionId: cachedSessionId,
+    sessionName: cachedSessionName
   };
 }
 
@@ -246,6 +252,32 @@ export function useHadithAnalyzer(initialCollection?: string | null) {
   useEffect(() => {
     saveSelectedChain(state.selectedChainIndex);
   }, [state.selectedChainIndex]);
+
+  useEffect(() => {
+    if (currentSessionId) {
+      saveSessionId(currentSessionId);
+    } else {
+      // Clear session ID from cache when it's null
+      try {
+        localStorage.removeItem(CACHE_KEYS.SESSION_ID);
+      } catch (error) {
+        console.warn('Failed to clear cached session ID:', error);
+      }
+    }
+  }, [currentSessionId]);
+
+  useEffect(() => {
+    if (currentSessionName) {
+      saveSessionName(currentSessionName);
+    } else {
+      // Clear session name from cache when it's null
+      try {
+        localStorage.removeItem(CACHE_KEYS.SESSION_NAME);
+      } catch (error) {
+        console.warn('Failed to clear cached session name:', error);
+      }
+    }
+  }, [currentSessionName]);
 
   // Extract narrators from text
   const extractNarrators = useCallback(async (text: string): Promise<{ narrators: Narrator[]; chainText: string; matn: string }> => {
