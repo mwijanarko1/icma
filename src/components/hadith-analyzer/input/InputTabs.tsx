@@ -60,7 +60,7 @@ export function InputTabs({ activeTab, onTabChange }: InputTabsProps) {
         >
           <button
             onClick={() => onTabChange('llm')}
-            className="py-2 px-1 border-b-2 font-semibold text-xs sm:text-sm transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            className={`py-2 px-1 border-b-2 font-semibold text-xs sm:text-sm transition-colors whitespace-nowrap focus:outline-none ${activeTab !== 'llm' ? 'focus:ring-2 focus:ring-blue-500 focus:ring-offset-2' : ''}`}
             style={{
               borderColor: activeTab === 'llm' ? '#000000' : 'transparent',
               color: activeTab === 'llm' ? '#000000' : '#000000',
@@ -77,7 +77,7 @@ export function InputTabs({ activeTab, onTabChange }: InputTabsProps) {
           </button>
           <button
             onClick={() => onTabChange('manual')}
-            className="py-2 px-1 border-b-2 font-semibold text-xs sm:text-sm transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            className={`py-2 px-1 border-b-2 font-semibold text-xs sm:text-sm transition-colors whitespace-nowrap focus:outline-none ${activeTab !== 'manual' ? 'focus:ring-2 focus:ring-blue-500 focus:ring-offset-2' : ''}`}
             style={{
               borderColor: activeTab === 'manual' ? '#000000' : 'transparent',
               color: activeTab === 'manual' ? '#000000' : '#000000',
@@ -95,7 +95,7 @@ export function InputTabs({ activeTab, onTabChange }: InputTabsProps) {
           {!user && (
             <button
               onClick={() => onTabChange('settings')}
-              className="py-2 px-1 border-b-2 font-semibold text-xs sm:text-sm transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              className={`py-2 px-1 border-b-2 font-semibold text-xs sm:text-sm transition-colors whitespace-nowrap focus:outline-none ${activeTab !== 'settings' ? 'focus:ring-2 focus:ring-blue-500 focus:ring-offset-2' : ''}`}
               style={{
                 borderColor: activeTab === 'settings' ? '#000000' : 'transparent',
                 color: activeTab === 'settings' ? '#000000' : '#000000',

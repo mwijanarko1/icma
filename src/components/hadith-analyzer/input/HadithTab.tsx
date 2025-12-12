@@ -350,8 +350,8 @@ export function HadithTab({ selectedHadiths = [], onSelectedHadithsChange, showS
                 }
               }}
               placeholder="Search by collection + number (e.g., 'tirmidhi 23', 'muslim 8a'), hadith number, English text, or Arabic text..."
-              className="flex-1 px-3 sm:px-4 py-2 sm:py-3 border-2 border-black rounded-lg focus:outline-none focus:ring-2 focus:ring-black bg-white text-gray-900 placeholder-gray-500 text-sm sm:text-base"
-              style={{ fontFamily: 'var(--font-content)' }}
+              className="flex-1 px-3 sm:px-4 py-2 sm:py-3 border-2 border-black rounded-lg focus:outline-none focus:ring-0 bg-white text-gray-900 placeholder-gray-500 text-sm sm:text-base"
+              style={{ fontFamily: 'var(--font-content)', outline: 'none' }}
             />
             {searchQuery && (
               <button
@@ -573,12 +573,6 @@ export function HadithTab({ selectedHadiths = [], onSelectedHadithsChange, showS
           {!isLoading && hadithList.length === 0 && searchQuery && (
             <div className="text-center py-12">
               <p style={{ fontFamily: 'var(--font-content)', color: '#000000', opacity: 0.6 }}>No results found for &quot;{searchQuery}&quot;</p>
-            </div>
-          )}
-
-          {!isLoading && hadithList.length === 0 && !searchQuery && !error && (
-            <div className="text-center py-12">
-              <p style={{ fontFamily: 'var(--font-content)', color: '#000000', opacity: 0.6 }}>No hadith found</p>
             </div>
           )}
         </div>

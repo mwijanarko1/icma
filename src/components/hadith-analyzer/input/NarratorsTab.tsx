@@ -26,8 +26,8 @@ export function NarratorsTab({
             value={narratorSearchQuery}
             onChange={(e) => onNarratorSearchQueryChange(e.target.value)}
             placeholder="Search by name (Arabic or English), title, kunya, or lineage... (min. 2 characters)"
-            className="flex-1 px-4 py-3 border-2 border-black rounded-lg focus:outline-none focus:ring-2 focus:ring-black bg-white text-gray-900 placeholder-gray-500"
-            style={{ fontFamily: 'var(--font-content)' }}
+            className="flex-1 px-4 py-3 border-2 border-black rounded-lg focus:outline-none focus:ring-0 bg-white text-gray-900 placeholder-gray-500"
+            style={{ fontFamily: 'var(--font-content)', outline: 'none' }}
             dir="auto"
           />
           {isSearchingNarrators && (

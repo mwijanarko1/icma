@@ -5,13 +5,13 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import Header from "@/components/Header";
 import { CACHE_KEYS } from "@/lib/cache/constants";
+import { ApiKeyModal } from "@/components/hadith-analyzer/settings/ApiKeyModal";
 
 export default function SettingsPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
   const [apiKey, setApiKey] = useState<string>("");
   const [showApiKeyModal, setShowApiKeyModal] = useState(false);
-  const [tempApiKey, setTempApiKey] = useState("");
 
   useEffect(() => {
     if (!loading && !user) {
@@ -27,14 +27,6 @@ export default function SettingsPage() {
     }
   }, []);
 
-  const handleSaveApiKey = () => {
-    if (tempApiKey.trim()) {
-      localStorage.setItem(CACHE_KEYS.API_KEY, tempApiKey.trim());
-      setApiKey(tempApiKey.trim());
-      setShowApiKeyModal(false);
-      setTempApiKey("");
-    }
-  };
 
   const handleClearCache = () => {
     localStorage.removeItem(CACHE_KEYS.HADITH_TEXT);
@@ -155,46 +147,16 @@ export default function SettingsPage() {
       </div>
 
       {/* API Key Modal */}
-      {showApiKeyModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl p-6 max-w-md w-full border-2 border-black">
-            <h3 className="text-xl font-bold mb-4" style={{ fontFamily: 'var(--font-title)', color: '#000000' }}>
-              {apiKey ? 'Update API Key' : 'Add API Key'}
-            </h3>
-            <p className="text-sm mb-4" style={{ fontFamily: 'var(--font-content)', color: '#000000', opacity: 0.7 }}>
-              Enter your Google Gemini API key for narrator extraction functionality.
-            </p>
-            <input
-              type="password"
-              value={tempApiKey}
-              onChange={(e) => setTempApiKey(e.target.value)}
-              placeholder="Enter your Google Gemini API key..."
-              className="w-full px-3 py-2 border-2 border-black rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-black"
-              style={{ fontFamily: 'var(--font-content)' }}
-            />
-            <div className="flex gap-3">
-              <button
-                onClick={() => {
-                  setShowApiKeyModal(false);
-                  setTempApiKey("");
-                }}
-                className="flex-1 px-4 py-2 border-2 border-black rounded-lg transition-colors hover:bg-gray-100"
-                style={{ fontFamily: 'var(--font-content)', color: '#000000' }}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSaveApiKey}
-                disabled={!tempApiKey.trim()}
-                className="flex-1 px-4 py-2 border-2 border-black rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                style={{ backgroundColor: '#000000', color: '#f2e9dd', fontFamily: 'var(--font-content)' }}
-              >
-                Save
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ApiKeyModal
+        apiKey={apiKey}
+        showApiKeyModal={showApiKeyModal}
+        onSave={(key) => {
+          localStorage.setItem(CACHE_KEYS.API_KEY, key);
+          setApiKey(key);
+          setShowApiKeyModal(false);
+        }}
+        onClose={() => setShowApiKeyModal(false)}
+      />
     </div>
   );
 }
