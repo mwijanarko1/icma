@@ -26,7 +26,7 @@
     "js-yaml": "4.1.1",
     "lucide-react": "^0.556.0",
     "mermaid": "^11.12.2",
-    "next": "^16.0.8",
+    "next": "^16.0.9",
     "react": "^19.2.1",
     "react-dom": "^19.2.1",
     "usehooks-ts": "^3.1.1"
