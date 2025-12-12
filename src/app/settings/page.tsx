@@ -162,13 +162,13 @@ export default function SettingsPage() {
               {apiKey ? 'Update API Key' : 'Add API Key'}
             </h3>
             <p className="text-sm mb-4" style={{ fontFamily: 'var(--font-content)', color: '#000000', opacity: 0.7 }}>
-              Enter your OpenAI API key for narrator extraction functionality.
+              Enter your Google Gemini API key for narrator extraction functionality.
             </p>
             <input
               type="password"
               value={tempApiKey}
               onChange={(e) => setTempApiKey(e.target.value)}
-              placeholder="sk-..."
+              placeholder="Enter your Google Gemini API key..."
               className="w-full px-3 py-2 border-2 border-black rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-black"
               style={{ fontFamily: 'var(--font-content)' }}
             />

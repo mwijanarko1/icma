@@ -9,7 +9,7 @@ import { createNarratorService } from '@/services/narratorService';
 import { DraggableChain } from '@/components/hadith-analyzer/chains/DraggableChain';
 import { ChainDragOverlay } from '@/components/hadith-analyzer/chains/ChainDragOverlay';
 import { ChainCollectionsModal } from '@/components/hadith-analyzer/import/ChainCollectionsModal';
-import { InputTabs, LLMTab, ManualTab, AddHadithFromDatabaseModal } from '@/components/hadith-analyzer/input';
+import { InputTabs, LLMTab, ManualTab, SettingsTab, AddHadithFromDatabaseModal } from '@/components/hadith-analyzer/input';
 import { SessionControls } from '@/components/hadith-analyzer/SessionControls';
 import { ModalsContainer } from '@/components/hadith-analyzer/ModalsContainer';
 import { HadithAnalyzerProvider } from '@/contexts/HadithAnalyzerContext';
@@ -57,6 +57,7 @@ export default function HadithAnalyzer({ initialCollection }: HadithAnalyzerProp
     dispatch,
     actions,
     extractNarrators,
+    handleClearCache,
     handleNewHadith,
     handleSaveChainAnalysis,
     isSaving,
@@ -332,6 +333,17 @@ export default function HadithAnalyzer({ initialCollection }: HadithAnalyzerProp
             onRemoveNarrator={narratorService.handleRemoveNarratorManual}
             onClearNarrators={narratorService.handleClearNarrators}
           />
+        )}
+
+        {/* Settings Tab */}
+        {activeTab === 'settings' && (
+          <ClientOnly>
+            <SettingsTab
+              apiKey={apiKey}
+              onOpenApiKeyModal={() => dispatch(actions.setShowApiKeyModal(true))}
+              onClearCache={handleClearCache}
+            />
+          </ClientOnly>
         )}
 
 

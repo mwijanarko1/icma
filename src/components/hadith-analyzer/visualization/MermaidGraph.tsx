@@ -6,6 +6,7 @@ import dagre from 'cytoscape-dagre';
 import type { MermaidGraphProps } from './types';
 import type { Chain } from '@/types/hadith';
 import { getChainColors } from './utils';
+import { normalizeArabic } from '@/lib/chains/chainUtils';
 
 interface CytoNode {
   data: {
@@ -82,8 +83,8 @@ const createCytoscapeGraph = (
   visibleChains.forEach((chain) => {
     chain.narrators.forEach((narrator, position) => {
       const rank = position + 1;
-      const key = `${narrator.arabicName}-${rank}`; // Include rank in key
-      
+      const key = `${normalizeArabic(narrator.arabicName)}-${rank}`; // Include rank in key
+
       // Only create node if it doesn't exist at this rank
       // Same narrator at same rank across chains will be grouped
       if (!narratorMap.has(key)) {
@@ -130,8 +131,8 @@ const createCytoscapeGraph = (
     for (let i = 0; i < chain.narrators.length - 1; i++) {
       const fromRank = i + 1;
       const toRank = i + 2;
-      const fromName = chain.narrators[i].arabicName;
-      const toName = chain.narrators[i + 1].arabicName;
+      const fromName = normalizeArabic(chain.narrators[i].arabicName);
+      const toName = normalizeArabic(chain.narrators[i + 1].arabicName);
       const fromId = `${fromName}-${fromRank}`;
       const toId = `${toName}-${toRank}`;
       const edgeKey = `${fromId}->${toId}`;

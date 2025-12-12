@@ -1,18 +1,27 @@
 "use client";
 
 import { useEffect, useRef } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 import type { InputTabsProps } from './types';
 
 export function InputTabs({ activeTab, onTabChange }: InputTabsProps) {
+  const { user } = useAuth();
   const tabsRef = useRef<HTMLDivElement>(null);
+
+  // Define available tabs based on authentication status
+  const tabs = user ? (['llm', 'manual'] as const) : (['llm', 'manual', 'settings'] as const);
+
+  // Ensure activeTab is valid for current authentication state
+  const isValidTab = tabs.includes(activeTab as any);
+  const effectiveActiveTab = (isValidTab ? activeTab : tabs[0]) as typeof tabs[number];
 
   // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (!tabsRef.current?.contains(event.target as Node)) return;
 
-      const tabs = ['llm', 'manual'] as const;
-      const currentIndex = tabs.indexOf(activeTab as typeof tabs[number]);
+      const currentIndex = (tabs as readonly string[]).indexOf(effectiveActiveTab);
+      if (currentIndex === -1) return;
 
       switch (event.key) {
         case 'ArrowLeft':
@@ -38,7 +47,7 @@ export function InputTabs({ activeTab, onTabChange }: InputTabsProps) {
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [activeTab, onTabChange]);
+  }, [activeTab, onTabChange, tabs]);
 
   return (
     <div className="mb-4 sm:mb-6">
@@ -83,6 +92,25 @@ export function InputTabs({ activeTab, onTabChange }: InputTabsProps) {
           >
             Manual Builder
           </button>
+          {!user && (
+            <button
+              onClick={() => onTabChange('settings')}
+              className="py-2 px-1 border-b-2 font-semibold text-xs sm:text-sm transition-colors whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              style={{
+                borderColor: activeTab === 'settings' ? '#000000' : 'transparent',
+                color: activeTab === 'settings' ? '#000000' : '#000000',
+                opacity: activeTab === 'settings' ? 1 : 0.6,
+                fontFamily: 'var(--font-content)'
+              }}
+              role="tab"
+              aria-selected={activeTab === 'settings'}
+              aria-controls="settings-panel"
+              id="settings-tab"
+              tabIndex={activeTab === 'settings' ? 0 : -1}
+            >
+              Settings
+            </button>
+          )}
         </nav>
       </div>
     </div>

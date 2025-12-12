@@ -8,7 +8,7 @@ import type { Chain } from '@/types/hadith';
 export function migrateChainsToNewFormat(chains: unknown[]): Chain[] {
   return chains.map((chain) => {
     const chainObj = chain as { hadithText?: string; chainText?: string; matn?: string; [key: string]: unknown };
-    
+
     if ('hadithText' in chainObj && !('chainText' in chainObj)) {
       // Old format: migrate hadithText to chainText, leave matn empty
       return {
@@ -17,7 +17,7 @@ export function migrateChainsToNewFormat(chains: unknown[]): Chain[] {
         matn: ''
       };
     }
-    
+
     // New format or already migrated
     return {
       ...chainObj,
@@ -25,4 +25,20 @@ export function migrateChainsToNewFormat(chains: unknown[]): Chain[] {
       matn: chainObj.matn || ''
     };
   }) as Chain[];
+}
+
+/**
+ * Normalize Arabic text for better matching
+ * Removes diacritics, extra spaces, common variations, and normalizes ابي to ابو
+ */
+export function normalizeArabic(text: string): string {
+  return text
+    .replace(/[ًٌٍَُِّْ]/g, '') // Remove diacritics (harakats)
+    .replace(/[أإآا]/g, 'ا') // Normalize alef variations
+    .replace(/[ىي]/g, 'ي') // Normalize yeh variations
+    .replace(/[ةه]/g, 'ه') // Normalize teh marbuta
+    .replace(/ابي|أبي/g, 'ابو') // Normalize ابي to ابو (so abi huraira = abu huraira)
+    .replace(/\s+/g, ' ') // Normalize spaces
+    .trim()
+    .toLowerCase();
 }

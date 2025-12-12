@@ -63,7 +63,7 @@ function getInitialState(): { state: HadithAnalyzerState; sessionId: string | nu
 
   // Validate activeTab to ensure it matches the state type
   const validActiveTab = cachedActiveTab &&
-    (cachedActiveTab === 'llm' || cachedActiveTab === 'manual' || cachedActiveTab === 'narrators' || cachedActiveTab === 'hadith')
+    (cachedActiveTab === 'llm' || cachedActiveTab === 'manual' || cachedActiveTab === 'narrators' || cachedActiveTab === 'hadith' || cachedActiveTab === 'settings')
     ? cachedActiveTab
     : initialState.activeTab;
 

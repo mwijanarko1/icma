@@ -92,8 +92,17 @@ export const ApiKeyModal = React.memo(function ApiKeyModal({
           </div>
 
           {/* Security Notice */}
-          <div className="text-xs text-gray-500 dark:text-gray-400 text-center bg-gray-50 dark:bg-gray-800/50 px-3 py-2 rounded">
-            🔒 Your API key is stored locally and never sent to our servers
+          <div className="text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800/50 px-3 py-2 rounded">
+            <div className="flex items-start gap-2">
+              <span className="text-lg">🔒</span>
+              <div>
+                <p className="font-medium text-gray-700 dark:text-gray-300 mb-1">Your API Key is Safe</p>
+                <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+                  Your key is transmitted securely to process your requests and is never stored, logged, or shared.
+                  We only use it to communicate with Google's AI service on your behalf.
+                </p>
+              </div>
+            </div>
           </div>
 
           {/* Modal Footer */}
