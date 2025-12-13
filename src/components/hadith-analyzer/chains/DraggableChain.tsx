@@ -303,6 +303,7 @@ export const DraggableChain = React.memo(function DraggableChain({
                         <th className="border-2 border-black px-4 py-2 text-left font-medium" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>Number</th>
                         <th className="border-2 border-black px-4 py-2 text-right font-medium" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>Arabic Name</th>
                         <th className="border-2 border-black px-4 py-2 text-left font-medium" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>English Name</th>
+                        <th className="border-2 border-black px-4 py-2 text-center font-medium" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>Death Year</th>
                         <th className="border-2 border-black px-4 py-2 text-center font-medium" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>Reputation</th>
                         <th className="border-2 border-black px-4 py-2 text-center font-medium" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>Calculated Grade</th>
                         <th className="border-2 border-black px-4 py-2 text-center font-medium" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>Actions</th>
@@ -361,6 +362,14 @@ export const DraggableChain = React.memo(function DraggableChain({
                             </td>
                             <td style={{ transition: 'none' }} className="border-2 border-black px-4 py-2">
                               <span style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>{activeNarrator.englishName}</span>
+                            </td>
+                            <td style={{ transition: 'none' }} className="border-2 border-black px-4 py-2 text-center">
+                              <span style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>
+                                {activeNarrator.databaseNarrator?.deathYearAH || activeNarrator.databaseNarrator?.deathYearCE
+                                  ? `${activeNarrator.databaseNarrator.deathYearAH || ''}${activeNarrator.databaseNarrator.deathYearAH ? ' AH' : ''}${activeNarrator.databaseNarrator.deathYearAH && activeNarrator.databaseNarrator.deathYearCE ? ' / ' : ''}${activeNarrator.databaseNarrator.deathYearCE || ''}${activeNarrator.databaseNarrator.deathYearCE ? ' CE' : ''}`
+                                  : '--'
+                                }
+                              </span>
                             </td>
                             <td style={{ transition: 'none' }} className="border-2 border-black px-4 py-2 text-center">
                               <div className="p-2 rounded-md border-2 border-blue-300">
@@ -561,6 +570,7 @@ export const DraggableChain = React.memo(function DraggableChain({
                 <th className="border-2 border-black px-4 py-2 text-left font-medium" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>Number</th>
                 <th className="border-2 border-black px-4 py-2 text-right font-medium" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>Narrator Name</th>
                 <th className="border-2 border-black px-4 py-2 text-left font-medium" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>English Name</th>
+                <th className="border-2 border-black px-4 py-2 text-center font-medium" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>Death Year</th>
                 <th className="border-2 border-black px-4 py-2 text-center font-medium" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>Reputation</th>
                 <th className="border-2 border-black px-4 py-2 text-center font-medium" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>Calculated Grade</th>
               </tr>

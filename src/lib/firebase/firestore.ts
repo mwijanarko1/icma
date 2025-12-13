@@ -18,6 +18,29 @@ import type { ChainSession, AnalysisSession, UserProfile } from "@/types/firebas
 import type { Chain } from "@/types/hadith";
 import type { SelectedHadith, Step } from "@/types/analysis";
 
+// Utility function to clean undefined values from objects before saving to Firestore
+function cleanUndefinedValues<T>(obj: T): T {
+  if (obj === null || obj === undefined) {
+    return obj;
+  }
+
+  if (Array.isArray(obj)) {
+    return obj.map(cleanUndefinedValues) as T;
+  }
+
+  if (typeof obj === 'object') {
+    const cleaned: any = {};
+    for (const [key, value] of Object.entries(obj)) {
+      if (value !== undefined) {
+        cleaned[key] = cleanUndefinedValues(value);
+      }
+    }
+    return cleaned;
+  }
+
+  return obj;
+}
+
 // Collection references
 const chainSessionsCollection = collection(db, "chainSessions");
 const analysisSessionsCollection = collection(db, "analysisSessions");
@@ -59,12 +82,15 @@ export const saveChainSession = async (
   sessionId?: string
 ): Promise<string> => {
   const timestamp = serverTimestamp();
-  
+
+  // Clean undefined values from sessionData before saving
+  const cleanedSessionData = cleanUndefinedValues(sessionData);
+
   if (sessionId) {
     // Update existing session
     const sessionRef = doc(chainSessionsCollection, sessionId);
     await updateDoc(sessionRef, {
-      ...sessionData,
+      ...cleanedSessionData,
       updatedAt: timestamp
     });
     return sessionId;
@@ -73,7 +99,7 @@ export const saveChainSession = async (
     const sessionRef = doc(chainSessionsCollection);
     const newSession: Omit<ChainSession, "id"> = {
       userId,
-      ...sessionData,
+      ...cleanedSessionData,
       createdAt: timestamp as Timestamp,
       updatedAt: timestamp as Timestamp
     };
@@ -131,12 +157,15 @@ export const saveAnalysisSession = async (
   sessionId?: string
 ): Promise<string> => {
   const timestamp = serverTimestamp();
-  
+
+  // Clean undefined values from sessionData before saving
+  const cleanedSessionData = cleanUndefinedValues(sessionData);
+
   if (sessionId) {
     // Update existing session
     const sessionRef = doc(analysisSessionsCollection, sessionId);
     await updateDoc(sessionRef, {
-      ...sessionData,
+      ...cleanedSessionData,
       updatedAt: timestamp
     });
     return sessionId;
@@ -145,7 +174,7 @@ export const saveAnalysisSession = async (
     const sessionRef = doc(analysisSessionsCollection);
     const newSession: Omit<AnalysisSession, "id"> = {
       userId,
-      ...sessionData,
+      ...cleanedSessionData,
       createdAt: timestamp as Timestamp,
       updatedAt: timestamp as Timestamp
     };

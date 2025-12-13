@@ -28,7 +28,7 @@ export default function AuthButton() {
 
   if (loading) {
     return (
-      <div className="w-8 h-8 rounded-full border-2 border-black animate-pulse" style={{ backgroundColor: '#f2e9dd' }} />
+      <div className="w-8 h-8 rounded-full border-2 border-black" style={{ backgroundColor: '#f2e9dd' }} />
     );
   }
 

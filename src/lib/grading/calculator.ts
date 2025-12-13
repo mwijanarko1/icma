@@ -1,6 +1,16 @@
 import { REPUTATION_GRADES, type ReputationGrade } from './constants';
 import type { Narrator } from '@/types/hadith';
 
+// Function to normalize Arabic text by removing harakat (diacritics)
+const normalizeArabic = (text: string): string => {
+  return text
+    .replace(/[ًٌٍَُِّْ]/g, '') // Remove diacritics (harakats)
+    .replace(/[أإآا]/g, 'ا') // Normalize alef variations
+    .replace(/[ىي]/g, 'ي') // Normalize yeh variations
+    .replace(/[ةه]/g, 'ه') // Normalize teh marbuta
+    .trim();
+};
+
 // Function to calculate narrator grade based on reputation tags
 // Now weights grades by frequency - if multiple people call someone "Thiqah", it's weighted more heavily
 export const calculateNarratorGrade = (reputation: ReputationGrade[]): number => {
@@ -53,7 +63,14 @@ export const calculateNarratorGrade = (reputation: ReputationGrade[]): number =>
 export const calculateChainGrade = (narrators: Narrator[]): number | null => {
   if (narrators.length === 0) return null;
 
-  const grades = narrators
+  // Filter out Prophet Muhammad from grade calculation
+  const nonProphetNarrators = narrators.filter(narrator =>
+    normalizeArabic(narrator.arabicName) !== 'رسول الله'
+  );
+
+  if (nonProphetNarrators.length === 0) return null;
+
+  const grades = nonProphetNarrators
     .map(narrator => {
       // Handle both calculatedGrade (number) and grade (string) properties
       if (typeof narrator.calculatedGrade === 'number') {
@@ -73,8 +90,8 @@ export const calculateChainGrade = (narrators: Narrator[]): number | null => {
     })
     .filter((grade): grade is number => grade !== null);
 
-  // Only calculate if more than 50% of narrators have grades
-  const gradedPercentage = (grades.length / narrators.length) * 100;
+  // Only calculate if more than 50% of non-prophet narrators have grades
+  const gradedPercentage = (grades.length / nonProphetNarrators.length) * 100;
   if (gradedPercentage <= 50) return null;
 
   if (grades.length === 0) return null;

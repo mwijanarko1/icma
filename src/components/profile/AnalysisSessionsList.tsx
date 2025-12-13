@@ -40,17 +40,27 @@ export default function AnalysisSessionsList() {
   const handleLoad = async (session: AnalysisSession) => {
     setLoadingSessionId(session.id);
     try {
-      // Store session data in sessionStorage to load in analysis page
-      sessionStorage.setItem("loadAnalysisSession", JSON.stringify({
+
+      // Convert Firestore Timestamps to regular dates for JSON serialization
+      const serializableSession = {
         id: session.id,
         name: session.name,
         selectedHadiths: session.selectedHadiths,
         activeStep: session.activeStep,
         steps: session.steps,
-      }));
-      router.push("/analysis");
+        createdAt: session.createdAt?.toDate?.()?.toISOString() || session.createdAt,
+        updatedAt: session.updatedAt?.toDate?.()?.toISOString() || session.updatedAt,
+      };
+
+      // Store session data in sessionStorage to load in analysis page
+      sessionStorage.setItem("loadAnalysisSession", JSON.stringify(serializableSession));
+
+      // Add a small delay to ensure sessionStorage is set before navigation
+      setTimeout(() => {
+        router.push("/analysis");
+      }, 100);
     } catch (error) {
-      console.error("Error loading session:", error);
+      console.error("❌ Error loading session:", error);
     } finally {
       setLoadingSessionId(null);
     }

@@ -32,6 +32,10 @@ export interface Narrator {
     dhahabiRank?: string;
     taqribCategory?: string;
     scholarlyOpinionsCount?: number;
+    birthYearAH?: number;
+    deathYearAH?: number;
+    birthYearCE?: number;
+    deathYearCE?: number;
   };
 }
 

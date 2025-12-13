@@ -25,6 +25,10 @@ interface MatchCandidate {
     dhahabiRank?: string;
     taqribCategory?: string;
     scholarlyOpinionsCount?: number;
+    birthYearAH?: number;
+    deathYearAH?: number;
+    birthYearCE?: number;
+    deathYearCE?: number;
   };
 }
 
@@ -47,6 +51,10 @@ interface MatchResult {
     dhahabiRank?: string;
     taqribCategory?: string;
     scholarlyOpinionsCount?: number;
+    birthYearAH?: number;
+    deathYearAH?: number;
+    birthYearCE?: number;
+    deathYearCE?: number;
   };
 }
 
@@ -276,6 +284,10 @@ const POSTHandler = async (request: NextRequest) => {
               dhahabiRank: match.databaseNarrator.dhahabiRank,
               taqribCategory: match.databaseNarrator.taqribCategory,
               scholarlyOpinionsCount: match.databaseNarrator.scholarlyOpinions?.length || 0,
+              birthYearAH: match.databaseNarrator.birthYearAH,
+              deathYearAH: match.databaseNarrator.deathYearAH,
+              birthYearCE: match.databaseNarrator.birthYearCE,
+              deathYearCE: match.databaseNarrator.deathYearCE,
             },
           };
         });

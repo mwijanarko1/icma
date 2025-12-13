@@ -29,7 +29,7 @@ import { CACHE_KEYS } from "@/lib/cache/constants";
 import type { Narrator } from "@/types/hadith";
 import type { HadithAnalyzerState } from "@/types/hadithAnalyzerState";
 import { useAuth } from "@/contexts/AuthContext";
-import { saveChainSession } from "@/lib/firebase/firestore";
+import { saveChainSession, updateChainSessionName } from "@/lib/firebase/firestore";
 import { generateMermaidCode } from "@/components/hadith-analyzer/visualization/utils";
 
 interface RawChain {
@@ -390,6 +390,21 @@ export function useHadithAnalyzer(initialCollection?: string | null) {
     dispatch(actions.resetState());
   }, [state.chains, state.hadithText, user, currentSessionId]);
 
+  // Rename session handler
+  const handleRenameSession = async (newName: string) => {
+    if (!currentSessionId || !user) return;
+
+    try {
+      await updateChainSessionName(currentSessionId, newName);
+      setCurrentSessionName(newName);
+      // Update cached session name
+      saveSessionName(newName);
+    } catch (error) {
+      console.error("Error renaming session:", error);
+      alert("Failed to rename session. Please try again.");
+    }
+  };
+
   return {
     state,
     dispatch,
@@ -397,6 +412,7 @@ export function useHadithAnalyzer(initialCollection?: string | null) {
     extractNarrators,
     handleClearCache,
     handleNewHadith,
+    handleRenameSession,
     graphRef,
     currentSessionId,
     currentSessionName,

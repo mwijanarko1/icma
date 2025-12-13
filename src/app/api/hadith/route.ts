@@ -325,7 +325,7 @@ const GETHandler = async (request: NextRequest) => {
       }
     } else {
       // List all - just validate collection
-      const collectionValidation = await createValidationMiddleware(validationSchemas.collectionSearch)(request);
+      const collectionValidation = await createValidationMiddleware(validationSchemas.collectionOnly)(request);
       if (!collectionValidation.success) {
         return handleValidationError(collectionValidation.error);
       }

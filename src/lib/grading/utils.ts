@@ -25,3 +25,24 @@ export const getGradeColor = (grade: number): string => {
   return "#dc2626"; // Red for very poor
 };
 
+// Function to format death year for display
+export const formatDeathYear = (deathYearAH?: number, deathYearCE?: number): string => {
+  if (!deathYearAH && !deathYearCE) {
+    return '--';
+  }
+
+  if (deathYearAH && deathYearCE) {
+    return `${deathYearAH} AH / ${deathYearCE} CE`;
+  }
+
+  if (deathYearAH) {
+    return `${deathYearAH} AH`;
+  }
+
+  if (deathYearCE) {
+    return `${deathYearCE} CE`;
+  }
+
+  return '--';
+};
+

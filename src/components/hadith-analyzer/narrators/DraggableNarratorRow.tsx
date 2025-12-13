@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { REPUTATION_GRADES } from '@/lib/grading/constants';
-import { getGradeColorClass, getGradeDescription } from '@/lib/grading/utils';
+import { getGradeColorClass, getGradeDescription, formatDeathYear } from '@/lib/grading/utils';
 import { ReputationSelector } from './ReputationSelector';
 import type { DraggableNarratorRowProps } from './types';
 
@@ -20,6 +20,19 @@ export function DraggableNarratorRow({
   onSearchNarrator
 }: DraggableNarratorRowProps) {
   const [showGradeFormulaTooltip, setShowGradeFormulaTooltip] = useState(false);
+
+  // Function to normalize Arabic text by removing harakat (diacritics)
+  const normalizeArabic = (text: string): string => {
+    return text
+      .replace(/[ًٌٍَُِّْ]/g, '') // Remove diacritics (harakats)
+      .replace(/[أإآا]/g, 'ا') // Normalize alef variations
+      .replace(/[ىي]/g, 'ي') // Normalize yeh variations
+      .replace(/[ةه]/g, 'ه') // Normalize teh marbuta
+      .trim();
+  };
+
+  // Check if narrator is Prophet Muhammad (with or without harakat)
+  const isProphet = normalizeArabic(narrator.arabicName) === 'رسول الله';
   const {
     attributes,
     listeners,
@@ -178,7 +191,16 @@ export function DraggableNarratorRow({
         )}
       </td>
       <td className="border-2 border-black px-4 py-2 text-center">
-        {narrator.arabicName === "رَسُولَ اللَّهِ" ? (
+        {isEditing ? (
+          <span style={{ fontFamily: 'var(--font-content)', color: '#000000', opacity: 0.6 }}>--</span>
+        ) : (
+          <span style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>
+            {isProphet ? "10 AH / 632 CE" : formatDeathYear(narrator.databaseNarrator?.deathYearAH, narrator.databaseNarrator?.deathYearCE)}
+          </span>
+        )}
+      </td>
+      <td className="border-2 border-black px-4 py-2 text-center">
+        {isProphet ? (
           <div className="text-sm italic" style={{ fontFamily: 'var(--font-content)', color: '#000000', opacity: 0.6 }}>
             N/A
           </div>
@@ -232,7 +254,7 @@ export function DraggableNarratorRow({
         )}
       </td>
       <td className="border-2 border-black px-4 py-2 text-center">
-        {narrator.arabicName === "رَسُولَ اللَّهِ" ? (
+        {isProphet ? (
           <div className="text-sm italic" style={{ fontFamily: 'var(--font-content)', color: '#000000', opacity: 0.6 }}>
             N/A
           </div>

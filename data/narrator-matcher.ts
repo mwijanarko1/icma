@@ -364,9 +364,10 @@ export function findNarratorByName(arabicName: string, englishName?: string): Ma
     
     // Get all narrators from database
     const narrators = db.prepare(`
-      SELECT id, primary_arabic_name, primary_english_name, 
+      SELECT id, primary_arabic_name, primary_english_name,
              full_name_arabic, full_name_english, title, kunya,
-             ibn_hajar_rank, dhahabi_rank, taqrib_category
+             ibn_hajar_rank, dhahabi_rank, taqrib_category,
+             death_year_ah, death_year_ce
       FROM narrators
     `).all() as Array<{
       id: string;
@@ -379,6 +380,8 @@ export function findNarratorByName(arabicName: string, englishName?: string): Ma
       ibn_hajar_rank: string | null;
       dhahabi_rank: string | null;
       taqrib_category: string | null;
+      death_year_ah: number | null;
+      death_year_ce: number | null;
     }>;
     
     // Get alternate names (both Arabic and English)

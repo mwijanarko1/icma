@@ -12,6 +12,7 @@ interface HadithAnalyzerContextType {
   extractNarrators: (text: string) => Promise<{ narrators: any[]; chainText: string; matn: string }>;
   handleNewHadith: () => void;
   handleSaveChainAnalysis: () => Promise<void>;
+  handleRenameSession: (newName: string) => Promise<void>;
   isSaving: boolean;
   currentSessionName: string | null;
   // Modal management functions

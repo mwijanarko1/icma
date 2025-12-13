@@ -68,7 +68,8 @@ export const validationMiddleware = {
   hadithLookup: createValidationMiddleware(validationSchemas.hadithLookup),
   collectionSearch: createValidationMiddleware(validationSchemas.collectionSearch),
   collectionRange: createValidationMiddleware(validationSchemas.collectionRange),
-  narratorsSearch: createValidationMiddleware(validationSchemas.narratorsSearch)
+  narratorsSearch: createValidationMiddleware(validationSchemas.narratorsSearch),
+  collectionOnly: createValidationMiddleware(validationSchemas.collectionOnly)
 };
 
 /**

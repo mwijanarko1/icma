@@ -317,5 +317,9 @@ export const validationSchemas = {
     query: (value: any) => validateString(value, 'query', { minLength: 2, maxLength: 100 }),
     limit: (value: any) => validateNumeric(value, 'limit', { min: 1, max: 100, integer: true }),
     offset: (value: any) => validateNumeric(value, 'offset', { min: 0, integer: true })
+  },
+
+  collectionOnly: {
+    collection: validateHadithCollection
   }
 };

@@ -1,24 +1,95 @@
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useHadithAnalyzerContext } from '@/contexts/HadithAnalyzerContext';
 
 export const SessionControls = React.memo(function SessionControls() {
-  const { handleSaveChainAnalysis, handleNewHadith, isSaving, currentSessionName, state } = useHadithAnalyzerContext();
+  const { handleSaveChainAnalysis, handleNewHadith, handleRenameSession, isSaving, currentSessionName, state } = useHadithAnalyzerContext();
   const { chains } = state;
+  const [isEditing, setIsEditing] = useState(false);
+  const [editName, setEditName] = useState(currentSessionName || '');
+
   if (chains.length === 0) {
     return null;
   }
+
+  const handleStartEdit = () => {
+    setEditName(currentSessionName || '');
+    setIsEditing(true);
+  };
+
+  const handleSaveEdit = async () => {
+    if (editName.trim() && editName !== currentSessionName) {
+      await handleRenameSession(editName.trim());
+    }
+    setIsEditing(false);
+  };
+
+  const handleCancelEdit = () => {
+    setEditName(currentSessionName || '');
+    setIsEditing(false);
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSaveEdit();
+    } else if (e.key === 'Escape') {
+      handleCancelEdit();
+    }
+  };
 
   return (
     <div className="mb-6">
       {/* Mobile layout: Session name above buttons */}
       <div className="block sm:hidden">
         {currentSessionName && (
-          <div className="flex justify-center mb-4">
-            <p className="text-xl font-bold" style={{ fontFamily: 'var(--font-title)', color: '#000000' }}>
-              {currentSessionName}
-            </p>
+          <div className="flex justify-center items-center mb-4 gap-2">
+            {isEditing ? (
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  onKeyDown={handleKeyPress}
+                  className="text-xl font-bold border-2 border-black rounded px-2 py-1 bg-white"
+                  style={{ fontFamily: 'var(--font-title)', color: '#000000' }}
+                  autoFocus
+                />
+                <button
+                  onClick={handleSaveEdit}
+                  className="p-1 rounded hover:bg-green-100"
+                  title="Save name"
+                >
+                  <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </button>
+                <button
+                  onClick={handleCancelEdit}
+                  className="p-1 rounded hover:bg-red-100"
+                  title="Cancel"
+                >
+                  <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            ) : (
+              <>
+                <p className="text-xl font-bold" style={{ fontFamily: 'var(--font-title)', color: '#000000' }}>
+                  {currentSessionName}
+                </p>
+                <button
+                  onClick={handleStartEdit}
+                  className="p-1 rounded hover:bg-gray-100"
+                  title="Rename session"
+                >
+                  <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                </button>
+              </>
+            )}
           </div>
         )}
         <div className="flex flex-col gap-4">
@@ -92,9 +163,54 @@ export const SessionControls = React.memo(function SessionControls() {
       <div className="hidden sm:flex items-center justify-between">
         <div className="flex items-center gap-4">
           {currentSessionName && (
-            <p className="text-xl font-bold" style={{ fontFamily: 'var(--font-title)', color: '#000000' }}>
-              {currentSessionName}
-            </p>
+            <div className="flex items-center gap-2">
+              {isEditing ? (
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                    onKeyDown={handleKeyPress}
+                    className="text-xl font-bold border-2 border-black rounded px-2 py-1 bg-white"
+                    style={{ fontFamily: 'var(--font-title)', color: '#000000' }}
+                    autoFocus
+                  />
+                  <button
+                    onClick={handleSaveEdit}
+                    className="p-1 rounded hover:bg-green-100"
+                    title="Save name"
+                  >
+                    <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  </button>
+                  <button
+                    onClick={handleCancelEdit}
+                    className="p-1 rounded hover:bg-red-100"
+                    title="Cancel"
+                  >
+                    <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <p className="text-xl font-bold" style={{ fontFamily: 'var(--font-title)', color: '#000000' }}>
+                    {currentSessionName}
+                  </p>
+                  <button
+                    onClick={handleStartEdit}
+                    className="p-1 rounded hover:bg-gray-100"
+                    title="Rename session"
+                  >
+                    <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                  </button>
+                </>
+              )}
+            </div>
           )}
         </div>
         <div className="flex gap-4">

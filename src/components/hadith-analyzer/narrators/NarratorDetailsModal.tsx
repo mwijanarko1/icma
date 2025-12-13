@@ -24,6 +24,19 @@ export function NarratorDetailsModal({
   const [showGradeFormulaTooltip, setShowGradeFormulaTooltip] = useState(false);
   const [copied, setCopied] = useState(false);
 
+  // Function to normalize Arabic text by removing harakat (diacritics)
+  const normalizeArabic = (text: string): string => {
+    return text
+      .replace(/[ًٌٍَُِّْ]/g, '') // Remove diacritics (harakats)
+      .replace(/[أإآا]/g, 'ا') // Normalize alef variations
+      .replace(/[ىي]/g, 'ي') // Normalize yeh variations
+      .replace(/[ةه]/g, 'ه') // Normalize teh marbuta
+      .trim();
+  };
+
+  // Check if narrator is Prophet Muhammad (with or without harakat)
+  const isProphet = narrator ? normalizeArabic(narrator.primaryArabicName) === 'رسول الله' : false;
+
   // Extract grades from scholarly opinions and other sources
   const extractedGrades = narrator ? extractReputationGrades(narrator) : [];
   const calculatedGrade = extractedGrades.length > 0 ? calculateNarratorGrade(extractedGrades) : null;
@@ -108,21 +121,24 @@ export function NarratorDetailsModal({
                       <p className="text-base text-black font-medium" dir="rtl" lang="ar">{narrator.lineage}</p>
                     </div>
                   )}
-                  {narrator.deathYearAH && (
-                    <div className="bg-gray-50 rounded-lg p-3 border-2 border-black">
-                      <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">Death Year (AH)</label>
-                      <p className="text-sm text-black font-medium">
-                        {narrator.deathYearAH}
-                        {narrator.deathYearAHAlternative && ` or ${narrator.deathYearAHAlternative}`}
-                      </p>
-                    </div>
-                  )}
-                  {narrator.deathYearCE && (
-                    <div className="bg-gray-50 rounded-lg p-3 border-2 border-black">
-                      <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">Death Year (CE)</label>
-                      <p className="text-sm text-black font-medium">{narrator.deathYearCE}</p>
-                    </div>
-                  )}
+                  <div className="bg-gray-50 rounded-lg p-3 border-2 border-black">
+                    <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">Birth Year</label>
+                    <p className="text-sm text-black font-medium">
+                      {narrator.birthYearAH || narrator.birthYearCE
+                        ? `${narrator.birthYearAH || ''}${narrator.birthYearAH ? ' AH' : ''}${narrator.birthYearAH && narrator.birthYearCE ? ' / ' : ''}${narrator.birthYearCE || ''}${narrator.birthYearCE ? ' CE' : ''}`
+                        : <span className="text-gray-500">N/A</span>
+                      }
+                    </p>
+                  </div>
+                  <div className="bg-gray-50 rounded-lg p-3 border-2 border-black">
+                    <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">Death Year</label>
+                    <p className="text-sm text-black font-medium">
+                      {isProphet ? "10 AH / 632 CE" : narrator.deathYearAH || narrator.deathYearCE
+                        ? `${narrator.deathYearAH || ''}${narrator.deathYearAH ? ' AH' : ''}${narrator.deathYearAH && narrator.deathYearCE ? ' / ' : ''}${narrator.deathYearCE || ''}${narrator.deathYearCE ? ' CE' : ''}${narrator.deathYearAHAlternative ? ` or ${narrator.deathYearAHAlternative} AH` : ''}`
+                        : <span className="text-gray-500">N/A</span>
+                      }
+                    </p>
+                  </div>
                   {narrator.placeOfResidence && (
                     <div className="bg-gray-50 rounded-lg p-3 border-2 border-black">
                       <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1.5">Place of Residence</label>
@@ -239,7 +255,14 @@ export function NarratorDetailsModal({
                 </h4>
                 <div className="space-y-4">
                   {/* Reputation Grades */}
-                  {extractedGrades.length > 0 ? (
+                  {isProphet ? (
+                    <div>
+                      <label className="text-xs font-medium text-gray-500 mb-2 block">
+                        Reputation Grades
+                      </label>
+                      <p className="text-sm text-gray-500 italic">N/A</p>
+                    </div>
+                  ) : extractedGrades.length > 0 ? (
                     <div>
                       <label className="text-xs font-medium text-gray-500 mb-2 block">
                         Reputation Grades ({extractedGrades.length})
@@ -247,12 +270,12 @@ export function NarratorDetailsModal({
                       <div className="flex flex-wrap gap-2">
                         {extractedGrades.map((grade: ReputationGrade, idx: number) => {
                           const gradeInfo = REPUTATION_GRADES[grade];
-                          const categoryColor = gradeInfo?.category === 'high' 
+                          const categoryColor = gradeInfo?.category === 'high'
                             ? 'bg-green-100 text-green-800'
                             : gradeInfo?.category === 'low'
                             ? 'bg-red-100 text-red-800'
                             : 'bg-yellow-100 text-yellow-800';
-                          
+
                           return (
                             <span key={`extracted-grade-${grade}-${idx}`} className={`px-3 py-1 ${categoryColor} rounded-lg text-sm`}>
                               {grade}
@@ -269,9 +292,16 @@ export function NarratorDetailsModal({
                       <p className="text-sm text-gray-500">No reputation grades could be extracted from available sources</p>
                     </div>
                   )}
-                  
+
                   {/* Calculated Grade */}
-                  {calculatedGrade !== null ? (
+                  {isProphet ? (
+                    <div>
+                      <label className="text-xs font-medium text-gray-500 mb-2 block">
+                        Calculated Grade
+                      </label>
+                      <p className="text-sm text-gray-500 italic">N/A</p>
+                    </div>
+                  ) : calculatedGrade !== null ? (
                     <div>
                       <div className="flex items-center gap-2 mb-2">
                         <label className="text-xs font-medium text-gray-500">

@@ -315,9 +315,15 @@ export function HadithTab({ selectedHadiths = [], onSelectedHadithsChange, showS
       }, 300);
       return () => clearTimeout(timeoutId);
     } else {
-      // When no search query, fetch all hadith with pagination
+      // When no search query, don't fetch anything - only fetch when user searches
       previousSearchQuery.current = '';
-      fetchHadithList(offset);
+      // Clear any existing results when search is cleared
+      if (searchQuery.trim() === '') {
+        setHadithList([]);
+        setTotal(0);
+        setIsLoading(false);
+        setError(null);
+      }
     }
   }, [offset, searchQuery, fetchHadithList, searchHadith]);
 

@@ -12,6 +12,7 @@ import { ChainCollectionsModal } from '@/components/hadith-analyzer/import/Chain
 import { InputTabs, LLMTab, ManualTab, SettingsTab, AddHadithFromDatabaseModal } from '@/components/hadith-analyzer/input';
 import { SessionControls } from '@/components/hadith-analyzer/SessionControls';
 import { ModalsContainer } from '@/components/hadith-analyzer/ModalsContainer';
+import { Timeline } from '@/components/hadith-analyzer/Timeline';
 import { HadithAnalyzerProvider } from '@/contexts/HadithAnalyzerContext';
 import { useHadithAnalyzer } from '@/hooks/useHadithAnalyzer';
 import { useDragAndDrop } from '@/hooks/useDragAndDrop';
@@ -60,6 +61,7 @@ export default function HadithAnalyzer({ initialCollection }: HadithAnalyzerProp
     handleClearCache,
     handleNewHadith,
     handleSaveChainAnalysis,
+    handleRenameSession,
     isSaving,
     currentSessionName,
   } = useHadithAnalyzer(initialCollection);
@@ -261,6 +263,7 @@ export default function HadithAnalyzer({ initialCollection }: HadithAnalyzerProp
     extractNarrators,
     handleNewHadith,
     handleSaveChainAnalysis,
+    handleRenameSession,
     isSaving,
     currentSessionName,
     handleAcceptMatch: chainService.handleAcceptMatch,
@@ -434,6 +437,13 @@ export default function HadithAnalyzer({ initialCollection }: HadithAnalyzerProp
               </DragOverlay>
             </DndContext>
           </div>
+          )}
+        </ClientOnly>
+
+        {/* Chronological Timeline */}
+        <ClientOnly>
+          {chains.length > 0 && (
+            <Timeline chains={chains} />
           )}
         </ClientOnly>
 
