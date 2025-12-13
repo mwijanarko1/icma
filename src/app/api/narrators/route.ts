@@ -61,8 +61,10 @@ interface NarratorRow {
   title?: string | null;
   kunya?: string | null;
   lineage?: string | null;
+  birth_year_ah?: number | null;
   death_year_ah?: number | null;
   death_year_ah_alternative?: number | null;
+  birth_year_ce?: number | null;
   death_year_ce?: number | null;
   place_of_residence?: string | null;
   place_of_death?: string | null;
@@ -412,11 +414,6 @@ const GETHandler = async (request: NextRequest) => {
     const validatedParams: SearchParams = {
       ...params,
       random: request.nextUrl.searchParams.get('random') === 'true',
-      arabicName: request.nextUrl.searchParams.get('arabicName') || undefined,
-      englishName: request.nextUrl.searchParams.get('englishName') || undefined,
-      deathYearAH: request.nextUrl.searchParams.get('deathYearAH')
-        ? parseInt(request.nextUrl.searchParams.get('deathYearAH')!)
-        : undefined,
     };
 
     // Parse search terms from query and normalize them
@@ -426,7 +423,8 @@ const GETHandler = async (request: NextRequest) => {
       : [];
 
     // Validate minimum query length (additional check beyond middleware)
-    if (validatedParams.query && searchTerms.length === 0) {
+    // Skip query validation for random requests
+    if (!validatedParams.random && validatedParams.query && searchTerms.length === 0) {
       return NextResponse.json({
         success: false,
         error: 'Search query must contain at least one term with 2 or more characters'
@@ -656,7 +654,7 @@ const GETHandler = async (request: NextRequest) => {
     }
 
     // Handle random narrators request
-    if (params.random) {
+    if (validatedParams.random) {
       const limit = params.limit || 5;
       // Get random narrators using SQLite's random() function
       const randomNarrators = db.prepare(`
@@ -679,8 +677,10 @@ const GETHandler = async (request: NextRequest) => {
         title: n.title || undefined,
         kunya: n.kunya || undefined,
         lineage: n.lineage || undefined,
+        birthYearAH: n.birth_year_ah || undefined,
         deathYearAH: n.death_year_ah || undefined,
         deathYearAHAlternative: n.death_year_ah_alternative || undefined,
+        birthYearCE: n.birth_year_ce || undefined,
         deathYearCE: n.death_year_ce || undefined,
         placeOfResidence: n.place_of_residence || undefined,
         placeOfDeath: n.place_of_death || undefined,

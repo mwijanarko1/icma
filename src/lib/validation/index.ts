@@ -314,9 +314,22 @@ export const validationSchemas = {
   },
 
   narratorsSearch: {
-    query: (value: any) => validateString(value, 'query', { minLength: 2, maxLength: 100 }),
+    query: (value: any) => {
+      // Allow empty query for random requests
+      if (value === undefined || value === null || value === '') return { isValid: true };
+      return validateString(value, 'query', { minLength: 2, maxLength: 100 });
+    },
     limit: (value: any) => validateNumeric(value, 'limit', { min: 1, max: 100, integer: true }),
-    offset: (value: any) => validateNumeric(value, 'offset', { min: 0, integer: true })
+    offset: (value: any) => {
+      // Allow undefined offset for random requests
+      if (value === undefined || value === null || value === '') return { isValid: true };
+      return validateNumeric(value, 'offset', { min: 0, integer: true });
+    },
+    random: (value: any) => {
+      if (value === undefined || value === null || value === '') return { isValid: true };
+      if (value === 'true' || value === 'false') return { isValid: true };
+      return { isValid: false, error: 'random must be true or false' };
+    }
   },
 
   collectionOnly: {
