@@ -1,6 +1,8 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import type { NarratorsTabProps } from './types';
+import { NarratorPresetSearch } from './NarratorFilters';
 
 export function NarratorsTab({
   narratorSearchQuery,
@@ -10,8 +12,22 @@ export function NarratorsTab({
   narratorSearchTotal,
   narratorSearchOffset,
   onSearchNarrators,
-  onFetchNarratorDetails
+  onFetchNarratorDetails,
+  onPresetSearch
 }: NarratorsTabProps) {
+  const [activeCriteria, setActiveCriteria] = useState<{
+    ranks?: string[];
+    narratorRanks?: string[];
+    placesOfResidence?: string[];
+  }>({ ranks: [], narratorRanks: [], placesOfResidence: [] });
+
+
+  // Clear active criteria when search query changes (new text search context)
+  useEffect(() => {
+    if (narratorSearchQuery.trim()) {
+      setActiveCriteria({ ranks: [], narratorRanks: [], placesOfResidence: [] });
+    }
+  }, [narratorSearchQuery]);
   return (
     <div className="space-y-6">
       {/* Search Section */}
@@ -48,6 +64,42 @@ export function NarratorsTab({
           <p className="mt-3 text-sm font-medium" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>
             Found {narratorSearchTotal} narrator{narratorSearchTotal !== 1 ? 's' : ''}
           </p>
+        )}
+
+        {/* Preset Search Buttons */}
+        {onPresetSearch && (
+          <div className="mt-6 pt-4 border-t border-gray-200">
+            <NarratorPresetSearch
+              onPresetSearch={(criteria) => {
+                // Check if this is the "Search All Narrators" button
+                if (criteria.isSearchAll) {
+                  // Clear active criteria since this is a fresh search
+                  setActiveCriteria({ ranks: [], narratorRanks: [], placesOfResidence: [] });
+                  // Trigger search all
+                  onPresetSearch?.({ query: '', isSearchAll: true });
+                  return;
+                }
+
+                // Update active criteria state - preserve existing selections and update only the changed category
+                setActiveCriteria((prev) => ({
+                  ranks: criteria.ranks !== undefined ? criteria.ranks : prev.ranks,
+                  narratorRanks: criteria.narratorRanks !== undefined ? criteria.narratorRanks : prev.narratorRanks,
+                  placesOfResidence: criteria.placesOfResidence !== undefined ? criteria.placesOfResidence : prev.placesOfResidence,
+                }));
+
+                // Always send the current active criteria for filtering
+                // The parent component will handle loading data if needed
+                const searchQuery = narratorSearchQuery.trim();
+                const currentActiveCriteria = {
+                  ranks: activeCriteria.ranks,
+                  narratorRanks: activeCriteria.narratorRanks,
+                  placesOfResidence: activeCriteria.placesOfResidence,
+                };
+                onPresetSearch?.({ ...currentActiveCriteria, query: searchQuery });
+              }}
+              activeCriteria={activeCriteria}
+            />
+          </div>
         )}
       </div>
 

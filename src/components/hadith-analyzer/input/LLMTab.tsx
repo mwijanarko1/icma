@@ -44,7 +44,7 @@ export function LLMTab({
               await onExtractNarrators(hadithText);
             }}
             disabled={isLoading}
-            className="w-full sm:w-auto px-3 sm:px-6 py-2 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-black flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed text-sm font-semibold"
+            className="w-full sm:w-auto px-3 sm:px-6 py-2 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105 hover:-translate-y-1 border-2 border-black flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed text-sm font-semibold"
             style={{
               backgroundColor: !apiKey ? '#fbbf24' : '#000000',
               color: '#f2e9dd',
@@ -62,7 +62,7 @@ export function LLMTab({
           </button>
           <button
             onClick={onTryDemo}
-            className="w-full sm:w-auto px-3 sm:px-6 py-2 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-black flex items-center justify-center text-sm font-semibold"
+            className="w-full sm:w-auto px-3 sm:px-6 py-2 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105 hover:-translate-y-1 border-2 border-black flex items-center justify-center text-sm font-semibold"
             style={{ backgroundColor: '#000000', color: '#f2e9dd', fontFamily: 'var(--font-content)' }}
             title="Load all three hadith chains about intentions with demo results (no API key needed)"
           >
@@ -71,7 +71,7 @@ export function LLMTab({
           </button>
           <button
             onClick={onShowImportModal}
-            className="w-full sm:w-auto px-3 sm:px-6 py-2 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-black flex items-center justify-center text-sm font-semibold"
+            className="w-full sm:w-auto px-3 sm:px-6 py-2 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105 hover:-translate-y-1 border-2 border-black flex items-center justify-center text-sm font-semibold"
             style={{ backgroundColor: '#000000', color: '#f2e9dd', fontFamily: 'var(--font-content)' }}
           >
             <span className="hidden sm:inline">Chain Collections</span>
@@ -79,7 +79,7 @@ export function LLMTab({
           </button>
           <button
             onClick={onShowAddHadithModal}
-            className="w-full sm:w-auto px-3 sm:px-6 py-2 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-black flex items-center justify-center text-sm font-semibold"
+            className="w-full sm:w-auto px-3 sm:px-6 py-2 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105 hover:-translate-y-1 border-2 border-black flex items-center justify-center text-sm font-semibold"
             style={{ backgroundColor: '#000000', color: '#f2e9dd', fontFamily: 'var(--font-content)' }}
             title="Add hadith from database"
           >

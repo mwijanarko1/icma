@@ -8,8 +8,30 @@ import { arrayMove } from '@dnd-kit/sortable';
 import { extractReputationGrades } from '@/data/grade-extractor';
 import { calculateNarratorGrade } from '@/lib/grading/calculator';
 
-export async function searchNarrators(query: string, limit: number = 50, offset: number = 0) {
-  const response = await fetch(`/api/narrators?query=${encodeURIComponent(query)}&limit=${limit}&offset=${offset}`);
+export async function searchNarrators(query: string, limit: number = 50, offset: number = 0, ranks?: string[], narratorRanks?: string[], placesOfResidence?: string[], isSearchAll?: boolean) {
+  let url = `/api/narrators?query=${encodeURIComponent(query)}&limit=${limit}&offset=${offset}`;
+
+  // Add array parameters
+  if (ranks && ranks.length > 0) {
+    ranks.forEach(rank => {
+      url += `&ranks=${encodeURIComponent(rank)}`;
+    });
+  }
+  if (narratorRanks && narratorRanks.length > 0) {
+    narratorRanks.forEach(rank => {
+      url += `&narratorRanks=${encodeURIComponent(rank)}`;
+    });
+  }
+  if (placesOfResidence && placesOfResidence.length > 0) {
+    placesOfResidence.forEach(place => {
+      url += `&placesOfResidence=${encodeURIComponent(place)}`;
+    });
+  }
+  if (isSearchAll) {
+    url += `&isSearchAll=true`;
+  }
+
+  const response = await fetch(url);
   const data = await response.json();
 
   if (!data.success) {
@@ -437,7 +459,7 @@ export function createNarratorService(
     dispatch(actions.setChains(updatedChains));
   };
 
-  const handleSearchNarrators = async (query: string, offset: number = 0) => {
+  const handleSearchNarrators = async (query: string, offset: number = 0, ranks?: string[], narratorRanks?: string[], placesOfResidence?: string[], isSearchAll?: boolean) => {
     if (!query.trim()) {
       dispatch(actions.setNarratorSearchResults([]));
       dispatch(actions.setNarratorSearchTotal(0));
@@ -446,7 +468,7 @@ export function createNarratorService(
 
     dispatch(actions.setIsSearchingNarrators(true));
     try {
-      const { narrators, total } = await searchNarrators(query, 50, offset);
+      const { narrators, total } = await searchNarrators(query, 50, offset, ranks, narratorRanks, placesOfResidence, isSearchAll);
       dispatch(actions.setNarratorSearchResults(narrators));
       dispatch(actions.setNarratorSearchTotal(total));
       dispatch(actions.setNarratorSearchOffset(offset));
@@ -472,56 +494,66 @@ export function createNarratorService(
     }
   };
 
-  const handleAddCompiler = (compiler: string) => {
-    const compilers = {
+  const handleAddCompiler = async (compiler: string) => {
+    // Map compiler keys to their exact Arabic and English names
+    const compilerNames = {
       bukhari: {
-        arabicName: "الْإِمَامُ الْبُخَارِيُّ",
-        englishName: "Imam al-Bukhari",
-        reputation: ['Thiqah']
+        arabicName: "البخاري",
+        englishName: "Al-Bukhari"
       },
       muslim: {
-        arabicName: "الْإِمَامُ مُسْلِمٌ",
-        englishName: "Imam Muslim",
-        reputation: ['Thiqah']
-      },
-      tirmidhi: {
-        arabicName: "الْإِمَامُ التِّرْمِذِيُّ",
-        englishName: "Imam al-Tirmidhi",
-        reputation: ['Thiqah']
+        arabicName: "مسلم بن الحجاج بن مسلم",
+        englishName: "Muslim ibn al-Hajjaj"
       },
       abu_dawood: {
-        arabicName: "الْإِمَامُ أَبُو دَاوُدَ",
-        englishName: "Imam Abu Dawood",
-        reputation: ['Thiqah']
+        arabicName: "أبو داود السجستاني",
+        englishName: "Abu Dawood al-Sijistani"
       },
-      nasai: {
-        arabicName: "الْإِمَامُ النَّسَائِيُّ",
-        englishName: "Imam al-Nasai",
-        reputation: ['Thiqah']
+      tirmidhi: {
+        arabicName: "محمد بن عيسى بن سورة بن موسى بن الضحاك",
+        englishName: "Muhammad ibn Isa al-Tirmidhi"
       },
       ibn_majah: {
-        arabicName: "الْإِمَامُ ابْنُ مَاجَهْ",
-        englishName: "Imam Ibn Majah",
-        reputation: ['Thiqah']
+        arabicName: "محمد بن ماجه",
+        englishName: "Muhammad ibn Majah"
+      },
+      nasai: {
+        arabicName: "أبو عبد الرحمن أحمد بن شعيب النسائي",
+        englishName: "Ahmad ibn Shuayb al-Nasai"
       }
     };
 
-    const compilerData = compilers[compiler as keyof typeof compilers];
-    if (!compilerData) return;
+    const compilerInfo = compilerNames[compiler as keyof typeof compilerNames];
+    if (!compilerInfo) return;
 
-    const newNarrator: Narrator = {
-      number: state.editFormData.narrators.length + 1,
-      arabicName: compilerData.arabicName,
-      englishName: compilerData.englishName,
-      reputation: compilerData.reputation as ReputationGrade[],
-      calculatedGrade: calculateNarratorGrade(compilerData.reputation as ReputationGrade[]),
-    };
+    try {
+      // Search for the exact compiler in the database
+      const searchResult = await searchNarrators(compilerInfo.arabicName, 1, 0);
 
-    const updatedNarrators = [...state.editFormData.narrators, newNarrator];
-    dispatch(actions.setEditFormData({
-      ...state.editFormData,
-      narrators: updatedNarrators
-    }));
+      if (searchResult.narrators.length === 0) {
+        console.error(`Compiler not found in database: ${compilerInfo.arabicName}`);
+        return;
+      }
+
+      const compilerData = searchResult.narrators[0];
+
+      const newNarrator: Narrator = {
+        number: state.editFormData.narrators.length + 1,
+        arabicName: compilerData.primaryArabicName,
+        englishName: compilerInfo.englishName, // Use the predefined English name
+        reputation: [], // No reputation for compilers
+        calculatedGrade: undefined, // No calculated grade
+        databaseNarrator: compilerData
+      };
+
+      const updatedNarrators = [...state.editFormData.narrators, newNarrator];
+      dispatch(actions.setEditFormData({
+        ...state.editFormData,
+        narrators: updatedNarrators
+      }));
+    } catch (error) {
+      console.error('Error adding compiler:', error);
+    }
   };
 
   return {

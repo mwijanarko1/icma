@@ -112,7 +112,7 @@ export default function SessionCard({
         <button
           onClick={onLoad}
           disabled={isLoading}
-          className="px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 hover:shadow-md disabled:opacity-50 border-2 border-black"
+          className="px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 hover:shadow-md hover:scale-105 hover:-translate-y-1 disabled:opacity-50 border-2 border-black"
           style={{ backgroundColor: "#000000", color: "#f2e9dd", fontFamily: "var(--font-content)" }}
         >
           {isLoading ? "Loading..." : "Load"}

@@ -50,6 +50,10 @@ interface SearchParams {
   limit?: number;
   offset?: number;
   random?: boolean;
+  ranks?: string[];
+  narratorRanks?: string[];
+  placesOfResidence?: string[];
+  isSearchAll?: boolean;
 }
 
 interface NarratorRow {
@@ -74,6 +78,67 @@ interface NarratorRow {
   dhahabi_rank?: string | null;
   notes?: string | null;
   search_text?: string | null;
+}
+
+/**
+ * Check if a narrator matches the selected rank filter
+ */
+function matchesRankFilter(narrator: NarratorRow, ranks: string[]): boolean {
+  if (!ranks || ranks.length === 0) return true; // No filter applied
+
+  const ibnHajarRank = narrator.ibn_hajar_rank?.toLowerCase() || '';
+  const dhahabiRank = narrator.dhahabi_rank?.toLowerCase() || '';
+
+  // Combine both rank fields for searching
+  const combinedRanks = `${ibnHajarRank} ${dhahabiRank}`;
+
+  // Check if any of the selected ranks match (OR logic)
+  return ranks.some(rank => {
+    switch (rank) {
+      case 'sahaba':
+        return combinedRanks.includes('صحابي') || combinedRanks.includes('صحبة');
+      case 'thiqah':
+        return combinedRanks.includes('ثقة');
+      case 'saduq':
+        return combinedRanks.includes('صدوق');
+      case 'daif':
+        return combinedRanks.includes('ضعيف');
+      default:
+        return false;
+    }
+  });
+}
+
+/**
+ * Check if a narrator matches the selected narrator rank filter
+ */
+function matchesNarratorRankFilter(narrator: NarratorRow, narratorRanks: string[]): boolean {
+  if (!narratorRanks || narratorRanks.length === 0) return true; // No filter applied
+
+  const narratorNarratorRank = narrator.taqrib_category || '';
+
+  // Check if any of the selected ranks match (OR logic)
+  return narratorRanks.some(rank => {
+    // Handle combined ranks (pipe-separated)
+    if (rank.includes('|')) {
+      const rankOptions = rank.split('|');
+      return rankOptions.some(r => narratorNarratorRank.includes(r.trim()));
+    }
+    // Single rank
+    return narratorNarratorRank.includes(rank);
+  });
+}
+
+/**
+ * Check if a narrator matches the selected place of residence filter
+ */
+function matchesPlaceOfResidenceFilter(narrator: NarratorRow, placesOfResidence: string[]): boolean {
+  if (!placesOfResidence || placesOfResidence.length === 0) return true; // No filter applied
+
+  const narratorPlaceOfResidence = narrator.place_of_residence || '';
+
+  // Check if any of the selected places match (OR logic)
+  return placesOfResidence.some(place => narratorPlaceOfResidence.includes(place));
 }
 
 /**
@@ -403,8 +468,15 @@ const GETHandler = async (request: NextRequest) => {
   const db = getDatabase();
 
   try {
-    // Use validation middleware for comprehensive parameter validation
-    const validationResult = await createValidationMiddleware(validationSchemas.narratorsSearch)(request);
+    // Use validation middleware for basic parameter validation (excluding array params we handle manually)
+    const basicValidationSchema = {
+      query: validationSchemas.narratorsSearch.query,
+      limit: validationSchemas.narratorsSearch.limit,
+      offset: validationSchemas.narratorsSearch.offset,
+      random: validationSchemas.narratorsSearch.random,
+    };
+
+    const validationResult = await createValidationMiddleware(basicValidationSchema)(request);
 
     if (!validationResult.success) {
       return handleValidationError(validationResult.error);
@@ -414,6 +486,10 @@ const GETHandler = async (request: NextRequest) => {
     const validatedParams: SearchParams = {
       ...params,
       random: request.nextUrl.searchParams.get('random') === 'true',
+      ranks: request.nextUrl.searchParams.getAll('ranks').filter(Boolean) || undefined,
+      narratorRanks: request.nextUrl.searchParams.getAll('narratorRanks').filter(Boolean) || undefined,
+      placesOfResidence: request.nextUrl.searchParams.getAll('placesOfResidence').filter(Boolean) || undefined,
+      isSearchAll: request.nextUrl.searchParams.get('isSearchAll') === 'true',
     };
 
     // Parse search terms from query and normalize them
@@ -423,8 +499,12 @@ const GETHandler = async (request: NextRequest) => {
       : [];
 
     // Validate minimum query length (additional check beyond middleware)
-    // Skip query validation for random requests
-    if (!validatedParams.random && validatedParams.query && searchTerms.length === 0) {
+    // Skip query validation for random requests or when preset criteria are provided
+    const hasPresetCriteria = (validatedParams.ranks && validatedParams.ranks.length > 0) ||
+                              (validatedParams.narratorRanks && validatedParams.narratorRanks.length > 0) ||
+                              (validatedParams.placesOfResidence && validatedParams.placesOfResidence.length > 0) ||
+                              validatedParams.isSearchAll;
+    if (!validatedParams.random && !hasPresetCriteria && validatedParams.query && searchTerms.length === 0) {
       return NextResponse.json({
         success: false,
         error: 'Search query must contain at least one term with 2 or more characters'
@@ -436,7 +516,7 @@ const GETHandler = async (request: NextRequest) => {
 
     let narrators: NarratorRow[] = [];
 
-    if (params.query && searchTerms.length > 0) {
+    if ((params.query && searchTerms.length > 0) || hasPresetCriteria) {
       // Fetch all narrators and alternate names, then filter in memory using normalized comparison
       // This ensures we catch matches even when database has different character variations
       const allNarrators = db.prepare(`
@@ -509,6 +589,21 @@ const GETHandler = async (request: NextRequest) => {
         return true; // All terms matched
       });
 
+      // Apply rank filtering
+      if (validatedParams.ranks && validatedParams.ranks.length > 0) {
+        narrators = narrators.filter(narrator => matchesRankFilter(narrator, validatedParams.ranks!));
+      }
+
+      // Apply narrator rank filtering
+      if (validatedParams.narratorRanks && validatedParams.narratorRanks.length > 0) {
+        narrators = narrators.filter(narrator => matchesNarratorRankFilter(narrator, validatedParams.narratorRanks!));
+      }
+
+      // Apply place of residence filtering
+      if (validatedParams.placesOfResidence && validatedParams.placesOfResidence.length > 0) {
+        narrators = narrators.filter(narrator => matchesPlaceOfResidenceFilter(narrator, validatedParams.placesOfResidence!));
+      }
+
       // Calculate relevance scores and sort (using normalized terms)
       const scoredNarrators = narrators.map(narrator => ({
         ...narrator,
@@ -530,9 +625,12 @@ const GETHandler = async (request: NextRequest) => {
       // Get total count before pagination
       const total = narrators.length;
 
-      // Apply pagination
+      // Apply pagination - allow larger limits for preset searches
       const offset = params.offset ?? 0;
-      const limit = params.limit ?? 50;
+      const hasPresetCriteria = (validatedParams.ranks && validatedParams.ranks.length > 0) ||
+                                (validatedParams.narratorRanks && validatedParams.narratorRanks.length > 0) ||
+                                (validatedParams.placesOfResidence && validatedParams.placesOfResidence.length > 0);
+      const limit = hasPresetCriteria ? (params.limit ?? 100) : (params.limit ?? 50); // Larger limit for preset searches
       const paginatedNarrators = narrators.slice(offset, offset + limit);
 
       // Convert to Narrator format
@@ -561,7 +659,7 @@ const GETHandler = async (request: NextRequest) => {
         success: true,
         narrators: formattedNarrators,
         count: formattedNarrators.length,
-        total,
+        total: hasPresetCriteria ? 10000 : total, // Allow "unlimited" pagination for preset searches
         limit: params.limit,
         offset: params.offset
       });

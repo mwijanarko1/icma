@@ -74,7 +74,7 @@ export default function SignInPage() {
             <button
               onClick={handleSignIn}
               disabled={isLoading}
-              className="w-full flex items-center justify-center gap-3 px-6 py-4 rounded-lg font-semibold text-base transition-all duration-200 hover:shadow-lg hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed border-2 border-black"
+              className="w-full flex items-center justify-center gap-3 px-6 py-4 rounded-lg font-semibold text-base transition-all duration-200 hover:shadow-lg hover:scale-105 hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed border-2 border-black"
               style={{ 
                 backgroundColor: isLoading ? '#666666' : '#000000', 
                 color: '#f2e9dd', 

@@ -331,64 +331,10 @@ export function useHadithAnalyzer(initialCollection?: string | null) {
   }, []);
 
   const handleNewHadith = useCallback(async () => {
-    const hasChains = state.chains.length > 0;
-    const hasHadithText = state.hadithText.trim().length > 0;
-
-    if (hasChains || hasHadithText) {
-      // If user is authenticated, prompt to save before resetting
-      if (user) {
-        const shouldSave = window.confirm(
-          'Do you want to save this analysis before starting a new hadith?'
-        );
-
-        if (shouldSave) {
-          const sessionName = window.prompt(
-            'Enter a name for this analysis:',
-            `Chain Analysis - ${new Date().toLocaleDateString()}`
-          );
-
-          if (sessionName) {
-            try {
-              const mermaidCode = state.chains.length > 0 ? generateMermaidCode(state.chains) : "";
-              await saveChainSession(
-                user.uid,
-                {
-                  name: sessionName,
-                  hadithText: state.hadithText,
-                  chains: state.chains,
-                  mermaidCode,
-                },
-                currentSessionId || undefined
-              );
-            } catch (error) {
-              console.error("Error saving session:", error);
-              alert("Failed to save session. Starting new hadith anyway.");
-            }
-          }
-        }
-
-        const confirmed = window.confirm(
-          'Are you sure you want to start a new hadith? This will delete all current chains and clear all data. This action cannot be undone.'
-        );
-
-        if (!confirmed) {
-          return;
-        }
-      } else {
-        const confirmed = window.confirm(
-          'Are you sure you want to start a new hadith? This will delete all current chains and clear all data. This action cannot be undone.'
-        );
-
-        if (!confirmed) {
-          return;
-        }
-      }
-    }
-
     setCurrentSessionId(null);
     setCurrentSessionName(null);
     dispatch(actions.resetState());
-  }, [state.chains, state.hadithText, user, currentSessionId]);
+  }, []);
 
   // Rename session handler
   const handleRenameSession = async (newName: string) => {

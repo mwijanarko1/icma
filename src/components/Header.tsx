@@ -98,7 +98,7 @@ export default function Header() {
             </Link>
             <Link
               href="/analysis"
-              className="px-5 py-2.5 rounded-full font-semibold text-sm transition-all duration-200 hover:shadow-lg hover:scale-105"
+              className="px-5 py-2.5 rounded-full font-semibold text-sm transition-all duration-200 hover:shadow-lg"
               style={{ backgroundColor: '#000000', color: '#f2e9dd', fontFamily: 'var(--font-content)' }}
             >
               Start Analysis
@@ -109,7 +109,7 @@ export default function Header() {
           <div className="md:hidden">
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="mobile-menu-button p-2 rounded-lg transition-all duration-200 hover:bg-black/10 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              className="mobile-menu-button p-2 rounded-lg transition-all duration-200 hover:bg-black/10 hover:scale-105 hover:-translate-y-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
               style={{ color: '#000000' }}
               aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
               aria-expanded={isMobileMenuOpen}

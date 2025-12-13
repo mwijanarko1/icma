@@ -255,6 +255,18 @@ export const hadithAnalyzerReducer = (
     case 'SET_SHOW_ADD_HADITH_MODAL':
       return { ...state, showAddHadithModal: action.payload };
 
+    case 'SET_SHOW_CONFIRMATION_MODAL':
+      return { ...state, showConfirmationModal: action.payload };
+
+    case 'SET_CONFIRMATION_MODAL_CONFIG':
+      return { ...state, confirmationModalConfig: action.payload };
+
+    case 'SET_SHOW_SESSION_NAME_MODAL':
+      return { ...state, showSessionNameModal: action.payload };
+
+    case 'SET_SESSION_NAME_MODAL_CONFIG':
+      return { ...state, sessionNameModalConfig: action.payload };
+
     case 'RESET_STATE':
       return {
         ...initialState,

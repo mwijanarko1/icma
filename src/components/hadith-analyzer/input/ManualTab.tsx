@@ -47,14 +47,14 @@ export function ManualTab({
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={onAddNewChain}
-                className="px-3 py-2 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-black flex items-center text-sm font-semibold"
+                className="px-3 py-2 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105 hover:-translate-y-1 border-2 border-black flex items-center text-sm font-semibold"
                 style={{ backgroundColor: '#000000', color: '#f2e9dd', fontFamily: 'var(--font-content)' }}
               >
                 Add New Chain
               </button>
               <button
                 onClick={onShowImportModal}
-                className="px-3 py-2 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-black flex items-center text-sm font-semibold"
+                className="px-3 py-2 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105 hover:-translate-y-1 border-2 border-black flex items-center text-sm font-semibold"
                 style={{ backgroundColor: '#000000', color: '#f2e9dd', fontFamily: 'var(--font-content)' }}
               >
                 Chain Collections
@@ -118,7 +118,7 @@ export function ManualTab({
           {!showAddNarrator ? (
             <button
               onClick={() => onShowAddNarrator(true)}
-              className="px-4 py-2 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-black flex items-center font-semibold"
+              className="px-4 py-2 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105 hover:-translate-y-1 border-2 border-black flex items-center font-semibold"
               style={{ backgroundColor: '#000000', color: '#f2e9dd', fontFamily: 'var(--font-content)' }}
             >
               Add Narrator
@@ -172,7 +172,7 @@ export function ManualTab({
                 <button
                   onClick={onAddNarrator}
                   disabled={!newNarrator.arabicName.trim() || !newNarrator.englishName.trim()}
-                  className="px-4 py-2 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-black font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-4 py-2 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105 hover:-translate-y-1 border-2 border-black font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                   style={{ backgroundColor: '#000000', color: '#f2e9dd', fontFamily: 'var(--font-content)' }}
                 >
                   Add Narrator
@@ -182,7 +182,7 @@ export function ManualTab({
                     onNewNarratorChange({ arabicName: '', englishName: '', reputation: [], calculatedGrade: 0 });
                     onShowAddNarrator(false);
                   }}
-                  className="px-4 py-2 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-black font-semibold"
+                  className="px-4 py-2 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105 hover:-translate-y-1 border-2 border-black font-semibold"
                   style={{ backgroundColor: '#f2e9dd', color: '#000000', fontFamily: 'var(--font-content)' }}
                 >
                   Cancel
@@ -300,7 +300,7 @@ export function ManualTab({
             <div className="mt-4 text-center">
               <button
                 onClick={() => onClearNarrators(selectedChainIndex)}
-                className="px-4 py-2 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-black font-semibold"
+                className="px-4 py-2 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105 hover:-translate-y-1 border-2 border-black font-semibold"
                 style={{ backgroundColor: '#000000', color: '#f2e9dd', fontFamily: 'var(--font-content)' }}
               >
                 Clear Narrators

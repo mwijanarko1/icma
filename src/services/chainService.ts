@@ -644,9 +644,6 @@ export function createChainService(
       // Explicitly save chains to localStorage immediately after extraction
       // This ensures persistence even if user navigates away quickly
       saveChains(updatedChains);
-      
-      // Automatically trigger matching modal after extraction
-      await handleMatchNarrators(newChainId, newChain);
     } catch (err) {
       dispatch(actions.setError(err instanceof Error ? err.message : 'Failed to extract narrators'));
     } finally {

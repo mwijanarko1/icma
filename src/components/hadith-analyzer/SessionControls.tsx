@@ -97,7 +97,7 @@ export const SessionControls = React.memo(function SessionControls() {
           <button
             onClick={handleSaveChainAnalysis}
             disabled={isSaving}
-            className="px-6 py-3 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-black flex items-center gap-2 text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            className="px-6 py-3 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105 hover:-translate-y-1 border-2 border-black flex items-center gap-2 text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none"
             style={{ backgroundColor: '#000000', color: '#f2e9dd', fontFamily: 'var(--font-content)' }}
             title="Save your current chain analysis session"
             aria-label={isSaving ? "Saving analysis session..." : "Save current chain analysis session"}
@@ -119,7 +119,7 @@ export const SessionControls = React.memo(function SessionControls() {
             </button>
             <button
               onClick={handleNewHadith}
-              className="px-6 py-3 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-black flex items-center gap-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              className="px-6 py-3 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105 hover:-translate-y-1 border-2 border-black flex items-center gap-2 text-sm font-semibold focus:outline-none"
               style={{ backgroundColor: '#f2e9dd', color: '#000000', fontFamily: 'var(--font-content)' }}
               title="Start a new analysis with a different hadith"
               aria-label="Start new hadith analysis"
@@ -145,7 +145,7 @@ export const SessionControls = React.memo(function SessionControls() {
                 document.body.removeChild(link);
                 URL.revokeObjectURL(url);
               }}
-              className="px-6 py-3 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-black flex items-center gap-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              className="px-6 py-3 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105 hover:-translate-y-1 border-2 border-black flex items-center gap-2 text-sm font-semibold focus:outline-none"
               style={{ backgroundColor: '#000000', color: '#f2e9dd', fontFamily: 'var(--font-content)' }}
               title="Export all chains and data as JSON"
               aria-label="Export chain analysis data as JSON file"
@@ -217,7 +217,7 @@ export const SessionControls = React.memo(function SessionControls() {
           <button
             onClick={handleSaveChainAnalysis}
             disabled={isSaving}
-            className="px-6 py-3 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-black flex items-center gap-2 text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            className="px-6 py-3 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105 hover:-translate-y-1 border-2 border-black flex items-center gap-2 text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none"
             style={{ backgroundColor: '#000000', color: '#f2e9dd', fontFamily: 'var(--font-content)' }}
             title="Save your current chain analysis session"
             aria-label={isSaving ? "Saving analysis session..." : "Save current chain analysis session"}
@@ -239,7 +239,7 @@ export const SessionControls = React.memo(function SessionControls() {
           </button>
           <button
             onClick={handleNewHadith}
-            className="px-6 py-3 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-black flex items-center gap-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            className="px-6 py-3 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105 hover:-translate-y-1 border-2 border-black flex items-center gap-2 text-sm font-semibold focus:outline-none"
             style={{ backgroundColor: '#f2e9dd', color: '#000000', fontFamily: 'var(--font-content)' }}
             title="Start a new analysis with a different hadith"
             aria-label="Start new hadith analysis"
@@ -263,7 +263,7 @@ export const SessionControls = React.memo(function SessionControls() {
               document.body.removeChild(link);
               URL.revokeObjectURL(url);
             }}
-            className="px-6 py-3 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-black flex items-center gap-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            className="px-6 py-3 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105 hover:-translate-y-1 border-2 border-black flex items-center gap-2 text-sm font-semibold focus:outline-none"
             style={{ backgroundColor: '#000000', color: '#f2e9dd', fontFamily: 'var(--font-content)' }}
             title="Export all chains and data as JSON"
             aria-label="Export chain analysis data as JSON file"

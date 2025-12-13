@@ -329,6 +329,33 @@ export const validationSchemas = {
       if (value === undefined || value === null || value === '') return { isValid: true };
       if (value === 'true' || value === 'false') return { isValid: true };
       return { isValid: false, error: 'random must be true or false' };
+    },
+    ranks: (value: any) => {
+      if (value === undefined || value === null || value === '') return { isValid: true };
+      if (Array.isArray(value)) {
+        return value.every(v => ['sahaba', 'thiqah', 'daif'].includes(v))
+          ? { isValid: true }
+          : { isValid: false, error: 'ranks must be an array of: sahabah, thiqah, daif' };
+      }
+      return { isValid: false, error: 'ranks must be an array' };
+    },
+    narratorRanks: (value: any) => {
+      if (value === undefined || value === null || value === '') return { isValid: true };
+      if (Array.isArray(value)) {
+        return value.every(v => typeof v === 'string' && v.length >= 1 && v.length <= 100)
+          ? { isValid: true }
+          : { isValid: false, error: 'narratorRanks must be an array of strings (1-100 chars)' };
+      }
+      return { isValid: false, error: 'narratorRanks must be an array' };
+    },
+    placesOfResidence: (value: any) => {
+      if (value === undefined || value === null || value === '') return { isValid: true };
+      if (Array.isArray(value)) {
+        return value.every(v => typeof v === 'string' && v.length >= 1 && v.length <= 100)
+          ? { isValid: true }
+          : { isValid: false, error: 'placesOfResidence must be an array of strings (1-100 chars)' };
+      }
+      return { isValid: false, error: 'placesOfResidence must be an array' };
     }
   },
 

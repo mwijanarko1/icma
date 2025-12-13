@@ -78,13 +78,13 @@ export class ErrorBoundary extends Component<Props, State> {
             <div className="space-y-2">
               <button
                 onClick={() => window.location.reload()}
-                className="w-full px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+                className="w-full px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 hover:scale-105 hover:-translate-y-1 transition-colors"
               >
                 Refresh Page
               </button>
               <button
                 onClick={() => this.setState({ hasError: false, error: undefined, errorInfo: undefined })}
-                className="w-full px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
+                className="w-full px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 hover:scale-105 hover:-translate-y-1 transition-colors"
               >
                 Try Again
               </button>

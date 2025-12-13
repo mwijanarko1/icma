@@ -301,8 +301,8 @@ export const DraggableChain = React.memo(function DraggableChain({
                     <thead>
                       <tr className="bg-gray-50">
                         <th className="border-2 border-black px-4 py-2 text-left font-medium" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>Number</th>
-                        <th className="border-2 border-black px-4 py-2 text-right font-medium" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>Arabic Name</th>
-                        <th className="border-2 border-black px-4 py-2 text-left font-medium" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>English Name</th>
+                        <th className="border-2 border-black px-4 py-2 text-center font-medium min-w-[200px]" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>Arabic Name</th>
+                        <th className="border-2 border-black px-4 py-2 text-center font-medium min-w-[200px]" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>English Name</th>
                         <th className="border-2 border-black px-4 py-2 text-center font-medium" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>Death Year</th>
                         <th className="border-2 border-black px-4 py-2 text-center font-medium" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>Reputation</th>
                         <th className="border-2 border-black px-4 py-2 text-center font-medium" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>Calculated Grade</th>
@@ -568,8 +568,8 @@ export const DraggableChain = React.memo(function DraggableChain({
             <thead>
               <tr className="bg-gray-50">
                 <th className="border-2 border-black px-4 py-2 text-left font-medium" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>Number</th>
-                <th className="border-2 border-black px-4 py-2 text-right font-medium" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>Narrator Name</th>
-                <th className="border-2 border-black px-4 py-2 text-left font-medium" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>English Name</th>
+                <th className="border-2 border-black px-4 py-2 text-center font-medium min-w-[200px]" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>Narrator Name</th>
+                <th className="border-2 border-black px-4 py-2 text-center font-medium min-w-[200px]" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>English Name</th>
                 <th className="border-2 border-black px-4 py-2 text-center font-medium" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>Death Year</th>
                 <th className="border-2 border-black px-4 py-2 text-center font-medium" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>Reputation</th>
                 <th className="border-2 border-black px-4 py-2 text-center font-medium" style={{ fontFamily: 'var(--font-content)', color: '#000000' }}>Calculated Grade</th>
@@ -668,70 +668,70 @@ export const DraggableChain = React.memo(function DraggableChain({
       >
         <div className="space-y-2">
           <button
-            onClick={() => {
-              narratorService.handleAddCompiler('bukhari');
+            onClick={async () => {
+              await narratorService.handleAddCompiler('bukhari');
               setShowCompilerModal(false);
             }}
             className="w-full px-4 py-3 text-left rounded-lg border-2 border-black hover:bg-gray-100 transition-colors"
             style={{ fontFamily: 'var(--font-content)', color: '#000000' }}
           >
             <div className="font-medium text-lg">Imam al-Bukhari</div>
-            <div className="text-sm opacity-70 mt-1" dir="rtl">صحيح البخاري</div>
+            <div className="text-sm opacity-70 mt-1" dir="rtl">البخاري</div>
           </button>
           <button
-            onClick={() => {
-              narratorService.handleAddCompiler('muslim');
+            onClick={async () => {
+              await narratorService.handleAddCompiler('muslim');
               setShowCompilerModal(false);
             }}
             className="w-full px-4 py-3 text-left rounded-lg border-2 border-black hover:bg-gray-100 transition-colors"
             style={{ fontFamily: 'var(--font-content)', color: '#000000' }}
           >
             <div className="font-medium text-lg">Imam Muslim</div>
-            <div className="text-sm opacity-70 mt-1" dir="rtl">صحيح مسلم</div>
+            <div className="text-sm opacity-70 mt-1" dir="rtl">مسلم بن الحجاج بن مسلم</div>
           </button>
           <button
-            onClick={() => {
-              narratorService.handleAddCompiler('tirmidhi');
+            onClick={async () => {
+              await narratorService.handleAddCompiler('tirmidhi');
               setShowCompilerModal(false);
             }}
             className="w-full px-4 py-3 text-left rounded-lg border-2 border-black hover:bg-gray-100 transition-colors"
             style={{ fontFamily: 'var(--font-content)', color: '#000000' }}
           >
             <div className="font-medium text-lg">Imam al-Tirmidhi</div>
-            <div className="text-sm opacity-70 mt-1" dir="rtl">جامع الترمذي</div>
+            <div className="text-sm opacity-70 mt-1" dir="rtl">محمد بن عيسى بن سورة بن موسى بن الضحاك</div>
           </button>
           <button
-            onClick={() => {
-              narratorService.handleAddCompiler('abu_dawood');
+            onClick={async () => {
+              await narratorService.handleAddCompiler('abu_dawood');
               setShowCompilerModal(false);
             }}
             className="w-full px-4 py-3 text-left rounded-lg border-2 border-black hover:bg-gray-100 transition-colors"
             style={{ fontFamily: 'var(--font-content)', color: '#000000' }}
           >
             <div className="font-medium text-lg">Imam Abu Dawood</div>
-            <div className="text-sm opacity-70 mt-1" dir="rtl">سنن أبي داود</div>
+            <div className="text-sm opacity-70 mt-1" dir="rtl">أبو داود السجستاني</div>
           </button>
           <button
-            onClick={() => {
-              narratorService.handleAddCompiler('nasai');
+            onClick={async () => {
+              await narratorService.handleAddCompiler('nasai');
               setShowCompilerModal(false);
             }}
             className="w-full px-4 py-3 text-left rounded-lg border-2 border-black hover:bg-gray-100 transition-colors"
             style={{ fontFamily: 'var(--font-content)', color: '#000000' }}
           >
             <div className="font-medium text-lg">Imam al-Nasai</div>
-            <div className="text-sm opacity-70 mt-1" dir="rtl">جامع النسائي</div>
+            <div className="text-sm opacity-70 mt-1" dir="rtl">أبو عبد الرحمن أحمد بن شعيب النسائي</div>
           </button>
           <button
-            onClick={() => {
-              narratorService.handleAddCompiler('ibn_majah');
+            onClick={async () => {
+              await narratorService.handleAddCompiler('ibn_majah');
               setShowCompilerModal(false);
             }}
             className="w-full px-4 py-3 text-left rounded-lg border-2 border-black hover:bg-gray-100 transition-colors"
             style={{ fontFamily: 'var(--font-content)', color: '#000000' }}
           >
             <div className="font-medium text-lg">Imam Ibn Majah</div>
-            <div className="text-sm opacity-70 mt-1" dir="rtl">سنن ابن ماجه</div>
+            <div className="text-sm opacity-70 mt-1" dir="rtl">محمد بن ماجه</div>
           </button>
         </div>
       </BasicModal>

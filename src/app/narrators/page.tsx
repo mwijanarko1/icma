@@ -14,6 +14,7 @@ import Header from "@/components/Header";
 function NarratorsPageContent() {
   const searchParams = useSearchParams();
   const [narratorState, narratorDispatch] = useReducer(hadithAnalyzerReducer, initialState);
+
   
   // Create narrator service
   const narratorService = useMemo(
@@ -23,8 +24,8 @@ function NarratorsPageContent() {
   
   // Search narrators function
   const searchNarrators = useCallback(
-    async (query: string, offset: number = 0) => {
-      await narratorService.handleSearchNarrators(query, offset);
+    async (query: string, offset: number = 0, ranks?: string[], narratorRanks?: string[], placesOfResidence?: string[]) => {
+      await narratorService.handleSearchNarrators(query, offset, ranks, narratorRanks, placesOfResidence);
     },
     [narratorService]
   );
@@ -101,6 +102,82 @@ function NarratorsPageContent() {
             narratorSearchOffset={narratorState.narratorSearchOffset}
             onSearchNarrators={searchNarrators}
             onFetchNarratorDetails={fetchNarratorDetails}
+            onPresetSearch={(criteria) => {
+              // Handle "Search All Narrators" button
+              if (criteria.isSearchAll) {
+                const currentNarratorService = createNarratorService(narratorState, narratorDispatch, actions, generateMermaidCode);
+                currentNarratorService.handleSearchNarrators('', 0, undefined, undefined, undefined, true);
+                return;
+              }
+
+              // For preset filters, if we have no existing results, search with the criteria directly
+              if (narratorState.narratorSearchResults.length === 0) {
+                // No existing results, so search with the preset criteria
+                const currentNarratorService = createNarratorService(narratorState, narratorDispatch, actions, generateMermaidCode);
+                currentNarratorService.handleSearchNarrators(criteria.query || '', 0, criteria.ranks, criteria.narratorRanks, criteria.placesOfResidence);
+                return;
+              }
+
+              // We have existing results to filter - apply client-side filtering
+              let filteredResults = [...narratorState.narratorSearchResults];
+
+              // Apply reliability filtering
+              if (criteria.ranks && criteria.ranks.length > 0) {
+                filteredResults = filteredResults.filter(narrator => {
+                  const ibnHajarRank = narrator.ibnHajarRank?.toLowerCase() || '';
+                  const dhahabiRank = narrator.dhahabiRank?.toLowerCase() || '';
+                  const combinedRanks = `${ibnHajarRank} ${dhahabiRank}`;
+
+                  return criteria.ranks!.some(rank => {
+                    switch (rank) {
+                      case 'sahaba':
+                        return combinedRanks.includes('صحابي') || combinedRanks.includes('صحبة');
+                      case 'thiqah':
+                        return combinedRanks.includes('ثقة');
+                      case 'saduq':
+                        return combinedRanks.includes('صدوق');
+                      case 'daif':
+                        return combinedRanks.includes('ضعيف');
+                      default:
+                        return false;
+                    }
+                  });
+                });
+              }
+
+              // Apply rank filtering
+              if (criteria.narratorRanks && criteria.narratorRanks.length > 0) {
+                filteredResults = filteredResults.filter(narrator => {
+                  const narratorRank = narrator.taqribCategory || '';
+                  return criteria.narratorRanks!.some(rankFilter => {
+                    if (rankFilter.includes('|')) {
+                      const rankOptions = rankFilter.split('|');
+                      return rankOptions.some(r => narratorRank.includes(r.trim()));
+                    }
+                    return narratorRank.includes(rankFilter);
+                  });
+                });
+              }
+
+              // Apply place filtering
+              if (criteria.placesOfResidence && criteria.placesOfResidence.length > 0) {
+                filteredResults = filteredResults.filter(narrator => {
+                  const placeOfResidence = narrator.placeOfResidence || '';
+                  return criteria.placesOfResidence!.some(placeFilter => {
+                    if (placeFilter.includes('|')) {
+                      const placeOptions = placeFilter.split('|');
+                      return placeOptions.some(p => placeOfResidence.includes(p.trim()));
+                    }
+                    return placeOfResidence.includes(placeFilter);
+                  });
+                });
+              }
+
+              // Update the results in state
+              narratorDispatch(actions.setNarratorSearchResults(filteredResults));
+              narratorDispatch(actions.setNarratorSearchTotal(filteredResults.length));
+              narratorDispatch(actions.setNarratorSearchOffset(0));
+            }}
           />
         </div>
       </main>

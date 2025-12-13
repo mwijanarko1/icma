@@ -10,6 +10,8 @@ import { DraggableChain } from '@/components/hadith-analyzer/chains/DraggableCha
 import { ChainDragOverlay } from '@/components/hadith-analyzer/chains/ChainDragOverlay';
 import { ChainCollectionsModal } from '@/components/hadith-analyzer/import/ChainCollectionsModal';
 import { InputTabs, LLMTab, ManualTab, SettingsTab, AddHadithFromDatabaseModal } from '@/components/hadith-analyzer/input';
+import ConfirmationModal from '@/components/ui/ConfirmationModal';
+import SessionNameModal from '@/components/ui/SessionNameModal';
 import { SessionControls } from '@/components/hadith-analyzer/SessionControls';
 import { ModalsContainer } from '@/components/hadith-analyzer/ModalsContainer';
 import { Timeline } from '@/components/hadith-analyzer/Timeline';
@@ -18,6 +20,8 @@ import { useHadithAnalyzer } from '@/hooks/useHadithAnalyzer';
 import { useDragAndDrop } from '@/hooks/useDragAndDrop';
 import { useNarratorSearch } from '@/hooks/useNarratorSearch';
 import { useNarratorSearchModal } from '@/hooks/useNarratorSearchModal';
+import { useAuth } from '@/contexts/AuthContext';
+import { saveChainSession } from '@/lib/firebase/firestore';
 
 // Lazy load heavy components
 const MermaidGraph = lazy(() => import('@/components/hadith-analyzer/visualization/MermaidGraph').then(module => ({ default: module.MermaidGraph })));
@@ -64,7 +68,11 @@ export default function HadithAnalyzer({ initialCollection }: HadithAnalyzerProp
     handleRenameSession,
     isSaving,
     currentSessionName,
+    currentSessionId,
   } = useHadithAnalyzer(initialCollection);
+
+  // Get user for authentication checks
+  const { user } = useAuth();
 
   // Destructure state for easier access
   const {
@@ -103,7 +111,11 @@ export default function HadithAnalyzer({ initialCollection }: HadithAnalyzerProp
     isSearchingModal,
     narratorSearchModalOffset,
     narratorSearchModalTotal,
-    showAddHadithModal
+    showAddHadithModal,
+    showConfirmationModal,
+    confirmationModalConfig,
+    showSessionNameModal,
+    sessionNameModalConfig
   } = state;
 
   // Create service instances (memoized to prevent recreation on every render)
@@ -137,6 +149,109 @@ export default function HadithAnalyzer({ initialCollection }: HadithAnalyzerProp
   const handleExtractNarrators = useCallback(async (text: string): Promise<void> => {
     await chainService.handleExtractNarrators(extractNarrators, text);
   }, [chainService, extractNarrators]);
+
+  // Handle new hadith with confirmation
+  const handleNewHadithWithConfirmation = useCallback(async () => {
+    const hasChains = chains.length > 0;
+    const hasHadithText = state.hadithText.trim().length > 0;
+
+    if (hasChains || hasHadithText) {
+      // If user is authenticated, prompt to save before resetting
+      if (user) {
+        // First confirmation: Save before starting new hadith?
+        const saveBeforeNew = () => {
+          // Show session name input modal
+          dispatch(actions.setSessionNameModalConfig({
+            title: "Save Analysis",
+            message: 'Enter a name for this analysis session:',
+            defaultValue: `Chain Analysis - ${new Date().toLocaleDateString()}`,
+            onConfirm: (sessionName: string) => {
+              // Save and then show final confirmation
+              (async () => {
+                try {
+                  const mermaidCode = chains.length > 0 ? generateMermaidCode(chains) : "";
+                  await saveChainSession(
+                    user.uid,
+                    {
+                      name: sessionName,
+                      hadithText: state.hadithText,
+                      chains: chains,
+                      mermaidCode,
+                    },
+                    currentSessionId || undefined
+                  );
+                  // After saving, show final confirmation
+                  dispatch(actions.setConfirmationModalConfig({
+                    title: "Confirm New Hadith",
+                    message: 'Are you sure you want to start a new hadith? This will delete all current chains and clear all data. This action cannot be undone.',
+                    confirmText: "Yes",
+                    cancelText: "No",
+                    onConfirm: () => {
+                      handleNewHadith();
+                    }
+                  }));
+                  dispatch(actions.setShowConfirmationModal(true));
+                } catch (error) {
+                  console.error("Error saving session:", error);
+                  alert("Failed to save session. Starting new hadith anyway.");
+                  // Show final confirmation even if save failed
+                  dispatch(actions.setConfirmationModalConfig({
+                    title: "Confirm New Hadith",
+                    message: 'Are you sure you want to start a new hadith? This will delete all current chains and clear all data. This action cannot be undone.',
+                    confirmText: "Yes",
+                    cancelText: "No",
+                    onConfirm: () => {
+                      handleNewHadith();
+                    }
+                  }));
+                  dispatch(actions.setShowConfirmationModal(true));
+                }
+              })();
+            },
+            onCancel: () => {
+              // User cancelled save, show final confirmation
+              dispatch(actions.setConfirmationModalConfig({
+                title: "Confirm New Hadith",
+                message: 'Are you sure you want to start a new hadith? This will delete all current chains and clear all data. This action cannot be undone.',
+                confirmText: "Yes",
+                cancelText: "No",
+                onConfirm: () => {
+                  handleNewHadith();
+                }
+              }));
+              dispatch(actions.setShowConfirmationModal(true));
+            }
+          }));
+          dispatch(actions.setShowSessionNameModal(true));
+        };
+
+        // Show first confirmation: Save before new hadith?
+        dispatch(actions.setConfirmationModalConfig({
+          title: "Save Analysis",
+          message: 'Do you want to save this analysis before starting a new hadith?',
+          confirmText: "Yes",
+          cancelText: "No",
+          onConfirm: saveBeforeNew
+        }));
+        dispatch(actions.setShowConfirmationModal(true));
+      } else {
+        // Not authenticated, just show final confirmation
+        dispatch(actions.setConfirmationModalConfig({
+          title: "Confirm New Hadith",
+          message: 'Are you sure you want to start a new hadith? This will delete all current chains and clear all data. This action cannot be undone.',
+          confirmText: "Yes",
+          cancelText: "No",
+          onConfirm: () => {
+            handleNewHadith();
+          }
+        }));
+        dispatch(actions.setShowConfirmationModal(true));
+      }
+    } else {
+      // No data to lose, just reset
+      handleNewHadith();
+    }
+  }, [chains, state.hadithText, user, currentSessionId, handleNewHadith, dispatch, actions]);
 
   // Drag and drop sensors
   const { sensors } = useDragAndDrop();
@@ -261,7 +376,7 @@ export default function HadithAnalyzer({ initialCollection }: HadithAnalyzerProp
     dispatch,
     actions,
     extractNarrators,
-    handleNewHadith,
+    handleNewHadith: handleNewHadithWithConfirmation,
     handleSaveChainAnalysis,
     handleRenameSession,
     isSaving,
@@ -543,6 +658,29 @@ export default function HadithAnalyzer({ initialCollection }: HadithAnalyzerProp
         onAddHadiths={handleAddHadithsFromDatabase}
         isLoading={isLoading}
       />
+
+      {confirmationModalConfig && (
+        <ConfirmationModal
+          isOpen={showConfirmationModal}
+          onClose={() => dispatch(actions.setShowConfirmationModal(false))}
+          onConfirm={confirmationModalConfig.onConfirm}
+          title={confirmationModalConfig.title}
+          message={confirmationModalConfig.message}
+          confirmText={confirmationModalConfig.confirmText}
+          cancelText={confirmationModalConfig.cancelText}
+        />
+      )}
+
+      {sessionNameModalConfig && (
+        <SessionNameModal
+          isOpen={showSessionNameModal}
+          onClose={() => dispatch(actions.setShowSessionNameModal(false))}
+          onConfirm={sessionNameModalConfig.onConfirm}
+          title={sessionNameModalConfig.title}
+          message={sessionNameModalConfig.message}
+          defaultValue={sessionNameModalConfig.defaultValue}
+        />
+      )}
     </div>
     </HadithAnalyzerProvider>
   );

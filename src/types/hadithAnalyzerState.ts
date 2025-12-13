@@ -100,6 +100,26 @@ export interface HadithAnalyzerState {
 
   // Add hadith modal
   showAddHadithModal: boolean;
+
+  // Confirmation modal
+  showConfirmationModal: boolean;
+  confirmationModalConfig: {
+    title?: string;
+    message: string;
+    confirmText?: string;
+    cancelText?: string;
+    onConfirm: () => void;
+  } | null;
+
+  // Session name input modal
+  showSessionNameModal: boolean;
+  sessionNameModalConfig: {
+    title?: string;
+    message: string;
+    defaultValue?: string;
+    onConfirm: (name: string) => void;
+    onCancel: () => void;
+  } | null;
 }
 
 export const initialState: HadithAnalyzerState = {
@@ -159,6 +179,10 @@ export const initialState: HadithAnalyzerState = {
   narratorSearchModalOffset: 0,
   narratorSearchModalTotal: 0,
   showGradeFormulaTooltip2: false,
-  showAddHadithModal: false
+  showAddHadithModal: false,
+  showConfirmationModal: false,
+  confirmationModalConfig: null,
+  showSessionNameModal: false,
+  sessionNameModalConfig: null
 };
 

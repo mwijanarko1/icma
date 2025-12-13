@@ -174,14 +174,14 @@ export function MatchConfirmationModal({
           <div className="flex gap-2">
             <button
               onClick={onRejectAllMatches}
-              className="px-4 py-2 text-sm font-medium rounded-lg transition-colors border-2 border-black hover:bg-red-50"
+              className="px-4 py-2 text-sm font-medium rounded-lg transition-colors border-2 border-black hover:bg-red-50 hover:scale-105 hover:-translate-y-1"
               style={{ fontFamily: 'var(--font-content)', color: '#000000', backgroundColor: '#fee2e2' }}
             >
               Reject All
             </button>
             <button
               onClick={onAcceptAllMatches}
-              className="px-4 py-2 text-sm font-medium rounded-lg transition-colors border-2 border-black hover:bg-green-50"
+              className="px-4 py-2 text-sm font-medium rounded-lg transition-colors border-2 border-black hover:bg-green-50 hover:scale-105 hover:-translate-y-1"
               style={{ fontFamily: 'var(--font-content)', color: '#000000', backgroundColor: '#dcfce7' }}
             >
               Accept All
@@ -190,7 +190,7 @@ export function MatchConfirmationModal({
           <div className="flex gap-3">
             <button
               onClick={onRejectMatch}
-              className="px-6 py-2 text-sm font-medium rounded-lg transition-colors border-2 border-black hover:bg-gray-100"
+              className="px-6 py-2 text-sm font-medium rounded-lg transition-colors border-2 border-black hover:bg-gray-100 hover:scale-105 hover:-translate-y-1"
               style={{ fontFamily: 'var(--font-content)', color: '#000000', backgroundColor: '#f2e9dd' }}
             >
               No

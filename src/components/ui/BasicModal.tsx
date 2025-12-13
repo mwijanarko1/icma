@@ -142,7 +142,7 @@ export default function BasicModal({
        </div>
 
        {/* Content */}
-       <div className="relative overflow-y-auto max-h-[calc(90vh-8rem)]">{children}</div>
+       <div className="relative overflow-y-auto max-h-[calc(90vh-8rem)] pr-4">{children}</div>
       </motion.div>
      </motion.div>
     </>

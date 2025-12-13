@@ -62,8 +62,9 @@ export interface NarratorsTabProps {
   isSearchingNarrators: boolean;
   narratorSearchTotal: number;
   narratorSearchOffset: number;
-  onSearchNarrators: (query: string, offset: number) => void;
+  onSearchNarrators: (query: string, offset: number, ranks?: string[], narratorRanks?: string[], placesOfResidence?: string[]) => void;
   onFetchNarratorDetails: (id: string) => void;
+  onPresetSearch?: (criteria: { query?: string; ranks?: string[]; narratorRanks?: string[]; placesOfResidence?: string[]; isSearchAll?: boolean }) => void;
 }
 
 export interface HadithTabProps {

@@ -61,6 +61,10 @@ export type HadithAnalyzerAction =
   | { type: 'SET_NARRATOR_SEARCH_MODAL_TOTAL'; payload: number }
   | { type: 'SET_SHOW_GRADE_FORMULA_TOOLTIP2'; payload: boolean }
   | { type: 'SET_SHOW_ADD_HADITH_MODAL'; payload: boolean }
+  | { type: 'SET_SHOW_CONFIRMATION_MODAL'; payload: boolean }
+  | { type: 'SET_CONFIRMATION_MODAL_CONFIG'; payload: HadithAnalyzerState['confirmationModalConfig'] }
+  | { type: 'SET_SHOW_SESSION_NAME_MODAL'; payload: boolean }
+  | { type: 'SET_SESSION_NAME_MODAL_CONFIG'; payload: HadithAnalyzerState['sessionNameModalConfig'] }
   | { type: 'RESET_STATE' }
   | { type: 'RESET_EDIT_FORM' }
   | { type: 'RESET_NEW_NARRATOR' };
@@ -346,6 +350,26 @@ export const actions = {
   setShowAddHadithModal: (show: boolean): HadithAnalyzerAction => ({
     type: 'SET_SHOW_ADD_HADITH_MODAL',
     payload: show
+  }),
+
+  setShowConfirmationModal: (show: boolean): HadithAnalyzerAction => ({
+    type: 'SET_SHOW_CONFIRMATION_MODAL',
+    payload: show
+  }),
+
+  setConfirmationModalConfig: (config: HadithAnalyzerState['confirmationModalConfig']): HadithAnalyzerAction => ({
+    type: 'SET_CONFIRMATION_MODAL_CONFIG',
+    payload: config
+  }),
+
+  setShowSessionNameModal: (show: boolean): HadithAnalyzerAction => ({
+    type: 'SET_SHOW_SESSION_NAME_MODAL',
+    payload: show
+  }),
+
+  setSessionNameModalConfig: (config: HadithAnalyzerState['sessionNameModalConfig']): HadithAnalyzerAction => ({
+    type: 'SET_SESSION_NAME_MODAL_CONFIG',
+    payload: config
   }),
 
   resetState: (): HadithAnalyzerAction => ({

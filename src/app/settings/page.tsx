@@ -109,7 +109,7 @@ export default function SettingsPage() {
             </div>
             <button
               onClick={() => setShowApiKeyModal(true)}
-              className="w-full text-sm font-semibold px-4 py-2.5 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-black"
+              className="w-full text-sm font-semibold px-4 py-2.5 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105 hover:-translate-y-1 border-2 border-black"
               style={{ backgroundColor: '#000000', color: '#f2e9dd', fontFamily: 'var(--font-content)' }}
             >
               {apiKey ? 'Update API Key' : 'Add API Key'}
@@ -137,7 +137,7 @@ export default function SettingsPage() {
                   handleClearCache();
                 }
               }}
-              className="w-full text-sm font-semibold px-4 py-2.5 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl border-2 border-black"
+              className="w-full text-sm font-semibold px-4 py-2.5 rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105 hover:-translate-y-1 border-2 border-black"
               style={{ backgroundColor: '#000000', color: '#f2e9dd', fontFamily: 'var(--font-content)' }}
             >
               Clear All Cache
