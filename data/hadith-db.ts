@@ -29,14 +29,23 @@ export function getHadithDbPath(collection: HadithCollection): string {
  */
 export function getHadithDatabase(collection: HadithCollection): Database.Database {
   const dbPath = getHadithDbPath(collection);
-  
+  console.log('🔍 HADITH DB DEBUG: Getting database for collection:', collection);
+  console.log('🔍 HADITH DB DEBUG: Database path:', dbPath);
+
   // Ensure data directory exists
   const dataDir = path.dirname(dbPath);
+  console.log('🔍 HADITH DB DEBUG: Data directory:', dataDir);
+  console.log('🔍 HADITH DB DEBUG: Data directory exists:', fs.existsSync(dataDir));
+
   if (!fs.existsSync(dataDir)) {
+    console.log('🔍 HADITH DB DEBUG: Creating data directory');
     fs.mkdirSync(dataDir, { recursive: true });
   }
 
+  console.log('🔍 HADITH DB DEBUG: Database file exists:', fs.existsSync(dbPath));
+
   const db = new Database(dbPath);
+  console.log('🔍 HADITH DB DEBUG: Database opened successfully');
 
   // Performance optimizations
   db.pragma('cache_size = -2000'); // Use 2MB cache
@@ -91,12 +100,23 @@ export async function withHadithDatabase<T>(
   collection: HadithCollection,
   callback: (db: Database.Database) => T | Promise<T>
 ): Promise<T> {
+  console.log('🔍 HADITH DB DEBUG: Opening database for collection:', collection);
+  const dbPath = getHadithDbPath(collection);
+  console.log('🔍 HADITH DB DEBUG: Database path:', dbPath);
+
   const db = getHadithDatabase(collection);
+  console.log('🔍 HADITH DB DEBUG: Database opened successfully');
+
   try {
     const result = await callback(db);
+    console.log('🔍 HADITH DB DEBUG: Database operation completed successfully');
     return result;
+  } catch (error) {
+    console.error('🔍 HADITH DB DEBUG: Database operation failed:', error);
+    throw error;
   } finally {
     closeHadithDatabase(db);
+    console.log('🔍 HADITH DB DEBUG: Database closed');
   }
 }
 
