@@ -150,8 +150,6 @@ const nextConfig: NextConfig = {
     typedRoutes: true,
   },
 
-  // Output optimization
-  output: 'standalone',
 
   // Build optimization
   compiler: {
