@@ -45,3 +45,6 @@ docs/
 
 # scripts
 scripts/
+
+# old
+/old/*
