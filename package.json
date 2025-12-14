@@ -16,6 +16,7 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@google/genai": "^1.32.0",
     "@tailwindcss/postcss": "^4.1.17",
+    "@vercel/postgres": "^0.10.0",
     "better-sqlite3": "^12.5.0",
     "cytoscape": "^3.33.1",
     "cytoscape-dagre": "^2.5.0",
@@ -27,6 +28,7 @@
     "lucide-react": "^0.561.0",
     "mermaid": "^11.12.2",
     "next": "^16.0.10",
+    "pg": "^8.16.3",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
     "usehooks-ts": "^3.1.1"
