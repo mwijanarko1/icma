@@ -24,6 +24,9 @@
 .DS_Store
 *.pem
 
+# old versions
+old/
+
 # debug
 npm-debug.log*
 yarn-debug.log*
@@ -45,6 +48,3 @@ docs/
 
 # scripts
 scripts/
-
-# old
-/old/*
