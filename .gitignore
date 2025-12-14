@@ -27,6 +27,10 @@
 # old versions
 old/
 
+# database files (not deployed to production)
+*.db
+data/*.db
+
 # debug
 npm-debug.log*
 yarn-debug.log*

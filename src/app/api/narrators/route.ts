@@ -465,9 +465,6 @@ function calculateRelevanceScore(
  * GET /api/narrators?random=true&limit=5
  */
 const GETHandler = async (request: NextRequest) => {
-  console.log(`[NARRATORS_API_DEBUG] GET request received: ${request.url}`);
-
-  console.log(`[NARRATORS_API_DEBUG] Getting database connection`);
   const db = getDatabase();
 
   try {
@@ -520,15 +517,12 @@ const GETHandler = async (request: NextRequest) => {
     let narrators: NarratorRow[] = [];
 
     if ((params.query && searchTerms.length > 0) || hasPresetCriteria) {
-      console.log(`[NARRATORS_API_DEBUG] Executing database queries for search`);
       // Fetch all narrators and alternate names, then filter in memory using normalized comparison
       // This ensures we catch matches even when database has different character variations
-      console.log(`[NARRATORS_API_DEBUG] Fetching all narrators`);
       const allNarrators = db.prepare(`
         SELECT DISTINCT n.*
         FROM narrators n
       `).all() as NarratorRow[];
-      console.log(`[NARRATORS_API_DEBUG] Fetched ${allNarrators.length} narrators`);
 
       const allAlternateNames = db.prepare(`
         SELECT narrator_id, arabic_name, english_name
