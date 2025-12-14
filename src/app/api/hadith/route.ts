@@ -294,13 +294,6 @@ function getMuslimSortOrder(hadithNumber: number): number {
  */
 const GETHandler = async (request: NextRequest) => {
   try {
-    console.log('🔍 HADITH SEARCH DEBUG: Starting hadith search request');
-    console.log('🔍 HADITH SEARCH DEBUG: Request URL:', request.url);
-    console.log('🔍 HADITH SEARCH DEBUG: Search params:', Object.fromEntries(request.nextUrl.searchParams));
-    console.log('🔍 HADITH SEARCH DEBUG: Environment check - NODE_ENV:', process.env.NODE_ENV);
-    console.log('🔍 HADITH SEARCH DEBUG: Current working directory:', process.cwd());
-    console.log('🔍 HADITH SEARCH DEBUG: Process platform:', process.platform);
-
     const searchParams = request.nextUrl.searchParams;
 
     // Extract basic parameters for route determination
@@ -341,9 +334,6 @@ const GETHandler = async (request: NextRequest) => {
 
     const { params } = validationResult.data;
     const hadithCollection = params.collection;
-
-    console.log('🔍 HADITH SEARCH DEBUG: Collection:', hadithCollection);
-    console.log('🔍 HADITH SEARCH DEBUG: All params:', params);
 
     // Single hadith by number
     if (hadithParam) {
@@ -473,16 +463,9 @@ const GETHandler = async (request: NextRequest) => {
         }
       }
 
-      console.log('🔍 HADITH SEARCH DEBUG: About to call withHadithDatabase for search');
-      console.log('🔍 HADITH SEARCH DEBUG: Collection:', hadithCollection);
-      console.log('🔍 HADITH SEARCH DEBUG: Sanitized search query:', sanitizedSearchQuery);
-      console.log('🔍 HADITH SEARCH DEBUG: Offset:', offset, 'Limit:', limit);
-
       const result = await withHadithDatabase(hadithCollection, (db) => {
-        console.log('🔍 HADITH SEARCH DEBUG: Inside withHadithDatabase callback - database opened successfully');
         // Check if search query is a number (for hadith number search)
         const isNumber = !isNaN(Number(sanitizedSearchQuery)) && /^\d+$/.test(sanitizedSearchQuery.trim());
-        console.log('🔍 HADITH SEARCH DEBUG: Is number search:', isNumber);
 
         if (isNumber) {
           // For numeric queries, search by hadith number first, then text fields
@@ -744,9 +727,7 @@ const GETHandler = async (request: NextRequest) => {
       offset,
     });
   } catch (error) {
-    console.error('🔍 HADITH SEARCH DEBUG: Error occurred in GETHandler:', error);
-    console.error('🔍 HADITH SEARCH DEBUG: Error stack:', error instanceof Error ? error.stack : 'No stack trace');
-    console.error('🔍 HADITH SEARCH DEBUG: Error name:', error instanceof Error ? error.name : 'Unknown error type');
+    console.error('Error fetching hadith:', error);
     return NextResponse.json(
       {
         error: error instanceof Error ? error.message : 'An error occurred while fetching hadith',

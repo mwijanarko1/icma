@@ -29,31 +29,39 @@ export function getHadithDbPath(collection: HadithCollection): string {
  */
 export function getHadithDatabase(collection: HadithCollection): Database.Database {
   const dbPath = getHadithDbPath(collection);
-  console.log('🔍 HADITH DB DEBUG: Getting database for collection:', collection);
-  console.log('🔍 HADITH DB DEBUG: Database path:', dbPath);
 
   // Ensure data directory exists
   const dataDir = path.dirname(dbPath);
-  console.log('🔍 HADITH DB DEBUG: Data directory:', dataDir);
-  console.log('🔍 HADITH DB DEBUG: Data directory exists:', fs.existsSync(dataDir));
-
   if (!fs.existsSync(dataDir)) {
-    console.log('🔍 HADITH DB DEBUG: Creating data directory');
     fs.mkdirSync(dataDir, { recursive: true });
   }
 
-  console.log('🔍 HADITH DB DEBUG: Database file exists:', fs.existsSync(dbPath));
-
   const db = new Database(dbPath);
-  console.log('🔍 HADITH DB DEBUG: Database opened successfully');
 
-  // Performance optimizations
-  db.pragma('cache_size = -2000'); // Use 2MB cache
-  db.pragma('temp_store = memory'); // Store temp tables in memory
-  db.pragma('mmap_size = 268435456'); // 256MB memory map
-  db.pragma('synchronous = NORMAL'); // Balance performance and safety
-  db.pragma('journal_mode = WAL'); // Write-Ahead Logging for better concurrency
+  // Essential pragma that works in all environments
   db.pragma('foreign_keys = ON');
+
+  // Performance optimizations - only apply in non-serverless environments
+  // Serverless environments (like AWS Lambda, Vercel) have file system restrictions
+  const isServerless = process.env.AWS_LAMBDA_FUNCTION_NAME ||
+                      process.env.VERCEL ||
+                      process.env.NETLIFY ||
+                      process.env.LAMBDA_TASK_ROOT;
+
+  if (!isServerless) {
+    try {
+      db.pragma('cache_size = -2000'); // Use 2MB cache
+      db.pragma('temp_store = memory'); // Store temp tables in memory
+      db.pragma('mmap_size = 268435456'); // 256MB memory map
+      db.pragma('synchronous = NORMAL'); // Balance performance and safety
+      db.pragma('journal_mode = WAL'); // Write-Ahead Logging for better concurrency
+      console.log('🔍 HADITH DB DEBUG: Performance optimizations applied');
+    } catch (error) {
+      console.log('🔍 HADITH DB DEBUG: Performance optimizations failed, using defaults:', error);
+    }
+  } else {
+    console.log('🔍 HADITH DB DEBUG: Skipping performance optimizations in serverless environment');
+  }
 
   // Create tables if they don't exist
   if (!tableExists(db, 'hadith')) {
@@ -100,23 +108,12 @@ export async function withHadithDatabase<T>(
   collection: HadithCollection,
   callback: (db: Database.Database) => T | Promise<T>
 ): Promise<T> {
-  console.log('🔍 HADITH DB DEBUG: Opening database for collection:', collection);
-  const dbPath = getHadithDbPath(collection);
-  console.log('🔍 HADITH DB DEBUG: Database path:', dbPath);
-
   const db = getHadithDatabase(collection);
-  console.log('🔍 HADITH DB DEBUG: Database opened successfully');
-
   try {
     const result = await callback(db);
-    console.log('🔍 HADITH DB DEBUG: Database operation completed successfully');
     return result;
-  } catch (error) {
-    console.error('🔍 HADITH DB DEBUG: Database operation failed:', error);
-    throw error;
   } finally {
     closeHadithDatabase(db);
-    console.log('🔍 HADITH DB DEBUG: Database closed');
   }
 }
 
