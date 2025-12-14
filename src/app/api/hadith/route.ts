@@ -129,9 +129,12 @@ function getMuslimSortOrder(hadithNumber: number): number {
  * GET /api/hadith?collection=bukhari&search=query
  */
 export async function GET(request: NextRequest) {
+  console.log(`[HADITH_API_DEBUG] GET request received: ${request.url}`);
+
   try {
     const searchParams = request.nextUrl.searchParams;
     const collection = searchParams.get('collection');
+    console.log(`[HADITH_API_DEBUG] Query parameters: collection=${collection}`);
     const hadithParam = searchParams.get('hadith');
     const startParam = searchParams.get('start');
     const endParam = searchParams.get('end');
@@ -154,6 +157,7 @@ export async function GET(request: NextRequest) {
     }
 
     const hadithCollection = collection as HadithCollection;
+    console.log(`[HADITH_API_DEBUG] Valid collection: ${hadithCollection}`);
 
     // Single hadith by number
     if (hadithParam) {
@@ -165,9 +169,13 @@ export async function GET(request: NextRequest) {
         );
       }
 
+      console.log(`[HADITH_API_DEBUG] Fetching single hadith: number=${hadithNumber}, collection=${hadithCollection}`);
+
       const hadith = await withHadithDatabase(hadithCollection, (db) => {
+        console.log(`[HADITH_API_DEBUG] Executing query for single hadith`);
         // Check if there are sub-versions for this hadith number
         const allVersions = db.prepare('SELECT * FROM hadith WHERE hadith_number = ? ORDER BY sub_version').all(hadithNumber) as HadithRecord[];
+        console.log(`[HADITH_API_DEBUG] Query returned ${allVersions.length} results`);
 
         // If multiple versions exist, return all of them
         // If only one version exists, return it
