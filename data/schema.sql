@@ -39,16 +39,6 @@ CREATE TABLE narrators (
   search_text TEXT -- Concatenated searchable text
 );
 
--- Alternate names and name variations
-CREATE TABLE narrator_names (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  narrator_id TEXT NOT NULL,
-  arabic_name TEXT NOT NULL,
-  english_name TEXT,
-  name_type TEXT DEFAULT 'alternate', -- 'alternate', 'nickname', 'kunya', 'title'
-  is_primary BOOLEAN DEFAULT 0,
-  FOREIGN KEY (narrator_id) REFERENCES narrators(id) ON DELETE CASCADE
-);
 
 -- Lineage information (detailed breakdown)
 CREATE TABLE narrator_lineage (
@@ -86,14 +76,6 @@ CREATE TABLE scholarly_opinions (
   FOREIGN KEY (narrator_id) REFERENCES narrators(id) ON DELETE CASCADE
 );
 
--- Reputation grades (mapped to existing system)
-CREATE TABLE narrator_reputation (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  narrator_id TEXT NOT NULL,
-  grade TEXT NOT NULL, -- E.g., "Thiqah", "Saduq", "Thiqah Thabt"
-  grade_source TEXT, -- Which scholar/source gave this grade
-  FOREIGN KEY (narrator_id) REFERENCES narrators(id) ON DELETE CASCADE
-);
 
 -- Indexes for performance
 CREATE INDEX idx_narrator_arabic_name ON narrators(primary_arabic_name);
@@ -101,12 +83,8 @@ CREATE INDEX idx_narrator_english_name ON narrators(primary_english_name);
 CREATE INDEX idx_narrator_death_year ON narrators(death_year_ah);
 CREATE INDEX idx_narrator_birth_year ON narrators(birth_year_ah);
 CREATE INDEX idx_narrator_lineage ON narrator_lineage(lineage_value);
-CREATE INDEX idx_narrator_names ON narrator_names(arabic_name);
 CREATE INDEX idx_narrator_relationships ON narrator_relationships(narrator_id, relationship_type);
 CREATE INDEX idx_scholarly_opinions ON scholarly_opinions(narrator_id, scholar_name);
-
--- Composite indexes for better search performance
-CREATE INDEX idx_narrator_names_composite ON narrator_names(narrator_id, arabic_name);
 CREATE INDEX idx_narrator_death_years ON narrators(death_year_ah, death_year_ah_alternative);
 CREATE INDEX idx_narrator_search_names ON narrators(primary_arabic_name, primary_english_name, full_name_arabic);
 
@@ -156,13 +134,11 @@ END;
 
 -- View for easy narrator lookup (combines main data with relationships)
 CREATE VIEW narrator_details AS
-SELECT 
+SELECT
   n.*,
-  GROUP_CONCAT(DISTINCT nn.arabic_name) as all_arabic_names,
   GROUP_CONCAT(DISTINCT nl.lineage_value) as all_lineages,
   COUNT(DISTINCT rel.id) as relationship_count
 FROM narrators n
-LEFT JOIN narrator_names nn ON n.id = nn.narrator_id
 LEFT JOIN narrator_lineage nl ON n.id = nl.narrator_id
 LEFT JOIN narrator_relationships rel ON n.id = rel.narrator_id
 GROUP BY n.id;
