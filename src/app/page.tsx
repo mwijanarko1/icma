@@ -131,18 +131,6 @@ export default function HomePage() {
         color: '#000000',
       }}
     >
-      {/* Animated Background Elements */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-        <div 
-          className="absolute top-1/4 -left-20 w-96 h-96 rounded-full opacity-10 blur-3xl transition-transform duration-[20s] ease-in-out"
-          style={{ backgroundColor: '#000000' }}
-        />
-        <div 
-          className="absolute bottom-1/4 -right-20 w-96 h-96 rounded-full opacity-10 blur-3xl transition-transform duration-[25s] ease-in-out"
-          style={{ backgroundColor: '#000000' }}
-        />
-      </div>
-
       {/* Content Container */}
       <div className="relative z-10">
         <Header />
