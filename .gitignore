@@ -27,9 +27,8 @@
 # old versions
 old/
 
-# database files (not deployed to production)
+# database files (keep JSON files for production)
 *.db
-data/*.db
 
 # debug
 npm-debug.log*

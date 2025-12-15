@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "import-direct": "tsx scripts/import-narrators-direct.ts",
-    "import-hadith": "tsx data/import-hadith.ts"
+    "export-hadith-json": "tsx scripts/export-hadith-to-json.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
