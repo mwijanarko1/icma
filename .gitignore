@@ -27,9 +27,6 @@
 # old versions
 old/
 
-# database files (keep JSON files for production)
-*.db
-
 # debug
 npm-debug.log*
 yarn-debug.log*
