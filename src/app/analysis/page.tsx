@@ -91,7 +91,7 @@ function getInitialAnalysisState() {
         loadedSession = JSON.parse(sessionData);
         sessionStorage.removeItem("loadAnalysisSession"); // Clear after loading
       } catch (e) {
-        console.error("❌ Error parsing session data:", e);
+        console.error("Error parsing session data:", e);
       }
     }
   }
@@ -150,7 +150,7 @@ export default function AnalysisPage() {
   // Manual save function
   const handleSaveAnalysis = async () => {
     if (!user) {
-      alert("You must be logged in to save analysis sessions");
+      console.error("Cannot save analysis session: user not logged in");
       return;
     }
 
@@ -182,7 +182,6 @@ export default function AnalysisPage() {
       }
     } catch (error) {
       console.error("Error saving analysis session:", error);
-      alert(`Failed to save analysis session: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsSaving(false);
     }

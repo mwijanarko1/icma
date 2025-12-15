@@ -276,7 +276,7 @@ export function createChainService(
   const handleMatchNarrators = async (chainId: string, chainOverride?: Chain) => {
     const chain = chainOverride || state.chains.find((c: Chain) => c.id === chainId);
     if (!chain || chain.narrators.length === 0) {
-      alert('No narrators in this chain to match.');
+      console.warn('No narrators in this chain to match');
       return;
     }
 
@@ -326,7 +326,7 @@ export function createChainService(
         dispatch(actions.setAcceptedMatchesCount(0));
         dispatch(actions.setShowMatchConfirmationModal(true));
       } else {
-        alert('No narrators were matched to the database.');
+        console.warn('No narrators were matched to the database');
       }
     } catch (error) {
       console.error('Error matching narrators:', error);
@@ -347,7 +347,6 @@ export function createChainService(
       }
 
       dispatch(actions.setError(errorMessage));
-      alert(errorMessage);
     } finally {
       dispatch(actions.setIsLoading(false));
     }
@@ -440,13 +439,13 @@ export function createChainService(
 
   const handleMatchAllNarrators = async () => {
     if (state.chains.length === 0) {
-      alert('No chains to match narrators for.');
+      console.warn('No chains to match narrators for');
       return;
     }
 
     const chainsWithNarrators = state.chains.filter(c => c.narrators.length > 0);
     if (chainsWithNarrators.length === 0) {
-      alert('No chains have narrators to match.');
+      console.warn('No chains have narrators to match');
       return;
     }
 
@@ -510,15 +509,14 @@ export function createChainService(
         }
       } else {
         if (errors.length > 0) {
-          alert(`No narrators were matched.\n\nErrors encountered:\n${errors.join('\n')}`);
+          console.warn('No narrators were matched, errors encountered:', errors);
         } else {
-          alert('No narrators were matched to the database.');
+          console.warn('No narrators were matched to the database');
         }
       }
     } catch (error) {
       console.error('Error matching all narrators:', error);
       dispatch(actions.setError(error instanceof Error ? error.message : 'Failed to match narrators'));
-      alert(`Error matching narrators: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       dispatch(actions.setIsLoading(false));
     }
@@ -658,7 +656,6 @@ export function createChainService(
       dispatch(actions.setLibraryChains(chains));
     } catch (error) {
       console.error('Error fetching library chains:', error);
-      alert(error instanceof Error ? error.message : 'Failed to load library chains. Please try again.');
     } finally {
       dispatch(actions.setIsLoadingLibrary(false));
     }
@@ -681,7 +678,6 @@ export function createChainService(
       }
     } catch (error) {
       console.error('Error loading chain from library:', error);
-      alert(error instanceof Error ? error.message : 'Failed to load chain from library. Please try again.');
     }
   };
 

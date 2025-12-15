@@ -347,7 +347,6 @@ export function useHadithAnalyzer(initialCollection?: string | null) {
       saveSessionName(newName);
     } catch (error) {
       console.error("Error renaming session:", error);
-      alert("Failed to rename session. Please try again.");
     }
   };
 

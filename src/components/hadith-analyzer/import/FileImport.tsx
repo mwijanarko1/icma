@@ -62,7 +62,7 @@ export function FileImport({ onImport, onBack }: FileImportProps) {
           showVisualization: jsonData.showVisualization || false
         });
       } catch (error) {
-        alert(`Import failed: ${error instanceof Error ? error.message : 'Invalid JSON file'}`);
+        console.error('Import failed:', error instanceof Error ? error.message : 'Invalid JSON file');
       }
     };
     reader.readAsText(file);

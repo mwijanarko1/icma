@@ -196,7 +196,7 @@ export async function GET(request: NextRequest) {
           const subVersion = hadithNumMatch[2] || null;
 
           const hadith = subVersion
-            ? [getHadithByNumber(hadithCollection, baseNumber, subVersion)].filter(Boolean)
+            ? [getHadithByNumber(hadithCollection, baseNumber, subVersion)].filter((h): h is HadithRecord => h !== null)
             : getHadithVersions(hadithCollection, baseNumber);
 
           return NextResponse.json({

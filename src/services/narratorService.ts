@@ -120,11 +120,10 @@ export function createNarratorService(
         dispatch(actions.setSelectedNarratorDetails(data.narrator));
         dispatch(actions.setShowNarratorModal(true));
       } else {
-        alert('Failed to load narrator details');
+        console.error('Failed to load narrator details');
       }
     } catch (error) {
       console.error('Error fetching narrator details:', error);
-      alert('Error loading narrator details');
     } finally {
       dispatch(actions.setIsLoadingNarratorDetails(false));
     }
@@ -474,7 +473,6 @@ export function createNarratorService(
       dispatch(actions.setNarratorSearchOffset(offset));
     } catch (error) {
       console.error('Error searching narrators:', error);
-      alert(error instanceof Error ? error.message : 'Failed to search narrators. Please try again.');
     } finally {
       dispatch(actions.setIsSearchingNarrators(false));
     }
@@ -488,7 +486,6 @@ export function createNarratorService(
       dispatch(actions.setShowNarratorDetailsModal(true));
     } catch (error) {
       console.error('Error fetching narrator:', error);
-      alert(error instanceof Error ? error.message : 'Failed to load narrator details. Please try again.');
     } finally {
       dispatch(actions.setIsLoadingNarratorData(false));
     }

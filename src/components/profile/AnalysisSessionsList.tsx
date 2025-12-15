@@ -60,7 +60,7 @@ export default function AnalysisSessionsList() {
         router.push("/analysis");
       }, 100);
     } catch (error) {
-      console.error("❌ Error loading session:", error);
+      console.error("Error loading session:", error);
     } finally {
       setLoadingSessionId(null);
     }

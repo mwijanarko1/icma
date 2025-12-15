@@ -193,7 +193,6 @@ export default function HadithAnalyzer({ initialCollection }: HadithAnalyzerProp
                   dispatch(actions.setShowConfirmationModal(true));
                 } catch (error) {
                   console.error("Error saving session:", error);
-                  alert("Failed to save session. Starting new hadith anyway.");
                   // Show final confirmation even if save failed
                   dispatch(actions.setConfirmationModalConfig({
                     title: "Confirm New Hadith",
