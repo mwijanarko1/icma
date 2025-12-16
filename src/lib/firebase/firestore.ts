@@ -47,16 +47,20 @@ const analysisSessionsCollection = collection(db, "analysisSessions");
 const usersCollection = collection(db, "users");
 
 // User Profile Operations
+// Note: These functions are kept for potential future use, but user profiles are not currently required
+// Firebase Auth already provides all necessary user information (uid, email, displayName, photoURL)
 export const createUserProfile = async (user: { uid: string; email: string | null; displayName: string | null; photoURL: string | null }): Promise<void> => {
   const userRef = doc(usersCollection, user.uid);
+  const now = Timestamp.now();
+
   const userProfile: Omit<UserProfile, "userId"> = {
     email: user.email || "",
     displayName: user.displayName,
     photoURL: user.photoURL,
-    createdAt: serverTimestamp() as Timestamp,
-    updatedAt: serverTimestamp() as Timestamp
+    createdAt: now,
+    updatedAt: now
   };
-  
+
   await setDoc(userRef, userProfile, { merge: true });
 };
 

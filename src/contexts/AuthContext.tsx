@@ -2,8 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { User } from "firebase/auth";
-import { onAuthStateChange, getCurrentUser } from "@/lib/firebase/auth";
-import { createUserProfile } from "@/lib/firebase/firestore";
+import { onAuthStateChange } from "@/lib/firebase/auth";
 
 interface AuthContextType {
   user: User | null;
@@ -28,23 +27,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChange(async (user) => {
-      if (user) {
-        setUser(user);
-        // Create or update user profile
-        try {
-          await createUserProfile({
-            uid: user.uid,
-            email: user.email,
-            displayName: user.displayName,
-            photoURL: user.photoURL,
-          });
-        } catch (error) {
-          console.error("Error creating user profile:", error);
-        }
-      } else {
-        setUser(null);
-      }
+    const unsubscribe = onAuthStateChange((user) => {
+      setUser(user);
       setLoading(false);
     });
 
