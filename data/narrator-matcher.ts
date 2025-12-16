@@ -384,32 +384,6 @@ export function findNarratorByName(arabicName: string, englishName?: string): Ma
       death_year_ce: number | null;
     }>;
     
-    // Get alternate names (both Arabic and English)
-    const alternateNames = db.prepare(`
-      SELECT narrator_id, arabic_name, english_name
-      FROM narrator_names
-    `).all() as Array<{ 
-      narrator_id: string; 
-      arabic_name: string | null;
-      english_name: string | null;
-    }>;
-    
-    const alternateArabicMap = new Map<string, string[]>();
-    const alternateEnglishMap = new Map<string, string[]>();
-    for (const alt of alternateNames) {
-      if (alt.arabic_name) {
-        if (!alternateArabicMap.has(alt.narrator_id)) {
-          alternateArabicMap.set(alt.narrator_id, []);
-        }
-        alternateArabicMap.get(alt.narrator_id)!.push(alt.arabic_name);
-      }
-      if (alt.english_name) {
-        if (!alternateEnglishMap.has(alt.narrator_id)) {
-          alternateEnglishMap.set(alt.narrator_id, []);
-        }
-        alternateEnglishMap.get(alt.narrator_id)!.push(alt.english_name);
-      }
-    }
     
     // Calculate similarity for each narrator
     const matches: MatchedNarrator[] = [];
@@ -436,15 +410,6 @@ export function findNarratorByName(arabicName: string, englishName?: string): Ma
           }
         }
         
-        // Check alternate Arabic names
-        const alternates = alternateArabicMap.get(narrator.id) || [];
-        for (const altName of alternates) {
-          const altSim = calculateSimilarity(arabicName, altName);
-          if (altSim > maxSimilarity) {
-            maxSimilarity = altSim;
-            matchedName = altName;
-          }
-        }
         
         // Check kunya if provided
         if (narrator.kunya) {
@@ -479,15 +444,6 @@ export function findNarratorByName(arabicName: string, englishName?: string): Ma
           }
         }
         
-        // Check alternate English names
-        const alternates = alternateEnglishMap.get(narrator.id) || [];
-        for (const altName of alternates) {
-          const altSim = calculateEnglishSimilarity(searchName, altName);
-          if (altSim > maxSimilarity) {
-            maxSimilarity = altSim;
-            matchedName = altName;
-          }
-        }
       }
       
       // Also check if Arabic name matches English search (cross-language matching)
