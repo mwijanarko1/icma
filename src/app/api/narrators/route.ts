@@ -524,6 +524,22 @@ const GETHandler = async (request: NextRequest) => {
         FROM narrators n
       `).all() as NarratorRow[];
 
+      const allPrimaryNames = db.prepare(`
+        SELECT id as narrator_id, primary_arabic_name, primary_english_name
+        FROM narrators
+      `).all() as Array<{ narrator_id: string; primary_arabic_name: string; primary_english_name?: string | null }>;
+
+      // Create a map of primary names for quick lookup
+      const alternateMap = new Map<string, Array<{ arabic_name: string; english_name?: string | null }>>();
+      for (const name of allPrimaryNames) {
+        if (!alternateMap.has(name.narrator_id)) {
+          alternateMap.set(name.narrator_id, []);
+        }
+        alternateMap.get(name.narrator_id)!.push({
+          arabic_name: name.primary_arabic_name,
+          english_name: name.primary_english_name
+        });
+      }
 
       // Filter narrators in memory using normalized comparison
       // All normalized search terms must match (AND logic)
@@ -540,6 +556,12 @@ const GETHandler = async (request: NextRequest) => {
           narrator.search_text || '',
         ];
 
+        // Add alternate names
+        const alternates = alternateMap.get(narrator.id) || [];
+        for (const alt of alternates) {
+          if (alt.arabic_name) searchableFields.push(alt.arabic_name);
+          if (alt.english_name) searchableFields.push(alt.english_name);
+        }
 
         // Normalize all searchable fields appropriately
         const normalizedFields = searchableFields.map(field => {

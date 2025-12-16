@@ -134,7 +134,7 @@ END;
 
 -- View for easy narrator lookup (combines main data with relationships)
 CREATE VIEW narrator_details AS
-SELECT
+SELECT 
   n.*,
   GROUP_CONCAT(DISTINCT nl.lineage_value) as all_lineages,
   COUNT(DISTINCT rel.id) as relationship_count

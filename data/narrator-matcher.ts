@@ -384,6 +384,32 @@ export function findNarratorByName(arabicName: string, englishName?: string): Ma
       death_year_ce: number | null;
     }>;
     
+    // Get primary names (Arabic and English) from narrators table
+    const primaryNames = db.prepare(`
+      SELECT id as narrator_id, primary_arabic_name, primary_english_name
+      FROM narrators
+    `).all() as Array<{
+      narrator_id: string;
+      primary_arabic_name: string | null;
+      primary_english_name: string | null;
+    }>;
+
+    const alternateArabicMap = new Map<string, string[]>();
+    const alternateEnglishMap = new Map<string, string[]>();
+    for (const name of primaryNames) {
+      if (name.primary_arabic_name) {
+        if (!alternateArabicMap.has(name.narrator_id)) {
+          alternateArabicMap.set(name.narrator_id, []);
+        }
+        alternateArabicMap.get(name.narrator_id)!.push(name.primary_arabic_name);
+      }
+      if (name.primary_english_name) {
+        if (!alternateEnglishMap.has(name.narrator_id)) {
+          alternateEnglishMap.set(name.narrator_id, []);
+        }
+        alternateEnglishMap.get(name.narrator_id)!.push(name.primary_english_name);
+      }
+    }
     
     // Calculate similarity for each narrator
     const matches: MatchedNarrator[] = [];
@@ -410,6 +436,15 @@ export function findNarratorByName(arabicName: string, englishName?: string): Ma
           }
         }
         
+        // Check alternate Arabic names
+        const alternates = alternateArabicMap.get(narrator.id) || [];
+        for (const altName of alternates) {
+          const altSim = calculateSimilarity(arabicName, altName);
+          if (altSim > maxSimilarity) {
+            maxSimilarity = altSim;
+            matchedName = altName;
+          }
+        }
         
         // Check kunya if provided
         if (narrator.kunya) {
@@ -444,6 +479,15 @@ export function findNarratorByName(arabicName: string, englishName?: string): Ma
           }
         }
         
+        // Check alternate English names
+        const alternates = alternateEnglishMap.get(narrator.id) || [];
+        for (const altName of alternates) {
+          const altSim = calculateEnglishSimilarity(searchName, altName);
+          if (altSim > maxSimilarity) {
+            maxSimilarity = altSim;
+            matchedName = altName;
+          }
+        }
       }
       
       // Also check if Arabic name matches English search (cross-language matching)
@@ -507,10 +551,7 @@ function getNarratorById(db: any, narratorId: string): Narrator | null {
       SELECT * FROM narrator_lineage WHERE narrator_id = ?
     `).all(narratorId) as any[];
     
-    // Get reputation grades
-    const reputationGrades = db.prepare(`
-      SELECT * FROM narrator_reputation WHERE narrator_id = ?
-    `).all(narratorId) as any[];
+    // Note: Reputation grades are now handled through scholarly_opinions
     
     return {
       id: narrator.id,
@@ -552,11 +593,6 @@ function getNarratorById(db: any, narratorId: string): Narrator | null {
         narratorId: lin.narrator_id,
         lineageType: lin.lineage_type as any,
         lineageValue: lin.lineage_value,
-      })),
-      reputationGrades: reputationGrades.map((rep: any) => ({
-        narratorId: rep.narrator_id,
-        grade: rep.grade,
-        gradeSource: rep.grade_source || undefined,
       })),
     };
   } catch (error) {

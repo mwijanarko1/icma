@@ -27,7 +27,7 @@ data/
 
 The database uses a normalized structure with the following main tables:
 
-- **narrators**: Core narrator information
+- **narrators**: Core narrator information (includes primary Arabic and English names)
 - **narrator_lineage**: Detailed lineage breakdown
 - **narrator_relationships**: Teacher-student and other relationships
 - **scholarly_opinions**: Al-Jarh wa al-Ta'dil entries
@@ -70,9 +70,11 @@ GET /api/narrators/[id]
 ```
 
 Returns full details including:
+- Alternate names
 - Lineage information
 - Relationships
 - Scholarly opinions
+- Reputation grades
 
 ### Direct Database Access
 

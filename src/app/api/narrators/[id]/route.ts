@@ -62,11 +62,6 @@ export async function GET(
       lineage_value: string;
     }
 
-    interface ReputationRow {
-      narrator_id: string;
-      grade: string;
-      grade_source?: string | null;
-    }
 
     const narrator = db.prepare('SELECT * FROM narrators WHERE id = ?').get(narratorId) as NarratorRow | undefined;
 
@@ -89,8 +84,7 @@ export async function GET(
     // Get lineages
     const lineages = db.prepare('SELECT * FROM narrator_lineage WHERE narrator_id = ?').all(narratorId) as LineageRow[];
     
-    // Get reputation grades
-    const reputationGrades = db.prepare('SELECT * FROM narrator_reputation WHERE narrator_id = ?').all(narratorId) as ReputationRow[];
+    // Note: Reputation grades are now handled through scholarly_opinions (jarh/ta'dil classifications)
 
     const fullNarrator: Narrator = {
       id: narrator.id,
@@ -132,11 +126,6 @@ export async function GET(
         narratorId: lin.narrator_id,
         lineageType: lin.lineage_type as 'tribal' | 'geographical' | 'honorific',
         lineageValue: lin.lineage_value,
-      })),
-      reputationGrades: reputationGrades.map(rep => ({
-        narratorId: rep.narrator_id,
-        grade: rep.grade,
-        gradeSource: rep.grade_source || undefined,
       })),
     };
 
