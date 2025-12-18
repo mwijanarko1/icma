@@ -109,6 +109,7 @@ export interface HadithAnalyzerState {
     confirmText?: string;
     cancelText?: string;
     onConfirm: () => void;
+    onCancel?: () => void;
   } | null;
 
   // Session name input modal

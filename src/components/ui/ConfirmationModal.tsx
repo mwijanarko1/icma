@@ -6,6 +6,7 @@ export type ConfirmationModalProps = {
   isOpen: boolean;
   onClose: () => void;
   onConfirm: () => void;
+  onCancel?: () => void;
   title?: string;
   message: string;
   confirmText?: string;
@@ -16,6 +17,7 @@ export default function ConfirmationModal({
   isOpen,
   onClose,
   onConfirm,
+  onCancel,
   title = "Confirm",
   message,
   confirmText = "Yes",
@@ -27,7 +29,11 @@ export default function ConfirmationModal({
   };
 
   const handleCancel = () => {
-    onClose();
+    if (onCancel) {
+      onCancel();
+    } else {
+      onClose();
+    }
   };
 
   return (

@@ -156,96 +156,81 @@ export default function HadithAnalyzer({ initialCollection }: HadithAnalyzerProp
     const hasHadithText = state.hadithText.trim().length > 0;
 
     if (hasChains || hasHadithText) {
-      // If user is authenticated, prompt to save before resetting
-      if (user) {
-        // First confirmation: Save before starting new hadith?
-        const saveBeforeNew = () => {
-          // Show session name input modal
-          dispatch(actions.setSessionNameModalConfig({
-            title: "Save Analysis",
-            message: 'Enter a name for this analysis session:',
-            defaultValue: `Chain Analysis - ${new Date().toLocaleDateString()}`,
-            onConfirm: (sessionName: string) => {
-              // Save and then show final confirmation
-              (async () => {
-                try {
-                  const mermaidCode = chains.length > 0 ? generateMermaidCode(chains) : "";
-                  await saveChainSession(
-                    user.uid,
-                    {
-                      name: sessionName,
-                      hadithText: state.hadithText,
-                      chains: chains,
-                      mermaidCode,
-                    },
-                    currentSessionId || undefined
-                  );
-                  // After saving, show final confirmation
-                  dispatch(actions.setConfirmationModalConfig({
-                    title: "Confirm New Hadith",
-                    message: 'Are you sure you want to start a new hadith? This will delete all current chains and clear all data. This action cannot be undone.',
-                    confirmText: "Yes",
-                    cancelText: "No",
-                    onConfirm: () => {
-                      handleNewHadith();
-                    }
-                  }));
-                  dispatch(actions.setShowConfirmationModal(true));
-                } catch (error) {
-                  console.error("Error saving session:", error);
-                  // Show final confirmation even if save failed
-                  dispatch(actions.setConfirmationModalConfig({
-                    title: "Confirm New Hadith",
-                    message: 'Are you sure you want to start a new hadith? This will delete all current chains and clear all data. This action cannot be undone.',
-                    confirmText: "Yes",
-                    cancelText: "No",
-                    onConfirm: () => {
-                      handleNewHadith();
-                    }
-                  }));
-                  dispatch(actions.setShowConfirmationModal(true));
-                }
-              })();
-            },
-            onCancel: () => {
-              // User cancelled save, show final confirmation
-              dispatch(actions.setConfirmationModalConfig({
-                title: "Confirm New Hadith",
-                message: 'Are you sure you want to start a new hadith? This will delete all current chains and clear all data. This action cannot be undone.',
-                confirmText: "Yes",
-                cancelText: "No",
-                onConfirm: () => {
+      // Show single dialog with Clear and Save options
+      dispatch(actions.setConfirmationModalConfig({
+        title: "New Hadith Analysis",
+        message: 'This will clear the current analysis. How would you like to proceed?',
+        confirmText: "Save Current Session",
+        cancelText: "Clear",
+        onConfirm: async () => {
+          // Save current session first
+          if (user) {
+            // If session already has a name, save directly
+            if (currentSessionName) {
+              try {
+                const mermaidCode = chains.length > 0 ? generateMermaidCode(chains) : "";
+                await saveChainSession(
+                  user.uid,
+                  {
+                    name: currentSessionName,
+                    hadithText: state.hadithText,
+                    chains: chains,
+                    mermaidCode,
+                  },
+                  currentSessionId || undefined
+                );
+                // After saving, clear the analysis
+                handleNewHadith();
+              } catch (error) {
+                console.error("Error saving session:", error);
+                // Still clear even if save failed
+                handleNewHadith();
+              }
+            } else {
+              // No existing name, show modal to get a name
+              dispatch(actions.setSessionNameModalConfig({
+                title: "Save Analysis",
+                message: 'Enter a name for this analysis session:',
+                defaultValue: `Chain Analysis - ${new Date().toLocaleDateString()}`,
+                onConfirm: async (sessionName: string) => {
+                  try {
+                    const mermaidCode = chains.length > 0 ? generateMermaidCode(chains) : "";
+                    await saveChainSession(
+                      user.uid,
+                      {
+                        name: sessionName,
+                        hadithText: state.hadithText,
+                        chains: chains,
+                        mermaidCode,
+                      },
+                      currentSessionId || undefined
+                    );
+                    // After saving, clear the analysis
+                    handleNewHadith();
+                  } catch (error) {
+                    console.error("Error saving session:", error);
+                    // Still clear even if save failed
+                    handleNewHadith();
+                  }
+                },
+                onCancel: () => {
+                  // User cancelled save, just clear
                   handleNewHadith();
                 }
               }));
-              dispatch(actions.setShowConfirmationModal(true));
+              dispatch(actions.setShowSessionNameModal(true));
             }
-          }));
-          dispatch(actions.setShowSessionNameModal(true));
-        };
-
-        // Show first confirmation: Save before new hadith?
-        dispatch(actions.setConfirmationModalConfig({
-          title: "Save Analysis",
-          message: 'Do you want to save this analysis before starting a new hadith?',
-          confirmText: "Yes",
-          cancelText: "No",
-          onConfirm: saveBeforeNew
-        }));
-        dispatch(actions.setShowConfirmationModal(true));
-      } else {
-        // Not authenticated, just show final confirmation
-        dispatch(actions.setConfirmationModalConfig({
-          title: "Confirm New Hadith",
-          message: 'Are you sure you want to start a new hadith? This will delete all current chains and clear all data. This action cannot be undone.',
-          confirmText: "Yes",
-          cancelText: "No",
-          onConfirm: () => {
+          } else {
+            // Not authenticated, just clear
             handleNewHadith();
           }
-        }));
-        dispatch(actions.setShowConfirmationModal(true));
-      }
+        },
+        onCancel: () => {
+          // Clear without saving
+          handleNewHadith();
+        }
+      }));
+      dispatch(actions.setShowConfirmationModal(true));
     } else {
       // No data to lose, just reset
       handleNewHadith();
@@ -663,6 +648,7 @@ export default function HadithAnalyzer({ initialCollection }: HadithAnalyzerProp
           isOpen={showConfirmationModal}
           onClose={() => dispatch(actions.setShowConfirmationModal(false))}
           onConfirm={confirmationModalConfig.onConfirm}
+          onCancel={confirmationModalConfig.onCancel}
           title={confirmationModalConfig.title}
           message={confirmationModalConfig.message}
           confirmText={confirmationModalConfig.confirmText}
