@@ -71,7 +71,7 @@ A comprehensive web application for Islamic hadith research featuring ICMA metho
 
 ### Prerequisites
 - Node.js 18+
-- npm or yarn package manager
+- [Bun](https://bun.sh) package manager
 
 ### Installation
 
@@ -83,7 +83,7 @@ A comprehensive web application for Islamic hadith research featuring ICMA metho
 
 2. **Install dependencies**
    ```bash
-   npm install
+   bun install
    ```
 
 3. **Set up environment variables**
@@ -94,7 +94,7 @@ A comprehensive web application for Islamic hadith research featuring ICMA metho
 
 4. **Run the development server**
    ```bash
-   npm run dev
+   bun run dev
    ```
 
 5. **Open your browser**
